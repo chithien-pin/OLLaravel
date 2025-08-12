@@ -53,7 +53,7 @@ class PendingMessageController extends Controller
             ->where('status', 'pending')
             ->count();
 
-        $maxPending = $appData->max_pending_messages_per_user ?? 3;
+        $maxPending = $appData->max_pending_messages_per_user ?? 5;
         if ($existingPendingCount >= $maxPending) {
             return response()->json([
                 'status' => false,

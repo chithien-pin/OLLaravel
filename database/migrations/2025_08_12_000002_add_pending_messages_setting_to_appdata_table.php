@@ -15,7 +15,7 @@ class AddPendingMessagesSettingToAppdataTable extends Migration
     {
         Schema::table('appdata', function (Blueprint $table) {
             $table->boolean('allow_free_pending_messages')->default(true)->after('live_chat_price');
-            $table->integer('max_pending_messages_per_user')->default(3)->after('allow_free_pending_messages');
+            $table->integer('max_pending_messages_per_user')->default(5)->after('allow_free_pending_messages');
         });
     }
 
