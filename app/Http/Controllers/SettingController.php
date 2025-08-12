@@ -246,6 +246,12 @@ class SettingController extends Controller
       if ($request->has('live_chat_price')) {
          $setting->live_chat_price = $request->live_chat_price;
       }
+      if ($request->has('allow_free_pending_messages')) {
+         $setting->allow_free_pending_messages = $request->allow_free_pending_messages;
+      }
+      if ($request->has('max_pending_messages_per_user')) {
+         $setting->max_pending_messages_per_user = $request->max_pending_messages_per_user;
+      }
       if ($request->has('post_description_limit')) {
          $setting->post_description_limit = $request->post_description_limit;
       }
