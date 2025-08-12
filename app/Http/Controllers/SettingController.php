@@ -243,6 +243,9 @@ class SettingController extends Controller
       if ($request->has('live_watching_price')) {
          $setting->live_watching_price = $request->live_watching_price;
       }
+      if ($request->has('live_chat_price')) {
+         $setting->live_chat_price = $request->live_chat_price;
+      }
       if ($request->has('post_description_limit')) {
          $setting->post_description_limit = $request->post_description_limit;
       }

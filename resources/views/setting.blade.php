@@ -68,6 +68,12 @@
                     <input type="number" class="form-control" name="live_watching_price" value="{{ $appdata->live_watching_price }}" pattern="[0-9]" required>
                 </div>
                 <div class="form-group col-md-3">
+                    <label for="">Live Chat Price (per message)</label>
+                    <input type="number" class="form-control" name="live_chat_price" value="{{ $appdata->live_chat_price ?? 10 }}" pattern="[0-9]" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-3">
                     <label for="">{{ __('app.new_user_free_coins') }}</label>
                     <input type="number" class="form-control" name="new_user_free_coins" value="{{ $appdata->new_user_free_coins }}" required>
                 </div>
