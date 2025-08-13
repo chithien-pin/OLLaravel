@@ -17,6 +17,7 @@
                 <thead>
                     <tr>
                         <th> {{ __('app.Image') }}</th>
+                        <th> {{ __('app.Name') }}</th>
                         <th> {{ __('app.Price') }}</th>
                         <th width="200px" style="text-align: right;"> {{ __('app.Action') }}</th>
                     </tr>
@@ -38,6 +39,10 @@
                     <form action="" method="post" enctype="multipart/form-data" class="add_category" id="addForm"
                         autocomplete="off">
                         @csrf
+                        <div class="form-group">
+                            <label> {{ __('app.Name') }}</label>
+                            <input type="text" name="name" class="form-control" placeholder="Enter gift name (e.g., Rose, Heart, Diamond)" required>
+                        </div>
                         <div class="form-group">
                             <div class="mb-3">
                                 <label for="gift_image" class="form-label">{{ __('Image') }}</label>
@@ -72,6 +77,10 @@
                         @csrf
                         <input type="hidden" class="form-control" id="editGiftId" name="id" value="">
                         <img height="150" width="150" class="rounded mb-3" id="gift-img-view" src="" alt="">
+                        <div class="form-group">
+                            <label> {{ __('app.Name') }}</label>
+                            <input id="edit_gift_name" type="text" name="name" class="form-control" placeholder="Enter gift name" required>
+                        </div>
                         <div class="form-group">
                             <div class="mb-3">
                                 <label for="edit_gift_image" class="form-label">{{ __('Image') }}</label>

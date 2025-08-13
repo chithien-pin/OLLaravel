@@ -71,24 +71,57 @@ class SettingController extends Controller
 
    function updateGift(Request $request)
    {
+      $validator = Validator::make($request->all(), [
+         'id' => 'required|integer|exists:gifts,id',
+         'name' => 'required|string|max:255',
+         'coin_price' => 'required|integer|min:1',
+         'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+      ]);
+
+      if ($validator->fails()) {
+         return response()->json([
+            'status' => false,
+            'message' => 'Validation failed',
+            'errors' => $validator->errors()
+         ], 400);
+      }
+
       $gift = Gifts::where('id', $request->id)->first();
+      $gift->name = $request->name;
       $gift->coin_price = $request->coin_price;
+      
       if ($request->has('image')) {
          GlobalFunction::deleteFile($gift->image);
-         
          $gift->image = GlobalFunction::saveFileAndGivePath($request->image);
       }
+      
       $gift->save();
 
       return response()->json([
          'status' => true,
          'message' => 'Gift Update Successfully',
+         'data' => $gift,
       ]);
    }
 
    function addGift(Request $request)
    {
+      $validator = Validator::make($request->all(), [
+         'name' => 'required|string|max:255',
+         'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+         'coin_price' => 'required|integer|min:1'
+      ]);
+
+      if ($validator->fails()) {
+         return response()->json([
+            'status' => false,
+            'message' => 'Validation failed',
+            'errors' => $validator->errors()
+         ], 400);
+      }
+
       $gift = new Gifts();
+      $gift->name = $request->name;
       $gift->image = GlobalFunction::saveFileAndGivePath($request->image);
       $gift->coin_price = $request->coin_price;
       $gift->save();
@@ -121,7 +154,8 @@ class SettingController extends Controller
 
       $columns = array(
          0 => 'id',
-         1 => 'coin_price'
+         1 => 'name',
+         2 => 'coin_price'
       );
 
       $limit = $request->input('length');
@@ -137,22 +171,25 @@ class SettingController extends Controller
             ->get();
       } else {
          $search = $request->input('search.value');
-         $result =  Gifts::Where('coin_price', 'LIKE', "%{$search}%")
+         $result =  Gifts::Where('name', 'LIKE', "%{$search}%")
+            ->orWhere('coin_price', 'LIKE', "%{$search}%")
             ->offset($start)
             ->limit($limit)
             ->orderBy($order, $dir)
             ->get();
-         $totalFiltered = Gifts::where('coin_price', 'LIKE', "%{$search}%")
+         $totalFiltered = Gifts::where('name', 'LIKE', "%{$search}%")
+            ->orWhere('coin_price', 'LIKE', "%{$search}%")
             ->count();
       }
       $data = array();
       foreach ($result as $item) {
 
-         $image = '<img src="public/storage/' . $item->image . '" width="50" height="50">';
-         $imgUrl = env('image') . $item->image;
+         $image = '<img src="storage/' . $item->image . '" width="50" height="50">';
+         $imgUrl = url('storage/' . $item->image);
 
          $action = '<a data-img="'.$imgUrl.'" 
                      data-price="'.$item->coin_price.'"
+                     data-name="'.$item->name.'"
                      rel="' . $item->id . '" 
                      class="btn btn-success edit text-white mr-2">
                      Edit
@@ -164,6 +201,7 @@ class SettingController extends Controller
 
          $data[] = array(
             $image,
+            $item->name ?? 'N/A',
             $item->coin_price,
             $action
          );

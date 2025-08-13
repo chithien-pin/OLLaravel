@@ -153,7 +153,7 @@ class GlobalFunction extends Model
     public static function saveFileAndGivePath($file)
     {
         if ($file != null) {
-            $path = $file->store('uploads');
+            $path = $file->store('uploads', 'public');
             return $path;
         } else {
             return null;

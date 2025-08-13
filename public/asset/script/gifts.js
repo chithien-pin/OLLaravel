@@ -14,7 +14,7 @@ $(document).ready(function () {
         aaSorting: [[0, "desc"]],
         columnDefs: [
             {
-                targets: [0, 1, 2],
+                targets: [0, 1, 2, 3],
                 orderable: false,
             },
         ],
@@ -73,10 +73,12 @@ $(document).ready(function () {
         var id = $(this).attr("rel");
         var img = $(this).data("img");
         var price = $(this).data("price");
+        var name = $(this).data("name");
 
         $("#editGiftId").val(id);
         $("#gift-img-view").attr("src", img);
         $("#edit_coin_price").val(price);
+        $("#edit_gift_name").val(name);
         $("#editGift").modal("show");
     });
 

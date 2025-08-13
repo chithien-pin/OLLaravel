@@ -9,4 +9,10 @@ class Gifts extends Model
 {
     use HasFactory;
     public $table = "gifts";
+    
+    protected $fillable = [
+        'name',
+        'image',
+        'coin_price'
+    ];
 }
