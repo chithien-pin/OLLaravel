@@ -47,19 +47,7 @@ class PendingMessageController extends Controller
             ], 403);
         }
 
-        // Check if user has reached max pending messages for this live session
-        $existingPendingCount = PendingMessage::where('sender_user_id', $senderId)
-            ->where('live_session_id', $request->live_session_id)
-            ->where('status', 'pending')
-            ->count();
-
-        $maxPending = $appData->max_pending_messages_per_user ?? 5;
-        if ($existingPendingCount >= $maxPending) {
-            return response()->json([
-                'status' => false,
-                'message' => "You can only have {$maxPending} pending messages at a time"
-            ], 429);
-        }
+        // No limit on pending messages - users can send unlimited pending messages
 
         // Create pending message
         $pendingMessage = PendingMessage::create([
