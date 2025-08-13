@@ -3,6 +3,7 @@
 use App\Http\Controllers\DiamondPackController;
 use App\Http\Controllers\InterestController;
 use App\Http\Controllers\LiveApplicationController;
+use App\Http\Controllers\LiveStreamChatController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PendingMessageController;
@@ -128,3 +129,10 @@ Route::get('getMyPendingMessages/{liveSessionId}', [PendingMessageController::cl
 Route::post('approveMessage/{messageId}', [PendingMessageController::class, 'approveMessage'])->middleware('checkHeader');
 Route::post('rejectMessage/{messageId}', [PendingMessageController::class, 'rejectMessage'])->middleware('checkHeader');
 Route::get('getPendingMessagesCount/{liveSessionId}', [PendingMessageController::class, 'getPendingMessagesCount'])->middleware('checkHeader');
+
+/*|--------------------------------------------------------------------------|\n  | Live Stream Chat Notification Routes                                    |\n  |--------------------------------------------------------------------------|*/
+
+Route::post('sendDirectChatMessage', [LiveStreamChatController::class, 'sendDirectChatMessage'])->middleware('checkHeader');
+Route::post('sendViewerJoinedNotification', [LiveStreamChatController::class, 'sendViewerJoinedNotification'])->middleware('checkHeader');
+Route::post('sendApprovalNotification', [LiveStreamChatController::class, 'sendApprovalNotification'])->middleware('checkHeader');
+Route::post('sendRejectionNotification', [LiveStreamChatController::class, 'sendRejectionNotification'])->middleware('checkHeader');

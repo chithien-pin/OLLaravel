@@ -74,6 +74,26 @@ class PendingMessageController extends Controller
         // Load sender information
         $pendingMessage->load('sender');
 
+        // Send push notification to streamer about new pending message
+        $senderName = $pendingMessage->sender->fullname ?? 'Someone';
+        $title = "💌 New Pending Message";
+        $body = "$senderName sent a message waiting for approval";
+        $data = [
+            'messageType' => 'pending_message',
+            'senderName' => $senderName,
+            'messageContent' => $pendingMessage->message_content,
+            'liveSessionId' => $request->live_session_id
+        ];
+
+        $success = NotificationController::sendLiveStreamChatNotification($request->streamer_user_id, $title, $body, $data);
+
+        \Illuminate\Support\Facades\Log::info("🔥 [PENDING_MESSAGE_NOTIFICATION] Sent: " . json_encode([
+            'status' => $success,
+            'streamer_id' => $request->streamer_user_id,
+            'sender' => $senderName,
+            'message' => $pendingMessage->message_content
+        ]));
+
         return response()->json([
             'status' => true,
             'message' => 'Message sent for approval',
