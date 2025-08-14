@@ -16,14 +16,14 @@ class NotificationController extends Controller
     function pushNotificationToSingleUser(Request $request)
     {
         $client = new Client();
-        $client->setAuthConfig('gypsylive-fca27-firebase-adminsdk-fbsvc-ffcfb70ff8.json');
+        $client->setAuthConfig(base_path('firebase-credentials.json'));
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
         $client->fetchAccessTokenWithAssertion();
         $accessToken = $client->getAccessToken();
         $accessToken = $accessToken['access_token'];
 
         // Log::info($accessToken);
-        $contents = File::get(base_path('gypsylive-fca27-firebase-adminsdk-fbsvc-ffcfb70ff8.json'));
+        $contents = File::get(base_path('firebase-credentials.json'));
         $json = json_decode(json: $contents, associative: true);
 
         $url = 'https://fcm.googleapis.com/v1/projects/'.$json['project_id'].'/messages:send';
@@ -79,13 +79,13 @@ class NotificationController extends Controller
             }
 
             $client = new Client();
-            $client->setAuthConfig(base_path('gypsylive-fca27-firebase-adminsdk-fbsvc-ffcfb70ff8.json'));
+            $client->setAuthConfig(base_path('firebase-credentials.json'));
             $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
             $client->fetchAccessTokenWithAssertion();
             $accessToken = $client->getAccessToken();
             $accessToken = $accessToken['access_token'];
 
-            $contents = File::get(base_path('gypsylive-fca27-firebase-adminsdk-fbsvc-ffcfb70ff8.json'));
+            $contents = File::get(base_path('firebase-credentials.json'));
             $json = json_decode($contents, true);
 
             $url = 'https://fcm.googleapis.com/v1/projects/' . $json['project_id'] . '/messages:send';

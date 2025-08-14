@@ -94,7 +94,7 @@ class PendingMessageController extends Controller
                     'fullname' => $pendingMessage->sender->fullname,
                     'images' => $pendingMessage->sender->images
                 ],
-                'created_at' => $pendingMessage->created_at->toISOString()
+                'created_at' => $pendingMessage->created_at->toAtomString()
             ]
         ]);
     }
@@ -131,7 +131,7 @@ class PendingMessageController extends Controller
                     'images' => $message->sender->images,
                     'live' => $message->sender->live
                 ],
-                'created_at' => $message->created_at->toISOString()
+                'created_at' => $message->created_at->toAtomString()
             ];
         });
 
@@ -166,9 +166,9 @@ class PendingMessageController extends Controller
                 'message_content' => $message->message_content,
                 'message_type' => $message->message_type,
                 'status' => $message->status,
-                'created_at' => $message->created_at->toISOString(),
-                'approved_at' => $message->approved_at?->toISOString(),
-                'rejected_at' => $message->rejected_at?->toISOString()
+                'created_at' => $message->created_at->toAtomString(),
+                'approved_at' => $message->approved_at?->toAtomString(),
+                'rejected_at' => $message->rejected_at?->toAtomString()
             ];
         });
 
@@ -219,7 +219,7 @@ class PendingMessageController extends Controller
                     'images' => $pendingMessage->sender->images,
                     'live' => $pendingMessage->sender->live
                 ],
-                'approved_at' => $pendingMessage->approved_at->toISOString()
+                'approved_at' => $pendingMessage->approved_at->toAtomString()
             ]
         ]);
     }
@@ -257,7 +257,7 @@ class PendingMessageController extends Controller
             'data' => [
                 'id' => $pendingMessage->id,
                 'status' => $pendingMessage->status,
-                'rejected_at' => $pendingMessage->rejected_at->toISOString()
+                'rejected_at' => $pendingMessage->rejected_at->toAtomString()
             ]
         ]);
     }
