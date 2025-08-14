@@ -3,8 +3,10 @@
 use App\Http\Controllers\DiamondPackController;
 use App\Http\Controllers\InterestController;
 use App\Http\Controllers\LiveApplicationController;
+use App\Http\Controllers\LiveStreamChatController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\PendingMessageController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
@@ -116,3 +118,21 @@ Route::get('test', [UsersController::class, 'test'])->middleware('checkHeader');
 Route::get('deleteStoryFromWeb', [PostController::class, 'deleteStoryFromWeb'])->name('deleteStoryFromWeb');
 Route::post('storeFileGivePath', [SettingController::class, 'storeFileGivePath'])->middleware('checkHeader');
 Route::post('generateAgoraToken', [SettingController::class, 'generateAgoraToken'])->middleware('checkHeader');
+
+/*|--------------------------------------------------------------------------|
+  | Pending Messages Routes                                                  |
+  |--------------------------------------------------------------------------|*/
+
+Route::post('sendPendingMessage', [PendingMessageController::class, 'sendPendingMessage'])->middleware('checkHeader');
+Route::get('getPendingMessages/{liveSessionId}', [PendingMessageController::class, 'getPendingMessages'])->middleware('checkHeader');
+Route::get('getMyPendingMessages/{liveSessionId}', [PendingMessageController::class, 'getMyPendingMessages'])->middleware('checkHeader');
+Route::post('approveMessage/{messageId}', [PendingMessageController::class, 'approveMessage'])->middleware('checkHeader');
+Route::post('rejectMessage/{messageId}', [PendingMessageController::class, 'rejectMessage'])->middleware('checkHeader');
+Route::get('getPendingMessagesCount/{liveSessionId}', [PendingMessageController::class, 'getPendingMessagesCount'])->middleware('checkHeader');
+
+/*|--------------------------------------------------------------------------|\n  | Live Stream Chat Notification Routes                                    |\n  |--------------------------------------------------------------------------|*/
+
+Route::post('sendDirectChatMessage', [LiveStreamChatController::class, 'sendDirectChatMessage'])->middleware('checkHeader');
+Route::post('sendViewerJoinedNotification', [LiveStreamChatController::class, 'sendViewerJoinedNotification'])->middleware('checkHeader');
+Route::post('sendApprovalNotification', [LiveStreamChatController::class, 'sendApprovalNotification'])->middleware('checkHeader');
+Route::post('sendRejectionNotification', [LiveStreamChatController::class, 'sendRejectionNotification'])->middleware('checkHeader');

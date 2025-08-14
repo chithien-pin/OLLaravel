@@ -16,14 +16,14 @@ class NotificationController extends Controller
     function pushNotificationToSingleUser(Request $request)
     {
         $client = new Client();
-        $client->setAuthConfig('googleCredentials.json');
+        $client->setAuthConfig(base_path('firebase-credentials.json'));
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
         $client->fetchAccessTokenWithAssertion();
         $accessToken = $client->getAccessToken();
         $accessToken = $accessToken['access_token'];
 
         // Log::info($accessToken);
-        $contents = File::get(base_path('googleCredentials.json'));
+        $contents = File::get(base_path('firebase-credentials.json'));
         $json = json_decode(json: $contents, associative: true);
 
         $url = 'https://fcm.googleapis.com/v1/projects/'.$json['project_id'].'/messages:send';
@@ -63,6 +63,101 @@ class NotificationController extends Controller
 
         // return $response;
         return response()->json(['result'=> $result, 'fields'=> $fields]);
+    }
+
+    /**
+     * Send push notification to specific user for live stream chat
+     */
+    public static function sendLiveStreamChatNotification($userId, $title, $message, $data = [])
+    {
+        try {
+            // Get user's FCM token
+            $user = \App\Models\Users::find($userId);
+            if (!$user || !$user->device_token) {
+                Log::info("No FCM token found for user: $userId");
+                return false;
+            }
+
+            $client = new Client();
+            $client->setAuthConfig(base_path('firebase-credentials.json'));
+            $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+            $client->fetchAccessTokenWithAssertion();
+            $accessToken = $client->getAccessToken();
+            $accessToken = $accessToken['access_token'];
+
+            $contents = File::get(base_path('firebase-credentials.json'));
+            $json = json_decode($contents, true);
+
+            $url = 'https://fcm.googleapis.com/v1/projects/' . $json['project_id'] . '/messages:send';
+            
+            $notificationPayload = [
+                'title' => $title,
+                'body' => $message
+            ];
+
+            $fields = [
+                'message' => [
+                    'token' => $user->device_token,
+                    'notification' => $notificationPayload,
+                    'data' => array_merge([
+                        'type' => 'live_stream_chat',
+                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
+                    ], array_map('strval', $data)), // Convert all values to strings for FCM
+                    'android' => [
+                        'priority' => 'high',
+                        'notification' => [
+                            'sound' => 'default'
+                        ]
+                    ],
+                    'apns' => [
+                        'payload' => [
+                            'aps' => [
+                                'sound' => 'default',
+                                'badge' => 1
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+
+            $headers = [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $accessToken
+            ];
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+            
+            $result = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            
+            if ($result === FALSE) {
+                Log::error('FCM Send Error: ' . curl_error($ch));
+                curl_close($ch);
+                return false;
+            }
+            
+            curl_close($ch);
+            
+            $response = json_decode($result, true);
+            if ($httpCode == 200) {
+                Log::info("Live stream chat notification sent successfully to user: $userId");
+                return true;
+            } else {
+                Log::error("FCM Error: " . $result);
+                return false;
+            }
+            
+        } catch (\Exception $e) {
+            Log::error("Live stream chat notification error: " . $e->getMessage());
+            return false;
+        }
     }
 
     function notifications(Request $req)
