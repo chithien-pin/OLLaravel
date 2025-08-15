@@ -2122,4 +2122,47 @@ class UsersController extends Controller
         return response()->json(['status' => true, 'message' => "Account Deleted Successfully !"]);
     }
 
+    function minusCoinsFromWallet(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id',
+            'coin_price' => 'required|integer|min:1'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $user = Users::find($request->user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $coinPrice = intval($request->coin_price);
+        
+        if ($user->wallet < $coinPrice) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Insufficient coins in wallet'
+            ], 400);
+        }
+
+        $user->wallet = $user->wallet - $coinPrice;
+        $user->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Coins deducted successfully',
+            'wallet' => $user->wallet,
+            'total_collected' => 0 // Can be updated if needed
+        ]);
+    }
+
 }

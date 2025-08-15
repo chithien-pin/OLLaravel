@@ -33,6 +33,7 @@ Route::post('updateProfile', [UsersController::class, 'updateProfile'])->middlew
 Route::post('fetchUsersByCordinates', [UsersController::class, 'fetchUsersByCordinates'])->middleware('checkHeader');
 Route::post('updateUserBlockList', [UsersController::class, 'updateUserBlockList'])->middleware('checkHeader');
 Route::post('deleteMyAccount', [UsersController::class, 'deleteMyAccount'])->middleware('checkHeader');
+Route::post('minusCoinsFromWallet', [UsersController::class, 'minusCoinsFromWallet'])->middleware('checkHeader');
 
 Route::post('getProfile', [UsersController::class, 'getProfile'])->middleware('checkHeader');
 Route::post('getUserDetails', [UsersController::class, 'getUserDetails'])->middleware('checkHeader');
