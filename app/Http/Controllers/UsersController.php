@@ -870,55 +870,7 @@ class UsersController extends Controller
         }
     }
 
-    function minusCoinsFromWallet(Request $request)
-    {
-        $rules = [
-            'user_id' => 'required',
-            'amount' => 'required'
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            $messages = $validator->errors()->all();
-            $msg = $messages[0];
-            return response()->json(['status' => false, 'message' => $msg]);
-        }
-
-        $user = Users::where('id', $request->user_id)->first();
-
-        if ($user == null) {
-            return json_encode([
-                'status' => false,
-                'message' => 'user not found!',
-            ]);
-        }
-
-        if ($user->wallet < $request->amount) {
-            return json_encode([
-                'status' => false,
-                'message' => 'No enough coins in the wallet!',
-                'wallet' => $user->wallet,
-            ]);
-        }
-
-        $user->wallet -= $request->amount;
-        $result = $user->save();
-
-        if ($result) {
-            return json_encode([
-                'status' => true,
-                'message' => 'coins deducted from wallet successfully',
-                'wallet' => $user->wallet,
-                'total_collected' => $user->total_collected,
-            ]);
-        } else {
-            return json_encode([
-                'status' => false,
-                'message' => 'something went wrong!',
-
-            ]);
-        }
-    }
+    // minusCoinsFromWallet removed - free chat only
 
     function addCoinsToWallet(Request $request)
     {
