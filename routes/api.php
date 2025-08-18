@@ -126,3 +126,14 @@ Route::post('generateAgoraToken', [SettingController::class, 'generateAgoraToken
 // Pending message routes removed - free chat only
 
 // Live stream chat notification routes removed - free chat only
+
+/*|--------------------------------------------------------------------------|
+  | User Role Management Routes                                              |
+  |--------------------------------------------------------------------------|*/
+
+// Admin role management endpoints (for admin dashboard use)
+Route::post('admin/assignRole', [UsersController::class, 'assignRole']);
+Route::post('admin/revokeRole', [UsersController::class, 'revokeRole']);
+
+// Mobile app endpoints (for getting user role data)
+Route::get('user/{userId}/role', [UsersController::class, 'getUserRole'])->middleware('checkHeader');

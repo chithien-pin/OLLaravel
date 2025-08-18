@@ -22,6 +22,7 @@ use App\Models\Story;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Users;
+use App\Models\UserRole;
 use App\Models\VerifyRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -1054,7 +1055,7 @@ class UsersController extends Controller
     {
 
         $totalData =  Users::count();
-        $rows = Users::orderBy('id', 'DESC')->get();
+        $rows = Users::with('activeRole')->orderBy('id', 'DESC')->get();
 
         $result = $rows;
 
@@ -1069,13 +1070,13 @@ class UsersController extends Controller
 
         $totalFiltered = $totalData;
         if (empty($request->input('search.value'))) {
-            $result = Users::offset($start)
+            $result = Users::with('activeRole')->offset($start)
                 ->limit($limit)
                 ->orderBy($order, $dir)
                 ->get();
         } else {
             $search = $request->input('search.value');
-            $result =  Users::Where('fullname', 'LIKE', "%{$search}%")
+            $result =  Users::with('activeRole')->Where('fullname', 'LIKE', "%{$search}%")
                 ->orWhere('identity', 'LIKE', "%{$search}%")
                 ->offset($start)
                 ->limit($limit)
@@ -1115,12 +1116,32 @@ class UsersController extends Controller
             $action = '<a href="' . route('viewUserDetails', $item->id) . '"class=" btn btn-primary text-white " rel=' . $item->id . ' ><i class="fas fa-eye"></i></a>';
             $addCoin = '<a href="" data-id="' . $item->id . '" class="addCoins"><i class="i-cl-3 fas fa-plus-circle primary font-20 pointer p-l-5 p-r-5 me-2"></i></a>';
 
+            // Role management
+            $roleData = $item->role;
+            if ($roleData) {
+                $roleBadgeColor = [
+                    'VIP' => 'warning',
+                    'Millionaire' => 'info', 
+                    'Billionaire' => 'primary',
+                    'Celebrity' => 'danger'
+                ];
+                $color = $roleBadgeColor[$roleData['role_type']] ?? 'secondary';
+                $expiryText = $roleData['is_permanent'] ? 'Permanent' : 'Expires: ' . date('d/m/Y', strtotime($roleData['expires_at']));
+                $roleDisplay = '<span class="badge bg-' . $color . ' text-white" title="' . $expiryText . '">' . $roleData['role_display_name'] . '</span>';
+                $roleButton = '<button type="button" data-id="' . $item->id . '" data-role=\'' . json_encode($roleData) . '\' class="assignRole btn btn-sm btn-outline-primary ms-1">Edit</button>';
+            } else {
+                $roleDisplay = '<span class="badge bg-secondary text-white">No Role</span>';
+                $roleButton = '<button type="button" data-id="' . $item->id . '" data-role="null" class="assignRole btn btn-sm btn-primary">Assign</button>';
+            }
+            $roleColumn = $roleDisplay . ' ' . $roleButton;
+
             $data[] = array(
 
                 $image,
                 $item->identity,
                 $item->fullname,
                 $addCoin.$item->wallet,
+                $roleColumn,
                 $liveEligible,
                 $item->age,
                 $gender,
@@ -1142,7 +1163,7 @@ class UsersController extends Controller
     function fetchStreamerUsers(Request $request)
     {
         $totalData =  Users::where('can_go_live', '=', 2)->count();
-        $rows = Users::where('can_go_live', '=', 2)->orderBy('id', 'DESC')->get();
+        $rows = Users::with('activeRole')->where('can_go_live', '=', 2)->orderBy('id', 'DESC')->get();
 
 
         $result = $rows;
@@ -1158,14 +1179,14 @@ class UsersController extends Controller
 
         $totalFiltered = $totalData;
         if (empty($request->input('search.value'))) {
-            $result = Users::where('can_go_live', '=', 2)
+            $result = Users::with('activeRole')->where('can_go_live', '=', 2)
                 ->offset($start)
                 ->limit($limit)
                 ->orderBy($order, $dir)
                 ->get();
         } else {
             $search = $request->input('search.value');
-            $result =  Users::where(function ($query) use ($search) {
+            $result =  Users::with('activeRole')->where(function ($query) use ($search) {
                 $query->Where('fullname', 'LIKE', "%{$search}%")
                     ->orWhere('identity', 'LIKE', "%{$search}%");
             })
@@ -1211,12 +1232,32 @@ class UsersController extends Controller
 
             $action = '<a href="' . route('viewUserDetails', $item->id) . '"class=" btn btn-primary text-white " rel=' . $item->id . ' ><i class="fas fa-eye"></i></a>';
 
+            // Role management for streamers
+            $roleData = $item->role;
+            if ($roleData) {
+                $roleBadgeColor = [
+                    'VIP' => 'warning',
+                    'Millionaire' => 'info', 
+                    'Billionaire' => 'primary',
+                    'Celebrity' => 'danger'
+                ];
+                $color = $roleBadgeColor[$roleData['role_type']] ?? 'secondary';
+                $expiryText = $roleData['is_permanent'] ? 'Permanent' : 'Expires: ' . date('d/m/Y', strtotime($roleData['expires_at']));
+                $roleDisplay = '<span class="badge bg-' . $color . ' text-white" title="' . $expiryText . '">' . $roleData['role_display_name'] . '</span>';
+                $roleButton = '<button type="button" data-id="' . $item->id . '" data-role=\'' . json_encode($roleData) . '\' class="assignRole btn btn-sm btn-outline-primary ms-1">Edit</button>';
+            } else {
+                $roleDisplay = '<span class="badge bg-secondary text-white">No Role</span>';
+                $roleButton = '<button type="button" data-id="' . $item->id . '" data-role="null" class="assignRole btn btn-sm btn-primary">Assign</button>';
+            }
+            $roleColumn = $roleDisplay . ' ' . $roleButton;
+
             $data[] = array(
 
 
                 $image,
                 $item->identity,
                 $item->fullname,
+                $roleColumn,
                 $liveEligible,
                 $item->age,
                 $gender,
@@ -1628,7 +1669,7 @@ class UsersController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        $user = Users::with(['images', 'stories'])->has('images')->where('id', $request->user_id)->first();
+        $user = Users::with(['images', 'stories', 'activeRole'])->has('images')->where('id', $request->user_id)->first();
         $myUser = Users::with('images')->has('images')->where('id', $request->my_user_id)->first();
         if ($user == null || $myUser == null) {
             return response()->json([
@@ -2162,6 +2203,132 @@ class UsersController extends Controller
             'message' => 'Coins deducted successfully',
             'wallet' => $user->wallet,
             'total_collected' => 0 // Can be updated if needed
+        ]);
+    }
+
+    // Role management API endpoints
+    public function assignRole(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id',
+            'role_type' => 'required|in:VIP,Millionaire,Billionaire,Celebrity',
+            'duration' => 'nullable|in:1_month,1_year',
+            'admin_id' => 'required|integer|exists:admin_user,user_id'
+        ]);
+
+        if ($validator->fails()) {
+            \Log::error('Role assignment validation failed', [
+                'errors' => $validator->errors()->toArray(),
+                'request_data' => $request->all()
+            ]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed: ' . $validator->errors()->first(),
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $userId = $request->user_id;
+        $roleType = $request->role_type;
+        $duration = $request->duration;
+        $adminId = $request->admin_id;
+
+        // Auto-set duration based on role type if not provided
+        if ($roleType === 'VIP' && empty($duration)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'VIP role requires duration (1_month or 1_year). Please select a duration.'
+            ], 400);
+        }
+
+        if (in_array($roleType, ['Millionaire', 'Billionaire'])) {
+            $duration = '1_year'; // Auto-set to 1 year
+        }
+
+        if ($roleType === 'Celebrity') {
+            $duration = null; // Permanent role
+        }
+
+        try {
+            $userRole = UserRole::createRole($userId, $roleType, $duration, $adminId);
+            
+            // Load user with role relationship
+            $user = Users::with('activeRole')->find($userId);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Role assigned successfully',
+                'data' => [
+                    'user_id' => $userId,
+                    'role' => $user->role
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to assign role: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function revokeRole(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $userId = $request->user_id;
+
+        try {
+            $updated = UserRole::where('user_id', $userId)
+                              ->where('is_active', true)
+                              ->update(['is_active' => false]);
+
+            if ($updated) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Role revoked successfully'
+                ]);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No active role found for this user'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to revoke role: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getUserRole(Request $request, $userId)
+    {
+        $user = Users::with('activeRole')->find($userId);
+        
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User role retrieved successfully',
+            'data' => [
+                'user_id' => $userId,
+                'role' => $user->role
+            ]
         ]);
     }
 

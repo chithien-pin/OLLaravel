@@ -44,6 +44,7 @@
                                     <th>{{ __('app.Identity') }}</th>
                                     <th>{{ __('app.Full_Name') }}</th>
                                     <th>{{ __('app.Wallet') }}</th>
+                                    <th>Role</th>
                                     <th>{{ __('app.Live_eligible') }}</th>
                                     <th>{{ __('app.Age') }}</th>
                                     <th>{{ __('app.Gender') }}</th>
@@ -61,6 +62,7 @@
                                     <th>{{ __('app.User_Image') }}</th>
                                     <th>{{ __('app.Identity') }}</th>
                                     <th>{{ __('app.Full_Name') }}</th>
+                                    <th>Role</th>
                                     <th>{{ __('app.Live_eligible') }}</th>
                                     <th>{{ __('app.Age') }}</th>
                                     <th>{{ __('app.Gender') }}</th>
@@ -129,4 +131,52 @@
         </div>
     </div>
 </div>
+
+<!-- Role Assignment Modal -->
+<div class="modal fade" id="roleModal" tabindex="-1" role="dialog" aria-labelledby="roleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="roleModalLabel">Assign Role</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="roleForm" action="/api/admin/assignRole" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" name="user_id" id="roleUserId" value="">
+                    <input type="hidden" name="admin_id" value="{{ session('admin_id', 1) }}">
+
+                    <div class="form-group">
+                        <label for="roleType">Role Type</label>
+                        <select required class="form-control" id="roleType" name="role_type">
+                            <option value="">Select Role</option>
+                            <option value="VIP">VIP</option>
+                            <option value="Millionaire">Millionaire</option>
+                            <option value="Billionaire">Billionaire</option>
+                            <option value="Celebrity">Celebrity</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="durationGroup">
+                        <label for="duration">Duration</label>
+                        <select class="form-control" id="duration" name="duration">
+                            <option value="">Select Duration</option>
+                            <option value="1_month">1 Month</option>
+                            <option value="1_year">1 Year</option>
+                        </select>
+                        <small class="form-text text-muted" id="durationHint"></small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Assign Role</button>
+                    <button type="button" class="btn btn-danger" id="revokeRoleBtn">Revoke Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection

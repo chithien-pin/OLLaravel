@@ -11,6 +11,8 @@ class Users extends Model
 
     public $table = "users";
     public $timestamps = false;
+    
+    protected $appends = ['role'];
 
     public function images()
     {
@@ -52,5 +54,39 @@ class Users extends Model
     public function stories()
     {
         return $this->hasMany(Story::class, 'user_id', 'id');
+    }
+
+    public function roles()
+    {
+        return $this->hasMany(UserRole::class, 'user_id', 'id');
+    }
+
+    public function activeRole()
+    {
+        return $this->hasOne(UserRole::class, 'user_id', 'id')
+                    ->where('is_active', true)
+                    ->where(function($query) {
+                        $query->whereNull('expires_at')
+                              ->orWhere('expires_at', '>', now());
+                    })
+                    ->latest('granted_at');
+    }
+
+    public function hasActiveRole()
+    {
+        return $this->activeRole()->exists();
+    }
+
+    public function getRoleAttribute()
+    {
+        $activeRole = $this->activeRole;
+        return $activeRole ? [
+            'role_type' => $activeRole->role_type,
+            'role_type_id' => $activeRole->role_type_id,
+            'role_display_name' => $activeRole->getRoleDisplayName(),
+            'is_permanent' => $activeRole->isPermanent(),
+            'expires_at' => $activeRole->expires_at,
+            'granted_at' => $activeRole->granted_at
+        ] : null;
     }
 }
