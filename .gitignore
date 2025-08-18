@@ -22,4 +22,4 @@ gypsylive-fca27-firebase-adminsdk-fbsvc-ffcfb70ff8.json
 firebase-credentials.json
 googleCredentials.json
 docker-compose.prod.yml
-default.prod.conf
+default.prod.confgoogleCredentials.json

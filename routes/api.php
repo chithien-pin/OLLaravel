@@ -81,6 +81,7 @@ Route::post('fetchAllLiveStreamHistory', [LiveApplicationController::class, 'fet
 Route::post('placeRedeemRequest', [RedeemRequestsController::class, 'placeRedeemRequest'])->middleware('checkHeader');
 Route::post('fetchMyRedeemRequests', [RedeemRequestsController::class, 'fetchMyRedeemRequests'])->middleware('checkHeader');
 Route::post('pushNotificationToSingleUser', [NotificationController::class, 'pushNotificationToSingleUser'])->middleware('checkHeader');
+Route::post('sendLivestreamNotificationToFollowers', [NotificationController::class, 'sendLivestreamNotificationToFollowers'])->middleware('checkHeader');
 
 
 
