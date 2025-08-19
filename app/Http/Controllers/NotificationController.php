@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\AdminNotification;
 use App\Models\GlobalFunction;
 use App\Models\UserNotification;
+use App\Models\FollowingList;
+use App\Models\Users;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -156,6 +158,143 @@ class NotificationController extends Controller
             
         } catch (\Exception $e) {
             Log::error("Live stream chat notification error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Send livestream notification to followers only
+     */
+    public function sendLivestreamNotificationToFollowers(Request $request)
+    {
+        $rules = [
+            'streamer_user_id' => 'required',
+            'title' => 'required',
+            'body' => 'required',
+            'live_stream_data' => 'required'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $streamerUserId = $request->streamer_user_id;
+        $title = $request->title;
+        $body = $request->body;
+        $liveStreamData = $request->live_stream_data;
+
+        // Get all followers of this streamer
+        $followers = FollowingList::where('user_id', $streamerUserId)
+                                 ->with('followerUser') // Get the user who is following
+                                 ->get();
+
+        if ($followers->isEmpty()) {
+            return response()->json([
+                'status' => true, 
+                'message' => 'No followers found for this streamer',
+                'sent_count' => 0
+            ]);
+        }
+
+        $successCount = 0;
+        $totalFollowers = $followers->count();
+
+        foreach ($followers as $follower) {
+            $followerUser = $follower->followerUser; // The person who follows the streamer
+            
+            if (!$followerUser || !$followerUser->device_token || $followerUser->is_notification != 1) {
+                continue; // Skip if no token or notifications disabled
+            }
+
+            // Send individual notification
+            if ($this->sendSingleLivestreamNotification($followerUser->device_token, $title, $body, $liveStreamData)) {
+                $successCount++;
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => "Livestream notification sent successfully",
+            'total_followers' => $totalFollowers,
+            'sent_count' => $successCount
+        ]);
+    }
+
+    /**
+     * Send single livestream notification to specific device token
+     */
+    private function sendSingleLivestreamNotification($deviceToken, $title, $body, $liveStreamData)
+    {
+        try {
+            $client = new Client();
+            $client->setAuthConfig(base_path('googleCredentials.json'));
+            $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+            $client->fetchAccessTokenWithAssertion();
+            $accessToken = $client->getAccessToken();
+            $accessToken = $accessToken['access_token'];
+
+            $contents = File::get(base_path('googleCredentials.json'));
+            $json = json_decode($contents, true);
+
+            $url = 'https://fcm.googleapis.com/v1/projects/' . $json['project_id'] . '/messages:send';
+            
+            $fields = [
+                'message' => [
+                    'token' => $deviceToken,
+                    'notification' => [
+                        'title' => $title,
+                        'body' => $body
+                    ],
+                    'data' => array_merge([
+                        'type' => 'livestream_start',
+                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
+                    ], is_array($liveStreamData) ? $liveStreamData : ['data' => $liveStreamData]),
+                    'android' => [
+                        'priority' => 'high',
+                        'notification' => [
+                            'sound' => 'default'
+                        ]
+                    ],
+                    'apns' => [
+                        'payload' => [
+                            'aps' => [
+                                'sound' => 'default',
+                                'badge' => 1
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+
+            $headers = [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $accessToken
+            ];
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+            
+            $result = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            
+            if ($result === FALSE || $httpCode != 200) {
+                Log::error('Livestream notification failed: ' . curl_error($ch));
+                curl_close($ch);
+                return false;
+            }
+            
+            curl_close($ch);
+            return true;
+            
+        } catch (\Exception $e) {
+            Log::error("Livestream notification error: " . $e->getMessage());
             return false;
         }
     }

@@ -21,4 +21,5 @@ package-lock.json*.json
 gypsylive-fca27-firebase-adminsdk-fbsvc-ffcfb70ff8.json
 firebase-credentials.json
 docker-compose.prod.yml
+googleCredentials.json
 default.prod.conf

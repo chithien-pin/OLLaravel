@@ -16,7 +16,7 @@ class Myfunction extends Model
     {
 
         $client = new Client();
-        $client->setAuthConfig('googleCredentials.json');
+        $client->setAuthConfig(base_path('googleCredentials.json'));
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
         $client->fetchAccessTokenWithAssertion();
         $accessToken = $client->getAccessToken();

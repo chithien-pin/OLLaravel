@@ -3,10 +3,8 @@
 use App\Http\Controllers\DiamondPackController;
 use App\Http\Controllers\InterestController;
 use App\Http\Controllers\LiveApplicationController;
-use App\Http\Controllers\LiveStreamChatController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
-use App\Http\Controllers\PendingMessageController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
@@ -35,6 +33,7 @@ Route::post('updateProfile', [UsersController::class, 'updateProfile'])->middlew
 Route::post('fetchUsersByCordinates', [UsersController::class, 'fetchUsersByCordinates'])->middleware('checkHeader');
 Route::post('updateUserBlockList', [UsersController::class, 'updateUserBlockList'])->middleware('checkHeader');
 Route::post('deleteMyAccount', [UsersController::class, 'deleteMyAccount'])->middleware('checkHeader');
+Route::post('minusCoinsFromWallet', [UsersController::class, 'minusCoinsFromWallet'])->middleware('checkHeader');
 
 Route::post('getProfile', [UsersController::class, 'getProfile'])->middleware('checkHeader');
 Route::post('getUserDetails', [UsersController::class, 'getUserDetails'])->middleware('checkHeader');
@@ -72,7 +71,7 @@ Route::post('applyForLive', [LiveApplicationController::class, 'applyForLive'])-
 Route::post('applyForVerification', [UsersController::class, 'applyForVerification'])->middleware('checkHeader');
 
 Route::post('addCoinsToWallet', [UsersController::class, 'addCoinsToWallet'])->middleware('checkHeader');
-Route::post('minusCoinsFromWallet', [UsersController::class, 'minusCoinsFromWallet'])->middleware('checkHeader');
+// minusCoinsFromWallet route removed - free chat only
 Route::post('increaseStreamCountOfUser', [UsersController::class, 'increaseStreamCountOfUser'])->middleware('checkHeader');
 
 Route::post('addLiveStreamHistory', [LiveApplicationController::class, 'addLiveStreamHistory'])->middleware('checkHeader');
@@ -82,6 +81,7 @@ Route::post('fetchAllLiveStreamHistory', [LiveApplicationController::class, 'fet
 Route::post('placeRedeemRequest', [RedeemRequestsController::class, 'placeRedeemRequest'])->middleware('checkHeader');
 Route::post('fetchMyRedeemRequests', [RedeemRequestsController::class, 'fetchMyRedeemRequests'])->middleware('checkHeader');
 Route::post('pushNotificationToSingleUser', [NotificationController::class, 'pushNotificationToSingleUser'])->middleware('checkHeader');
+Route::post('sendLivestreamNotificationToFollowers', [NotificationController::class, 'sendLivestreamNotificationToFollowers'])->middleware('checkHeader');
 
 
 
@@ -123,16 +123,6 @@ Route::post('generateAgoraToken', [SettingController::class, 'generateAgoraToken
   | Pending Messages Routes                                                  |
   |--------------------------------------------------------------------------|*/
 
-Route::post('sendPendingMessage', [PendingMessageController::class, 'sendPendingMessage'])->middleware('checkHeader');
-Route::get('getPendingMessages/{liveSessionId}', [PendingMessageController::class, 'getPendingMessages'])->middleware('checkHeader');
-Route::get('getMyPendingMessages/{liveSessionId}', [PendingMessageController::class, 'getMyPendingMessages'])->middleware('checkHeader');
-Route::post('approveMessage/{messageId}', [PendingMessageController::class, 'approveMessage'])->middleware('checkHeader');
-Route::post('rejectMessage/{messageId}', [PendingMessageController::class, 'rejectMessage'])->middleware('checkHeader');
-Route::get('getPendingMessagesCount/{liveSessionId}', [PendingMessageController::class, 'getPendingMessagesCount'])->middleware('checkHeader');
+// Pending message routes removed - free chat only
 
-/*|--------------------------------------------------------------------------|\n  | Live Stream Chat Notification Routes                                    |\n  |--------------------------------------------------------------------------|*/
-
-Route::post('sendDirectChatMessage', [LiveStreamChatController::class, 'sendDirectChatMessage'])->middleware('checkHeader');
-Route::post('sendViewerJoinedNotification', [LiveStreamChatController::class, 'sendViewerJoinedNotification'])->middleware('checkHeader');
-Route::post('sendApprovalNotification', [LiveStreamChatController::class, 'sendApprovalNotification'])->middleware('checkHeader');
-Route::post('sendRejectionNotification', [LiveStreamChatController::class, 'sendRejectionNotification'])->middleware('checkHeader');
+// Live stream chat notification routes removed - free chat only
