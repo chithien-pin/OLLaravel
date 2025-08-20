@@ -665,14 +665,7 @@ class UsersController extends Controller
             ]);
         }
 
-        // Check swipe limit before allowing like action
-        if (!$my_user->canSwipeToday()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Daily swipe limit reached! Upgrade to VIP for unlimited swipes.',
-                'code' => 'SWIPE_LIMIT_REACHED'
-            ]);
-        }
+        // Like/pass actions are always allowed - swipe limit is handled separately
 
         $fetchLikedProfile = LikedProfile::where('my_user_id', $request->my_user_id)
                                         ->where('user_id', $request->user_id)
@@ -687,13 +680,11 @@ class UsersController extends Controller
             $fetchLikedProfile->delete();
             $notificationExists?->delete();
             
-            // Increment swipe count for dislike action
-            $my_user->incrementSwipeCount();
+            // Swipe count increment is handled by separate API call
 
             return response()->json(['status' => true, 'message' => 'Profile disliked!']);
         } else {
-            // Increment swipe count for like action
-            $my_user->incrementSwipeCount();
+            // Swipe count increment is handled by separate API call
             $likedProfile = new LikedProfile();
             $likedProfile->my_user_id = (int) $request->my_user_id;
             $likedProfile->user_id = (int) $request->user_id;
