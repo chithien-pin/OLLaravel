@@ -11,4 +11,5 @@ class Admin extends Model
 
     public $table = "admin_user";
     public $timestamps = false;
+    protected $primaryKey = 'user_id';
 }

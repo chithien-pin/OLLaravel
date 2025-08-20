@@ -22,9 +22,11 @@ use App\Models\Story;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Users;
+use App\Models\UserRole;
 use App\Models\VerifyRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Artisan;
 
 use function PHPUnit\Framework\isEmpty;
 
@@ -239,6 +241,11 @@ class UsersController extends Controller
 
         $profiles = $profilesQuery->get()->each(function ($profile) use ($likedUsers) {
             $profile->is_like = in_array($profile->id, $likedUsers);
+            // Add role information to each profile
+            $profile->role_type = $profile->getCurrentRoleType();
+            $profile->is_vip = $profile->isVip();
+            $profile->role_expires_at = $profile->getRoleExpiryDate();
+            $profile->role_days_remaining = $profile->getDaysRemainingForVip();
         });
 
         return response()->json([
@@ -287,6 +294,12 @@ class UsersController extends Controller
                 'message' => 'User not found!',
             ]);
         }
+
+        // Add role information to the random user
+        $randomUser->role_type = $randomUser->getCurrentRoleType();
+        $randomUser->is_vip = $randomUser->isVip();
+        $randomUser->role_expires_at = $randomUser->getRoleExpiryDate();
+        $randomUser->role_days_remaining = $randomUser->getDaysRemainingForVip();
         
         return response()->json([
             'status' => true,
@@ -1115,6 +1128,20 @@ class UsersController extends Controller
             $action = '<a href="' . route('viewUserDetails', $item->id) . '"class=" btn btn-primary text-white " rel=' . $item->id . ' ><i class="fas fa-eye"></i></a>';
             $addCoin = '<a href="" data-id="' . $item->id . '" class="addCoins"><i class="i-cl-3 fas fa-plus-circle primary font-20 pointer p-l-5 p-r-5 me-2"></i></a>';
 
+            // Format role display
+            $currentRole = $item->getCurrentRoleType();
+            if ($currentRole === 'vip') {
+                $roleObj = $item->currentRole();
+                $daysRemaining = $roleObj ? $roleObj->getDaysRemaining() : 0;
+                $role = '<span class="badge badge-warning">VIP';
+                if ($daysRemaining !== null) {
+                    $role .= ' (' . $daysRemaining . 'd)';
+                }
+                $role .= '</span>';
+            } else {
+                $role = '<span class="badge badge-success">Normal</span>';
+            }
+
             $data[] = array(
 
                 $image,
@@ -1124,6 +1151,7 @@ class UsersController extends Controller
                 $liveEligible,
                 $item->age,
                 $gender,
+                $role,
                 $block,
                 $action,
 
@@ -1364,6 +1392,9 @@ class UsersController extends Controller
             $user->username = $this->generateUniqueUsername();
 
             $user->save();
+
+            // Assign default Normal role to new user
+            $user->assignRole('normal');
 
             $data =  Users::with('images')->where('id', $user->id)->first();
 
@@ -1667,6 +1698,12 @@ class UsersController extends Controller
         } else {
             $user->is_like = false;
         }
+
+        // Add role information to the user data
+        $user->role_type = $user->getCurrentRoleType();
+        $user->is_vip = $user->isVip();
+        $user->role_expires_at = $user->getRoleExpiryDate();
+        $user->role_days_remaining = $user->getDaysRemainingForVip();
         
         return response()->json([
             'status' => true,
@@ -1691,6 +1728,11 @@ class UsersController extends Controller
 
         if ($data != null) {
             $data['image']  = Images::where('user_id', $data['id'])->first();
+            // Add role information
+            $data->role_type = $data->getCurrentRoleType();
+            $data->is_vip = $data->isVip();
+            $data->role_expires_at = $data->getRoleExpiryDate();
+            $data->role_days_remaining = $data->getDaysRemainingForVip();
         } else {
             return response()->json(['status' => false, 'message' => __('app.UserNotFound')]);
         }
@@ -1818,7 +1860,15 @@ class UsersController extends Controller
                                             ->offset($request->start)
                                             ->limit($request->limit)
                                             ->get()
-                                            ->pluck('user');
+                                            ->pluck('user')
+                                            ->map(function($user) {
+                                                // Add role information to each user
+                                                $user->role_type = $user->getCurrentRoleType();
+                                                $user->is_vip = $user->isVip();
+                                                $user->role_expires_at = $user->getRoleExpiryDate();
+                                                $user->role_days_remaining = $user->getDaysRemainingForVip();
+                                                return $user;
+                                            });
  
         return response()->json([
             'status' => true,
@@ -1851,7 +1901,15 @@ class UsersController extends Controller
                                             ->offset($request->start)
                                             ->limit($request->limit)
                                             ->get()
-                                            ->pluck('followerUser');
+                                            ->pluck('followerUser')
+                                            ->map(function($user) {
+                                                // Add role information to each user
+                                                $user->role_type = $user->getCurrentRoleType();
+                                                $user->is_vip = $user->isVip();
+                                                $user->role_expires_at = $user->getRoleExpiryDate();
+                                                $user->role_days_remaining = $user->getDaysRemainingForVip();
+                                                return $user;
+                                            });
 
             return response()->json([
                 'status' => true,
@@ -1959,6 +2017,12 @@ class UsersController extends Controller
                     $story->storyView = $story->view_by_user_ids ? in_array($request->my_user_id, explode(',', $story->view_by_user_ids)) : false;
                 }
                 $followingUser->stories = $stories;
+                
+                // Add role information to each following user
+                $followingUser->role_type = $followingUser->getCurrentRoleType();
+                $followingUser->is_vip = $followingUser->isVip();
+                $followingUser->role_expires_at = $followingUser->getRoleExpiryDate();
+                $followingUser->role_days_remaining = $followingUser->getDaysRemainingForVip();
             }
 
             $fetchPosts = Post::with('content')
@@ -1978,6 +2042,14 @@ class UsersController extends Controller
                         $fetchPost->is_like = 1;
                     } else {
                         $fetchPost->is_like = 0;
+                    }
+                    
+                    // Add role information to post users
+                    if ($fetchPost->user) {
+                        $fetchPost->user->role_type = $fetchPost->user->getCurrentRoleType();
+                        $fetchPost->user->is_vip = $fetchPost->user->isVip();
+                        $fetchPost->user->role_expires_at = $fetchPost->user->getRoleExpiryDate();
+                        $fetchPost->user->role_days_remaining = $fetchPost->user->getDaysRemainingForVip();
                     }
                 }
                 
@@ -2162,6 +2234,150 @@ class UsersController extends Controller
             'message' => 'Coins deducted successfully',
             'wallet' => $user->wallet,
             'total_collected' => 0 // Can be updated if needed
+        ]);
+    }
+
+    // Role Management Methods for Admin
+    public function assignUserRole(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id',
+            'role_type' => 'required|in:normal,vip',
+            'duration' => 'nullable|in:1_month,1_year,20_seconds'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $user = Users::find($request->user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Assign role using the model method
+        $role = $user->assignRole($request->role_type, $request->duration, 1); // Admin ID = 1 for now
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Role assigned successfully',
+            'role' => [
+                'role_type' => $role->role_type,
+                'granted_at' => $role->granted_at,
+                'expires_at' => $role->expires_at,
+            ]
+        ]);
+    }
+
+    public function revokeUserRole(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $user = Users::find($request->user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Revoke role using the model method
+        $role = $user->revokeRole();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Role revoked successfully. User now has normal role.',
+            'role' => [
+                'role_type' => $role->role_type,
+                'granted_at' => $role->granted_at,
+                'expires_at' => $role->expires_at,
+            ]
+        ]);
+    }
+
+    public function expireVipRoles(Request $request)
+    {
+        try {
+            // Run the artisan command
+            Artisan::call('roles:expire-vip');
+            $output = Artisan::output();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'VIP expiry command executed successfully',
+                'output' => trim($output)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error executing VIP expiry command',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getUserRoleHistory(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $user = Users::find($request->user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $roleHistory = $user->roles()->with('grantedByAdmin')->orderBy('granted_at', 'desc')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Role history retrieved successfully',
+            'current_role' => [
+                'role_type' => $user->getCurrentRoleType(),
+                'is_vip' => $user->isVip(),
+                'expires_at' => $user->getRoleExpiryDate(),
+                'days_remaining' => $user->getDaysRemainingForVip()
+            ],
+            'role_history' => $roleHistory->map(function($role) {
+                return [
+                    'id' => $role->id,
+                    'role_type' => $role->role_type,
+                    'granted_at' => $role->granted_at,
+                    'expires_at' => $role->expires_at,
+                    'is_active' => $role->is_active,
+                    'is_expired' => $role->isExpired(),
+                    'days_remaining' => $role->getDaysRemaining(),
+                    'granted_by_admin' => $role->grantedByAdmin ? $role->grantedByAdmin->name ?? 'System' : 'System'
+                ];
+            })
         ]);
     }
 

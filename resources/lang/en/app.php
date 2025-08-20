@@ -153,5 +153,6 @@ return [
      'postDescriptionLimit' => "Post Description Limit",
      'postUploadImageLimit' => "Post Upload Image Limit",
      'new_user_free_coins' => "New User Free Coins",
-     'allStories' => "All Stories"
+     'allStories' => "All Stories",
+     'Role' => "Role"
 ];

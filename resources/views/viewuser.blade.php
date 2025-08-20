@@ -3,6 +3,43 @@
 @section('header')
 <script src="{{ asset('asset/script/viewuser.js') }}"></script>
 <link rel="stylesheet" href="{{ asset('asset/style/addFakeUser.css') }}">
+<style>
+    #roleManagementBtn {
+        transition: all 0.2s ease;
+    }
+    
+    .role-option-item:hover {
+        border-color: #4285f4 !important;
+        background-color: #f8f9ff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(66, 133, 244, 0.1);
+    }
+    
+    .role-option-item:has(input:checked) {
+        border-color: #4285f4 !important;
+        background-color: #f8f9ff !important;
+        box-shadow: 0 2px 8px rgba(66, 133, 244, 0.15);
+    }
+    
+    .role-option-item input[type="radio"]:checked {
+        accent-color: #4285f4;
+    }
+    
+    .modal-content {
+        animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-30px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+</style>
 @endsection
 
 @section('content')
@@ -47,6 +84,10 @@
             <h2 class='btn btn-primary ml-2'>{{ __('app.Female') }}</h2>
             @endif
 
+            <!-- User Role Management Button -->
+            <h2 class="btn btn-success ml-2" id="roleManagementBtn" style="cursor: pointer;">
+                <span id="currentRoleText">Loading Role...</span>
+            </h2>
 
             <h2 class='btn btn-danger ml-2 deleteUser' rel='{{ $data->id }}'>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 me-2">
@@ -347,6 +388,68 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Management Modal -->
+<div class="modal fade" id="roleManagementModal" tabindex="-1" role="dialog" aria-labelledby="roleManagementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="border-bottom: 1px solid #f1f3f4; padding: 24px 24px 16px;">
+                <h4 class="modal-title mb-0" id="roleManagementModalLabel" style="font-weight: 600; color: #333;">
+                    User Role Management
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="padding: 0; margin: 0; font-size: 24px; opacity: 0.6;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <!-- Current Role -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center">
+                        <span style="color: #666; font-size: 14px; margin-right: 12px;">Current Role:</span>
+                        <span id="modalCurrentRole" class="badge badge-success" style="font-size: 13px; padding: 6px 12px; border-radius: 20px;">Normal</span>
+                        <small id="modalRoleExpiry" class="text-muted ml-3" style="font-size: 13px;"></small>
+                    </div>
+                </div>
+                
+                <!-- Role Actions -->
+                <div>
+                    <label style="color: #333; font-weight: 500; margin-bottom: 16px; display: block;">What would you like to do?</label>
+                    
+                    <div class="role-options">
+                        <label class="role-option-item" for="vip1Month" style="display: block; padding: 16px; margin-bottom: 12px; border: 2px solid #e8eaed; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <input type="radio" name="roleOption" id="vip1Month" value="vip_1_month" style="margin-right: 12px;">
+                            <div style="display: inline-block;">
+                                <div id="vip1MonthText" style="font-weight: 500; color: #333; margin-bottom: 4px;">Grant VIP (1 Month)</div>
+                                <div style="font-size: 13px; color: #666;">Premium privileges for 30 days</div>
+                            </div>
+                        </label>
+                        
+                        <label class="role-option-item" for="vip1Year" style="display: block; padding: 16px; margin-bottom: 12px; border: 2px solid #e8eaed; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <input type="radio" name="roleOption" id="vip1Year" value="vip_1_year" style="margin-right: 12px;">
+                            <div style="display: inline-block;">
+                                <div id="vip1YearText" style="font-weight: 500; color: #333; margin-bottom: 4px;">Grant VIP (1 Year)</div>
+                                <div style="font-size: 13px; color: #666;">Premium privileges for 365 days</div>
+                            </div>
+                        </label>
+                        
+                        
+                        <label class="role-option-item" for="revokeRole" style="display: block; padding: 16px; border: 2px solid #e8eaed; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <input type="radio" name="roleOption" id="revokeRole" value="revoke" style="margin-right: 12px;">
+                            <div style="display: inline-block;">
+                                <div style="font-weight: 500; color: #d93025; margin-bottom: 4px;">Revoke VIP Status</div>
+                                <div style="font-size: 13px; color: #666;">Remove VIP privileges (back to Normal)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #f1f3f4; padding: 16px 24px 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-light mr-3" data-dismiss="modal" style="padding: 10px 24px; border-radius: 6px; font-weight: 500; border: 1px solid #dadce0;">Cancel</button>
+                <button type="button" class="btn btn-primary" id="applyRoleBtn" style="padding: 10px 24px; border-radius: 6px; font-weight: 500; background: #1a73e8; border: none; min-width: 120px;">Apply Changes</button>
             </div>
         </div>
     </div>
