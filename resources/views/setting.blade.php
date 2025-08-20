@@ -67,6 +67,11 @@
                     <label for="">{{ __('app.Live_watching_price') }}</label>
                     <input type="number" class="form-control" name="live_watching_price" value="{{ $appdata->live_watching_price }}" pattern="[0-9]" required>
                 </div>
+                <div class="form-group col-md-3">
+                    <label for="">Daily Swipe Limit (Normal Users)</label>
+                    <input type="number" class="form-control" name="swipe_limit" value="{{ $appdata->swipe_limit ?? 50 }}" min="1" max="1000" required>
+                    <small class="form-text text-muted">VIP users have unlimited swipes</small>
+                </div>
             </div>
             <div class="form-row">
                 <div class="form-group col-md-3">

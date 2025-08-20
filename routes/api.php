@@ -66,6 +66,8 @@ Route::post('onOffAnonymous', [UsersController::class, 'onOffAnonymous'])->middl
 Route::post('onOffVideoCalls', [UsersController::class, 'onOffVideoCalls'])->middleware('checkHeader');
 
 Route::post('fetchBlockedProfiles', [UsersController::class, 'fetchBlockedProfiles'])->middleware('checkHeader');
+Route::post('getSwipeStatus', [UsersController::class, 'getSwipeStatus'])->middleware('checkHeader');
+Route::post('incrementSwipeCount', [UsersController::class, 'incrementSwipeCount'])->middleware('checkHeader');
 
 Route::post('applyForLive', [LiveApplicationController::class, 'applyForLive'])->middleware('checkHeader');
 Route::post('applyForVerification', [UsersController::class, 'applyForVerification'])->middleware('checkHeader');

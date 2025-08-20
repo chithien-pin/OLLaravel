@@ -287,4 +287,94 @@ class Users extends Model
         // Deactivate current package
         return $this->packages()->update(['is_active' => false]);
     }
+
+    // Swipe Limiting Methods
+    
+    /**
+     * Check if user can swipe today based on their role and daily limit
+     *
+     * @return bool
+     */
+    public function canSwipeToday()
+    {
+        // VIP users have unlimited swipes
+        if ($this->isVip()) {
+            return true;
+        }
+
+        // Check if we need to reset daily swipes for a new day
+        $this->resetDailySwipesIfNeeded();
+
+        // Get swipe limit from app settings
+        $appData = AppData::first();
+        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
+
+        return $this->daily_swipes < $swipeLimit;
+    }
+
+    /**
+     * Increment the daily swipe count
+     *
+     * @return bool
+     */
+    public function incrementSwipeCount()
+    {
+        // Reset daily swipes if it's a new day
+        $this->resetDailySwipesIfNeeded();
+
+        // Update swipe count and date
+        $this->daily_swipes = $this->daily_swipes + 1;
+        $this->last_swipe_date = now()->toDateString();
+        return $this->save();
+    }
+
+    /**
+     * Get remaining swipes for today
+     *
+     * @return int
+     */
+    public function getRemainingSwipes()
+    {
+        // VIP users have unlimited swipes
+        if ($this->isVip()) {
+            return -1; // -1 indicates unlimited
+        }
+
+        // Check if we need to reset daily swipes for a new day
+        $this->resetDailySwipesIfNeeded();
+
+        // Get swipe limit from app settings
+        $appData = AppData::first();
+        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
+
+        return max(0, $swipeLimit - $this->daily_swipes);
+    }
+
+    /**
+     * Reset daily swipes if it's a new day
+     *
+     * @return void
+     */
+    public function resetDailySwipesIfNeeded()
+    {
+        $today = now()->toDateString();
+        
+        if ($this->last_swipe_date !== $today) {
+            $this->daily_swipes = 0;
+            $this->last_swipe_date = $today;
+            $this->save();
+        }
+    }
+
+    /**
+     * Manual reset daily swipes (for admin or cronjob)
+     *
+     * @return bool
+     */
+    public function resetDailySwipes()
+    {
+        $this->daily_swipes = 0;
+        $this->last_swipe_date = now()->toDateString();
+        return $this->save();
+    }
 }

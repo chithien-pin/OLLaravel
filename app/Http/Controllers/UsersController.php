@@ -665,6 +665,15 @@ class UsersController extends Controller
             ]);
         }
 
+        // Check swipe limit before allowing like action
+        if (!$my_user->canSwipeToday()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Daily swipe limit reached! Upgrade to VIP for unlimited swipes.',
+                'code' => 'SWIPE_LIMIT_REACHED'
+            ]);
+        }
+
         $fetchLikedProfile = LikedProfile::where('my_user_id', $request->my_user_id)
                                         ->where('user_id', $request->user_id)
                                         ->first();
@@ -677,9 +686,14 @@ class UsersController extends Controller
         if ($fetchLikedProfile) {
             $fetchLikedProfile->delete();
             $notificationExists?->delete();
+            
+            // Increment swipe count for dislike action
+            $my_user->incrementSwipeCount();
 
             return response()->json(['status' => true, 'message' => 'Profile disliked!']);
         } else {
+            // Increment swipe count for like action
+            $my_user->incrementSwipeCount();
             $likedProfile = new LikedProfile();
             $likedProfile->my_user_id = (int) $request->my_user_id;
             $likedProfile->user_id = (int) $request->user_id;
@@ -705,6 +719,100 @@ class UsersController extends Controller
                 'data' => $likedProfile
             ]);
         }
+    }
+
+    /**
+     * Get user's swipe status for today
+     */
+    function getSwipeStatus(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $user = Users::where('id', $request->user_id)->first();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not found!']);
+        }
+
+        // Get app data for swipe limit
+        $appData = AppData::first();
+        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
+
+        $data = [
+            'can_swipe' => $user->canSwipeToday(),
+            'daily_swipes' => $user->daily_swipes,
+            'remaining_swipes' => $user->getRemainingSwipes(),
+            'swipe_limit' => $swipeLimit,
+            'is_vip' => $user->isVip(),
+            'user_role' => $user->getCurrentRoleType(),
+        ];
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Swipe status fetched successfully!',
+            'data' => $data
+        ]);
+    }
+
+    /**
+     * Increment swipe count for swipe gestures only
+     */
+    function incrementSwipeCount(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $user = Users::where('id', $request->user_id)->first();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found!',
+            ]);
+        }
+
+        // Check swipe limit before allowing swipe
+        if (!$user->canSwipeToday()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Daily swipe limit reached! Upgrade to VIP for unlimited swipes.',
+                'code' => 'SWIPE_LIMIT_REACHED'
+            ]);
+        }
+
+        // Increment swipe count
+        $user->incrementSwipeCount();
+
+        // Return updated swipe status
+        $appData = AppData::first();
+        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
+
+        $data = [
+            'can_swipe' => $user->canSwipeToday(),
+            'daily_swipes' => $user->daily_swipes,
+            'remaining_swipes' => $user->getRemainingSwipes(),
+            'swipe_limit' => $swipeLimit,
+            'is_vip' => $user->isVip(),
+            'user_role' => $user->getCurrentRoleType(),
+        ];
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Swipe count incremented successfully!',
+            'data' => $data
+        ]);
     }
 
     function fetchBlockedProfiles(Request $request)

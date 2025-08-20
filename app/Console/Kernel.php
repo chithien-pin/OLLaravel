@@ -31,6 +31,9 @@ class Kernel extends ConsoleKernel
         
         // Expire packages daily at midnight
         $schedule->command('packages:expire')->daily();
+        
+        // Reset daily swipe count at midnight
+        $schedule->command('swipes:reset-daily')->daily();
     }
 
     /**
