@@ -64,6 +64,12 @@ Route::post('revokeUserRole', [UsersController::class, 'revokeUserRole'])->middl
 Route::post('getUserRoleHistory', [UsersController::class, 'getUserRoleHistory'])->middleware(['checkLogin'])->name('getUserRoleHistory');
 Route::post('expireVipRoles', [UsersController::class, 'expireVipRoles'])->middleware(['checkLogin'])->name('expireVipRoles');
 
+// Package Management Routes  
+Route::post('assignUserPackage', [UsersController::class, 'assignUserPackage'])->middleware(['checkLogin'])->name('assignUserPackage');
+Route::post('revokeUserPackage', [UsersController::class, 'revokeUserPackage'])->middleware(['checkLogin'])->name('revokeUserPackage');
+Route::post('getUserPackageHistory', [UsersController::class, 'getUserPackageHistory'])->middleware(['checkLogin'])->name('getUserPackageHistory');
+Route::post('expirePackages', [UsersController::class, 'expirePackages'])->middleware(['checkLogin'])->name('expirePackages');
+
 /*|--------------------------------------------------------------------------|
   | package  Route                                                           |
   |--------------------------------------------------------------------------|*/

@@ -30,7 +30,7 @@
             </div>
             <div class="ml-auto">
                 <button id="expire-vip-roles" class="btn btn-warning mr-2">
-                    <i class="fas fa-search mr-1"></i>Check Expired VIPs
+                    <i class="fas fa-search mr-1"></i>Check Expired VIPs & Packages
                 </button>
                 <a href="{{ route('addFakeUser') }}" id="add-fake-user" class="btn btn-primary">{{ __('app.Add_fake_user') }}</a>
             </div>
@@ -53,6 +53,7 @@
                                     <th>{{ __('app.Age') }}</th>
                                     <th>{{ __('app.Gender') }}</th>
                                     <th>{{ __('app.Role') }}</th>
+                                    <th>{{ __('Package') }}</th>
                                     <th>{{ __('app.BlockUser') }}</th>
                                     <th>{{ __('app.ViewDetails') }}</th>
                                 </tr>

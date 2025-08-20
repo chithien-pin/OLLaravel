@@ -246,6 +246,14 @@ class UsersController extends Controller
             $profile->is_vip = $profile->isVip();
             $profile->role_expires_at = $profile->getRoleExpiryDate();
             $profile->role_days_remaining = $profile->getDaysRemainingForVip();
+            
+            // Add package information to each profile
+            $profile->package_type = $profile->getCurrentPackageType();
+            $profile->has_package = $profile->hasPackage();
+            $profile->package_expires_at = $profile->getPackageExpiryDate();
+            $profile->package_days_remaining = $profile->getDaysRemainingForPackage();
+            $profile->package_display_name = $profile->getPackageDisplayName();
+            $profile->package_badge_color = $profile->getPackageBadgeColor();
         });
 
         return response()->json([
@@ -300,6 +308,14 @@ class UsersController extends Controller
         $randomUser->is_vip = $randomUser->isVip();
         $randomUser->role_expires_at = $randomUser->getRoleExpiryDate();
         $randomUser->role_days_remaining = $randomUser->getDaysRemainingForVip();
+        
+        // Add package information to the random user
+        $randomUser->package_type = $randomUser->getCurrentPackageType();
+        $randomUser->has_package = $randomUser->hasPackage();
+        $randomUser->package_expires_at = $randomUser->getPackageExpiryDate();
+        $randomUser->package_days_remaining = $randomUser->getDaysRemainingForPackage();
+        $randomUser->package_display_name = $randomUser->getPackageDisplayName();
+        $randomUser->package_badge_color = $randomUser->getPackageBadgeColor();
         
         return response()->json([
             'status' => true,
@@ -1142,6 +1158,27 @@ class UsersController extends Controller
                 $role = '<span class="badge badge-success">Normal</span>';
             }
 
+            // Format package display
+            $currentPackage = $item->getCurrentPackageType();
+            if ($currentPackage && $item->hasPackage()) {
+                $packageObj = $item->currentPackage();
+                $packageDisplayName = $item->getPackageDisplayName();
+                $packageColor = $item->getPackageBadgeColor();
+                
+                $package = '<span class="badge" style="background-color: ' . $packageColor . '; color: white;">';
+                $package .= $packageDisplayName;
+                
+                if ($currentPackage !== 'celebrity' && $packageObj) {
+                    $daysRemaining = $item->getDaysRemainingForPackage();
+                    if ($daysRemaining !== null) {
+                        $package .= ' (' . $daysRemaining . 'd)';
+                    }
+                }
+                $package .= '</span>';
+            } else {
+                $package = '<span class="badge badge-secondary">None</span>';
+            }
+
             $data[] = array(
 
                 $image,
@@ -1152,6 +1189,7 @@ class UsersController extends Controller
                 $item->age,
                 $gender,
                 $role,
+                $package,
                 $block,
                 $action,
 
@@ -1705,6 +1743,14 @@ class UsersController extends Controller
         $user->role_expires_at = $user->getRoleExpiryDate();
         $user->role_days_remaining = $user->getDaysRemainingForVip();
         
+        // Add package information to user
+        $user->package_type = $user->getCurrentPackageType();
+        $user->has_package = $user->hasPackage();
+        $user->package_expires_at = $user->getPackageExpiryDate();
+        $user->package_days_remaining = $user->getDaysRemainingForPackage();
+        $user->package_display_name = $user->getPackageDisplayName();
+        $user->package_badge_color = $user->getPackageBadgeColor();
+        
         return response()->json([
             'status' => true,
             'message' =>  __('app.fetchSuccessful'),
@@ -1733,6 +1779,14 @@ class UsersController extends Controller
             $data->is_vip = $data->isVip();
             $data->role_expires_at = $data->getRoleExpiryDate();
             $data->role_days_remaining = $data->getDaysRemainingForVip();
+            
+            // Add package information to user data
+            $data->package_type = $data->getCurrentPackageType();
+            $data->has_package = $data->hasPackage();
+            $data->package_expires_at = $data->getPackageExpiryDate();
+            $data->package_days_remaining = $data->getDaysRemainingForPackage();
+            $data->package_display_name = $data->getPackageDisplayName();
+            $data->package_badge_color = $data->getPackageBadgeColor();
         } else {
             return response()->json(['status' => false, 'message' => __('app.UserNotFound')]);
         }
@@ -1867,6 +1921,14 @@ class UsersController extends Controller
                                                 $user->is_vip = $user->isVip();
                                                 $user->role_expires_at = $user->getRoleExpiryDate();
                                                 $user->role_days_remaining = $user->getDaysRemainingForVip();
+                                                
+                                                // Add package information to user in collection
+                                                $user->package_type = $user->getCurrentPackageType();
+                                                $user->has_package = $user->hasPackage();
+                                                $user->package_expires_at = $user->getPackageExpiryDate();
+                                                $user->package_days_remaining = $user->getDaysRemainingForPackage();
+                                                $user->package_display_name = $user->getPackageDisplayName();
+                                                $user->package_badge_color = $user->getPackageBadgeColor();
                                                 return $user;
                                             });
  
@@ -1908,6 +1970,14 @@ class UsersController extends Controller
                                                 $user->is_vip = $user->isVip();
                                                 $user->role_expires_at = $user->getRoleExpiryDate();
                                                 $user->role_days_remaining = $user->getDaysRemainingForVip();
+                                                
+                                                // Add package information to user in collection
+                                                $user->package_type = $user->getCurrentPackageType();
+                                                $user->has_package = $user->hasPackage();
+                                                $user->package_expires_at = $user->getPackageExpiryDate();
+                                                $user->package_days_remaining = $user->getDaysRemainingForPackage();
+                                                $user->package_display_name = $user->getPackageDisplayName();
+                                                $user->package_badge_color = $user->getPackageBadgeColor();
                                                 return $user;
                                             });
 
@@ -2023,6 +2093,14 @@ class UsersController extends Controller
                 $followingUser->is_vip = $followingUser->isVip();
                 $followingUser->role_expires_at = $followingUser->getRoleExpiryDate();
                 $followingUser->role_days_remaining = $followingUser->getDaysRemainingForVip();
+                
+                // Add package information to following user
+                $followingUser->package_type = $followingUser->getCurrentPackageType();
+                $followingUser->has_package = $followingUser->hasPackage();
+                $followingUser->package_expires_at = $followingUser->getPackageExpiryDate();
+                $followingUser->package_days_remaining = $followingUser->getDaysRemainingForPackage();
+                $followingUser->package_display_name = $followingUser->getPackageDisplayName();
+                $followingUser->package_badge_color = $followingUser->getPackageBadgeColor();
             }
 
             $fetchPosts = Post::with('content')
@@ -2050,6 +2128,14 @@ class UsersController extends Controller
                         $fetchPost->user->is_vip = $fetchPost->user->isVip();
                         $fetchPost->user->role_expires_at = $fetchPost->user->getRoleExpiryDate();
                         $fetchPost->user->role_days_remaining = $fetchPost->user->getDaysRemainingForVip();
+                        
+                        // Add package information to post user
+                        $fetchPost->user->package_type = $fetchPost->user->getCurrentPackageType();
+                        $fetchPost->user->has_package = $fetchPost->user->hasPackage();
+                        $fetchPost->user->package_expires_at = $fetchPost->user->getPackageExpiryDate();
+                        $fetchPost->user->package_days_remaining = $fetchPost->user->getDaysRemainingForPackage();
+                        $fetchPost->user->package_display_name = $fetchPost->user->getPackageDisplayName();
+                        $fetchPost->user->package_badge_color = $fetchPost->user->getPackageBadgeColor();
                     }
                 }
                 
@@ -2263,7 +2349,7 @@ class UsersController extends Controller
         }
 
         // Assign role using the model method
-        $role = $user->assignRole($request->role_type, $request->duration, 1); // Admin ID = 1 for now
+        $role = $user->assignRole($request->role_type, $request->duration, null); // No admin ID for now
 
         return response()->json([
             'status' => true,
@@ -2299,35 +2385,41 @@ class UsersController extends Controller
         }
 
         // Revoke role using the model method
-        $role = $user->revokeRole();
+        $result = $user->revokeRole();
 
         return response()->json([
             'status' => true,
-            'message' => 'Role revoked successfully. User now has normal role.',
-            'role' => [
-                'role_type' => $role->role_type,
-                'granted_at' => $role->granted_at,
-                'expires_at' => $role->expires_at,
-            ]
+            'message' => 'Role revoked successfully.',
+            'affected_rows' => $result
         ]);
     }
 
     public function expireVipRoles(Request $request)
     {
         try {
-            // Run the artisan command
+            $combinedOutput = [];
+            
+            // Run the VIP roles expiry command
             Artisan::call('roles:expire-vip');
-            $output = Artisan::output();
-
+            $rolesOutput = trim(Artisan::output());
+            $combinedOutput[] = "VIP Roles: " . $rolesOutput;
+            
+            // Run the packages expiry command
+            Artisan::call('packages:expire');
+            $packagesOutput = trim(Artisan::output());
+            $combinedOutput[] = "Packages: " . $packagesOutput;
+            
+            $finalOutput = implode(' | ', $combinedOutput);
+            
             return response()->json([
                 'status' => true,
-                'message' => 'VIP expiry command executed successfully',
-                'output' => trim($output)
+                'message' => 'VIP and Package expiry commands executed successfully',
+                'output' => $finalOutput
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error executing VIP expiry command',
+                'message' => 'Error executing VIP and Package expiry commands',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -2376,6 +2468,154 @@ class UsersController extends Controller
                     'is_expired' => $role->isExpired(),
                     'days_remaining' => $role->getDaysRemaining(),
                     'granted_by_admin' => $role->grantedByAdmin ? $role->grantedByAdmin->name ?? 'System' : 'System'
+                ];
+            })
+        ]);
+    }
+
+    // Package Management Methods
+    
+    public function assignUserPackage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id',
+            'package_type' => 'required|in:millionaire,billionaire,celebrity'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $user = Users::find($request->user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Assign package using the model method
+        $package = $user->assignPackage($request->package_type, 1); // Admin ID = 1 for now
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Package assigned successfully',
+            'package' => [
+                'package_type' => $package->package_type,
+                'granted_at' => $package->granted_at,
+                'expires_at' => $package->expires_at,
+                'display_name' => $package->getPackageDisplayName(),
+                'badge_color' => $package->getPackageBadgeColor(),
+            ]
+        ]);
+    }
+
+    public function revokeUserPackage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $user = Users::find($request->user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Revoke package using the model method
+        $result = $user->revokePackage();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Package revoked successfully',
+            'revoked_count' => $result
+        ]);
+    }
+
+    public function expirePackages(Request $request)
+    {
+        try {
+            // Run the artisan command
+            Artisan::call('packages:expire');
+            $output = Artisan::output();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Package expiry command executed successfully',
+                'output' => trim($output)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error executing package expiry command',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getUserPackageHistory(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $user = Users::find($request->user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Get package history
+        $packageHistory = $user->packages()->orderBy('granted_at', 'desc')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Package history retrieved successfully',
+            'current_package' => [
+                'package_type' => $user->getCurrentPackageType(),
+                'has_package' => $user->hasPackage(),
+                'expires_at' => $user->getPackageExpiryDate(),
+                'days_remaining' => $user->getDaysRemainingForPackage(),
+                'display_name' => $user->getPackageDisplayName(),
+                'badge_color' => $user->getPackageBadgeColor()
+            ],
+            'package_history' => $packageHistory->map(function($package) {
+                return [
+                    'id' => $package->id,
+                    'package_type' => $package->package_type,
+                    'granted_at' => $package->granted_at,
+                    'expires_at' => $package->expires_at,
+                    'is_active' => $package->is_active,
+                    'is_expired' => $package->isExpired(),
+                    'days_remaining' => $package->getDaysRemaining(),
+                    'display_name' => $package->getPackageDisplayName(),
+                    'badge_color' => $package->getPackageBadgeColor(),
+                    'is_permanent' => $package->isPermanent(),
+                    'granted_by_admin' => $package->grantedByAdmin ? $package->grantedByAdmin->name ?? 'System' : 'System'
                 ];
             })
         ]);
