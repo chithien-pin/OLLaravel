@@ -54,6 +54,22 @@ class Users extends Model
         return $this->hasMany(Story::class, 'user_id', 'id');
     }
 
+    /**
+     * Likes given by this user (my_user_id)
+     */
+    public function likesGiven()
+    {
+        return $this->hasMany(LikedProfile::class, 'my_user_id', 'id');
+    }
+    
+    /**
+     * Likes received by this user (user_id)
+     */
+    public function likesReceived()
+    {
+        return $this->hasMany(LikedProfile::class, 'user_id', 'id');
+    }
+
     // User Role relationships and methods
     public function roles()
     {
