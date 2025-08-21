@@ -99,6 +99,14 @@ class Subscription extends Model
     public static function getSubscriptionPlans()
     {
         return [
+            'starter' => [
+                'name' => 'VIP Starter',
+                'price_id' => 'price_1RyQ7yG3TUB1R9FgUtZ7YLjV',
+                'amount' => 1.00,
+                'currency' => 'USD',
+                'interval' => 'month',
+                'first_time_only' => true
+            ],
             'monthly' => [
                 'name' => 'VIP Monthly',
                 'price_id' => 'price_1RyQ8FG3TUB1R9FgbIYChZBL',
@@ -114,5 +122,11 @@ class Subscription extends Model
                 'interval' => 'year'
             ]
         ];
+    }
+
+    // Check if user is eligible for starter plan (first-time subscriber)
+    public static function isEligibleForStarterPlan($userId)
+    {
+        return !self::where('user_id', $userId)->exists();
     }
 }

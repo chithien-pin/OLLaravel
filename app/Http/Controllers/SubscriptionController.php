@@ -12,12 +12,25 @@ use Laravel\Cashier\Exceptions\IncompletePayment;
 class SubscriptionController extends Controller
 {
     /**
-     * Get available subscription plans
+     * Get available subscription plans for user
      */
-    public function getPlans()
+    public function getPlans(Request $request)
     {
         try {
             $plans = Subscription::getSubscriptionPlans();
+            
+            // If user_id is provided, check starter plan eligibility
+            if ($request->has('current_user_id')) {
+                $isEligibleForStarter = Subscription::isEligibleForStarterPlan($request->current_user_id);
+                
+                // If user is not eligible for starter plan, remove it from available plans
+                if (!$isEligibleForStarter) {
+                    unset($plans['starter']);
+                }
+                
+                // Add eligibility info to response
+                $plans['starter_eligible'] = $isEligibleForStarter;
+            }
             
             return response()->json([
                 'status' => 200,
@@ -42,7 +55,7 @@ class SubscriptionController extends Controller
         try {
             $request->validate([
                 'user_id' => 'required|integer|exists:users,id',
-                'plan_type' => 'required|in:monthly,yearly',
+                'plan_type' => 'required|in:starter,monthly,yearly',
                 'payment_method_id' => 'required|string'
             ]);
 
@@ -76,7 +89,7 @@ class SubscriptionController extends Controller
                 'amount' => $planData['amount'],
                 'currency' => $planData['currency'],
                 'starts_at' => now(),
-                'ends_at' => $request->plan_type === 'monthly' ? now()->addMonth() : now()->addYear(),
+                'ends_at' => ($request->plan_type === 'starter' || $request->plan_type === 'monthly') ? now()->addMonth() : now()->addYear(),
             ]);
 
             // Assign VIP role to user
@@ -325,8 +338,19 @@ class SubscriptionController extends Controller
         try {
             $request->validate([
                 'user_id' => 'required|integer|exists:users,id',
-                'plan_type' => 'required|in:monthly,yearly',
+                'plan_type' => 'required|in:starter,monthly,yearly',
             ]);
+
+            // Validate starter plan eligibility
+            if ($request->plan_type === 'starter') {
+                $isEligible = Subscription::isEligibleForStarterPlan($request->user_id);
+                if (!$isEligible) {
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'User is not eligible for starter plan. Starter plan is only available for first-time subscribers.'
+                    ], 400);
+                }
+            }
 
             $plans = Subscription::getSubscriptionPlans();
             $planData = $plans[$request->plan_type];
@@ -372,9 +396,20 @@ class SubscriptionController extends Controller
         try {
             $request->validate([
                 'user_id' => 'required|integer|exists:users,id',
-                'plan_type' => 'required|in:monthly,yearly',
+                'plan_type' => 'required|in:starter,monthly,yearly',
                 'payment_intent_id' => 'required|string'
             ]);
+
+            // Validate starter plan eligibility again for security
+            if ($request->plan_type === 'starter') {
+                $isEligible = Subscription::isEligibleForStarterPlan($request->user_id);
+                if (!$isEligible) {
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'User is not eligible for starter plan. Starter plan is only available for first-time subscribers.'
+                    ], 400);
+                }
+            }
 
             $user = Users::find($request->user_id);
             $plans = Subscription::getSubscriptionPlans();
@@ -391,7 +426,7 @@ class SubscriptionController extends Controller
                 'amount' => $planData['amount'],
                 'currency' => $planData['currency'],
                 'starts_at' => now(),
-                'ends_at' => $request->plan_type === 'monthly' ? now()->addMonth() : now()->addYear(),
+                'ends_at' => ($request->plan_type === 'starter' || $request->plan_type === 'monthly') ? now()->addMonth() : now()->addYear(),
                 'metadata' => json_encode([
                     'payment_intent_id' => $request->payment_intent_id,
                     'confirmed_by_app' => true
@@ -399,7 +434,7 @@ class SubscriptionController extends Controller
             ]);
 
             // Assign VIP role to user with proper duration
-            $duration = $request->plan_type === 'monthly' ? '1_month' : '1_year';
+            $duration = ($request->plan_type === 'starter' || $request->plan_type === 'monthly') ? '1_month' : '1_year';
             $userRole = $user->assignRole('vip', $duration);
 
             // Link subscription to user role
