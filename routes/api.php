@@ -9,6 +9,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 
@@ -128,3 +129,16 @@ Route::post('generateAgoraToken', [SettingController::class, 'generateAgoraToken
 // Pending message routes removed - free chat only
 
 // Live stream chat notification routes removed - free chat only
+
+/*|--------------------------------------------------------------------------|
+  | Subscription Routes                                                      |
+  |--------------------------------------------------------------------------|*/
+
+Route::post('subscription/plans', [SubscriptionController::class, 'getPlans'])->middleware('checkHeader');
+Route::post('subscription/create-payment-intent', [SubscriptionController::class, 'createPaymentIntent'])->middleware('checkHeader');
+Route::post('subscription/create', [SubscriptionController::class, 'createSubscription'])->middleware('checkHeader');
+Route::post('subscription/status', [SubscriptionController::class, 'getSubscriptionStatus'])->middleware('checkHeader');
+Route::post('subscription/cancel', [SubscriptionController::class, 'cancelSubscription'])->middleware('checkHeader');
+Route::post('subscription/resume', [SubscriptionController::class, 'resumeSubscription'])->middleware('checkHeader');
+Route::post('subscription/update-payment-method', [SubscriptionController::class, 'updatePaymentMethod'])->middleware('checkHeader');
+Route::post('subscription/confirm-payment', [SubscriptionController::class, 'confirmPaymentSuccess'])->middleware('checkHeader');

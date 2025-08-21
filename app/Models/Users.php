@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Cashier\Billable;
 
 class Users extends Model
 {
-    use HasFactory;
+    use HasFactory, Billable;
 
     public $table = "users";
     public $timestamps = false;
@@ -68,6 +69,20 @@ class Users extends Model
     public function likesReceived()
     {
         return $this->hasMany(LikedProfile::class, 'user_id', 'id');
+    }
+
+    // Subscription relationships
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class, 'user_id', 'id');
+    }
+
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class, 'user_id', 'id')
+                    ->active()
+                    ->notExpired()
+                    ->latest('created_at');
     }
 
     // User Role relationships and methods

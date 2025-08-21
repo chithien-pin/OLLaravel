@@ -18,6 +18,7 @@ class UserRole extends Model
         'granted_at',
         'expires_at',
         'granted_by_admin_id',
+        'subscription_id',
         'is_active'
     ];
 
@@ -36,6 +37,11 @@ class UserRole extends Model
     public function grantedByAdmin()
     {
         return $this->belongsTo(Admin::class, 'granted_by_admin_id', 'user_id');
+    }
+
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class, 'subscription_id');
     }
 
     // Helper methods
