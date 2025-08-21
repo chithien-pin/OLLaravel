@@ -5,6 +5,12 @@ $(document).ready(function () {
     var id = $("#userId").val();
     console.log(id);
 
+    // Load user role on page load
+    loadUserRole(id);
+    
+    // Load user package on page load  
+    loadUserPackage(id);
+
     $("#btnAddImage").on("click", function (event) {
         event.preventDefault();
         $("#addImageModal").modal("show");
@@ -627,5 +633,449 @@ $(document).ready(function () {
             }
         });
 
+    // Role Management Functions
+    function loadUserRole(userId) {
+        $.ajax({
+            url: `${domainUrl}getUserRoleHistory`,
+            type: "POST",
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: {
+                user_id: userId,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.status) {
+                    const currentRole = response.current_role;
+                    let roleText = currentRole.role_type.charAt(0).toUpperCase() + currentRole.role_type.slice(1);
+                    
+                    if (currentRole.is_vip && currentRole.expires_at) {
+                        const expiryDate = new Date(currentRole.expires_at);
+                        const daysRemaining = currentRole.days_remaining;
+                        roleText += ` (${daysRemaining} days remaining)`;
+                    }
+                    
+                    $("#currentRoleText").text(roleText);
+                    
+                    // Update button style based on role
+                    const roleButton = $("#roleManagementBtn");
+                    roleButton.removeClass("btn-success btn-warning btn-info btn-primary");
+                    if (currentRole.is_vip) {
+                        roleButton.addClass("btn-warning");
+                    } else {
+                        roleButton.addClass("btn-success");
+                    }
+
+                    // Update modal display
+                    updateModalRoleDisplay(currentRole);
+                } else {
+                    $("#currentRoleText").text("Error loading role");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading role:", error);
+                $("#currentRoleText").text("Normal");
+            }
+        });
+    }
+
+    function updateModalRoleDisplay(currentRole) {
+        const modalCurrentRole = $("#modalCurrentRole");
+        const modalRoleExpiry = $("#modalRoleExpiry");
+        
+        let roleText = currentRole.role_type.charAt(0).toUpperCase() + currentRole.role_type.slice(1);
+        
+        modalCurrentRole.removeClass("badge-success badge-warning badge-danger");
+        if (currentRole.is_vip) {
+            modalCurrentRole.addClass("badge-warning").text(roleText);
+            if (currentRole.expires_at) {
+                const expiryDate = new Date(currentRole.expires_at);
+                const daysRemaining = currentRole.days_remaining;
+                modalRoleExpiry.text(`Expires in ${daysRemaining} days (${expiryDate.toLocaleDateString()})`);
+            }
+        } else {
+            modalCurrentRole.addClass("badge-success").text(roleText);
+            modalRoleExpiry.text("");
+        }
+    }
+
+    // Open Role Management Modal
+    $(document).on("click", "#roleManagementBtn", function(e) {
+        e.preventDefault();
+        updateModalOptionsBasedOnCurrentRole();
+        $("#roleManagementModal").modal("show");
+    });
+
+    function updateModalOptionsBasedOnCurrentRole() {
+        const roleButton = $("#roleManagementBtn");
+        const isCurrentlyVIP = roleButton.hasClass("btn-warning");
+        const revokeOption = $("#revokeRole").closest(".role-option-item");
+        
+        if (isCurrentlyVIP) {
+            // If user is VIP, show extend options and revoke option
+            $("#vip1MonthText").text("Extend VIP (1 Month)");
+            $("#vip1YearText").text("Extend VIP (1 Year)");
+            $("#vip20SecondsText").text("Extend VIP (20 Seconds) - TEST");
+            revokeOption.show();
+        } else {
+            // If user is Normal, show grant options only (no revoke needed)
+            $("#vip1MonthText").text("Grant VIP (1 Month)");
+            $("#vip1YearText").text("Grant VIP (1 Year)");
+            $("#vip20SecondsText").text("Grant VIP (20 Seconds) - TEST");
+            revokeOption.hide();
+        }
+    }
+
+    // Handle role option selection with smooth visual feedback
+    $(document).on("change", "input[name='roleOption']", function() {
+        // Update visual state for selected option
+        $(".role-option-item").removeClass("selected");
+        $(this).closest(".role-option-item").addClass("selected");
+    });
+
+    // Apply Role Changes
+    $(document).on("click", "#applyRoleBtn", function(e) {
+        e.preventDefault();
+        
+        const selectedOption = $("input[name='roleOption']:checked").val();
+        const userId = $("#userId").val();
+        
+        if (!selectedOption) {
+            iziToast.error({
+                title: "Error",
+                message: "Please select a role option",
+                position: "topRight",
+                timeout: 4000,
+            });
+            return;
+        }
+        
+        if (user_type == 1) {
+            // Show loading state
+            $("#applyRoleBtn").prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Applying...');
+            
+            if (selectedOption === "revoke") {
+                // Handle revoke role
+                $.ajax({
+                    url: `${domainUrl}revokeUserRole`,
+                    type: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        user_id: userId,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        handleRoleChangeResponse(response, userId);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error revoking role:", error);
+                        handleRoleChangeError("Failed to revoke role");
+                    }
+                });
+            } else {
+                // Handle assign VIP role
+                let roleType = "vip";
+                let duration;
+                
+                if (selectedOption === "vip_1_month") {
+                    duration = "1_month";
+                } else if (selectedOption === "vip_1_year") {
+                    duration = "1_year";
+                }
+                
+                $.ajax({
+                    url: `${domainUrl}assignUserRole`,
+                    type: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        user_id: userId,
+                        role_type: roleType,
+                        duration: duration,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        handleRoleChangeResponse(response, userId);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error assigning role:", error);
+                        handleRoleChangeError("Failed to assign role");
+                    }
+                });
+            }
+        } else {
+            iziToast.error({
+                title: "Tester Login",
+                message: "You are tester",
+                position: "topRight",
+                timeout: 4000,
+            });
+        }
+    });
+
+    function handleRoleChangeResponse(response, userId) {
+        // Reset button state
+        $("#applyRoleBtn").prop("disabled", false).html('<i class="fas fa-check mr-1"></i>Apply Changes');
+        
+        if (response.status) {
+            iziToast.success({
+                title: "Success",
+                message: response.message,
+                position: "topRight",
+                timeout: 4000,
+            });
+            
+            // Close modal and reload role display
+            $("#roleManagementModal").modal("hide");
+            loadUserRole(userId);
+            
+            // Reset radio buttons and visual state
+            $("input[name='roleOption']").prop("checked", false);
+            $(".role-option-item").removeClass("selected");
+        } else {
+            iziToast.error({
+                title: "Error",
+                message: response.message,
+                position: "topRight",
+                timeout: 4000,
+            });
+        }
+    }
+
+    function handleRoleChangeError(message) {
+        // Reset button state
+        $("#applyRoleBtn").prop("disabled", false).html('<i class="fas fa-check mr-1"></i>Apply Changes');
+        
+        iziToast.error({
+            title: "Error",
+            message: message,
+            position: "topRight",
+            timeout: 4000,
+        });
+    }
+     
+    // Package Management Functions
+    
+    function loadUserPackage(userId) {
+        $.ajax({
+            url: `${domainUrl}getUserPackageHistory`,
+            type: "POST",
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: {
+                user_id: userId,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.status) {
+                    const currentPackage = response.current_package;
+                    let packageText = "No Package";
+                    
+                    if (currentPackage.has_package && currentPackage.package_type) {
+                        packageText = currentPackage.display_name || currentPackage.package_type.charAt(0).toUpperCase() + currentPackage.package_type.slice(1);
+                        
+                        if (currentPackage.package_type !== 'celebrity' && currentPackage.expires_at) {
+                            const daysRemaining = currentPackage.days_remaining;
+                            if (daysRemaining !== null) {
+                                packageText += ` (${daysRemaining} days remaining)`;
+                            }
+                        } else if (currentPackage.package_type === 'celebrity') {
+                            packageText += " (Permanent)";
+                        }
+                    }
+
+                    $("#currentPackageText").text(packageText);
+
+                    const packageButton = $("#packageManagementBtn");
+                    packageButton.removeClass("btn-warning btn-success btn-info btn-primary");
+                    if (currentPackage.has_package) {
+                        if (currentPackage.package_type === 'celebrity') {
+                            packageButton.addClass("btn-info");
+                        } else {
+                            packageButton.addClass("btn-warning");
+                        }
+                    } else {
+                        packageButton.addClass("btn-success");
+                    }
+
+                    // Update modal display
+                    updateModalPackageDisplay(currentPackage);
+                } else {
+                    $("#currentPackageText").text("No Package");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading package:", error);
+                $("#currentPackageText").text("No Package");
+            }
+        });
+    }
+
+    function updateModalPackageDisplay(currentPackage) {
+        const modalBadge = $("#modalCurrentPackage");
+        const modalExpiry = $("#modalPackageExpiry");
+        
+        if (currentPackage.has_package && currentPackage.package_type) {
+            modalBadge.text(currentPackage.display_name || currentPackage.package_type);
+            modalBadge.removeClass("badge-secondary badge-success badge-warning badge-info badge-primary");
+            
+            if (currentPackage.package_type === 'millionaire') {
+                modalBadge.addClass("badge-success");
+            } else if (currentPackage.package_type === 'billionaire') {
+                modalBadge.addClass("badge-primary");
+            } else if (currentPackage.package_type === 'celebrity') {
+                modalBadge.addClass("badge-info");
+            }
+            
+            if (currentPackage.package_type === 'celebrity') {
+                modalExpiry.text("(Permanent)");
+            } else if (currentPackage.expires_at) {
+                const daysRemaining = currentPackage.days_remaining;
+                modalExpiry.text(daysRemaining !== null ? `(${daysRemaining} days remaining)` : "");
+            }
+        } else {
+            modalBadge.text("None");
+            modalBadge.removeClass("badge-success badge-warning badge-info badge-primary").addClass("badge-secondary");
+            modalExpiry.text("");
+        }
+    }
+
+    $(document).on("click", "#packageManagementBtn", function(e) {
+        e.preventDefault();
+        updateModalOptionsBasedOnCurrentPackage();
+        $("#packageManagementModal").modal("show");
+    });
+
+    function updateModalOptionsBasedOnCurrentPackage() {
+        const packageButton = $("#packageManagementBtn");
+        const hasPackage = !packageButton.hasClass("btn-success");
+        const revokeOption = $("#revokePackage").closest(".package-option-item");
+        
+        if (hasPackage) {
+            revokeOption.show();
+        } else {
+            revokeOption.hide();
+        }
+    }
+
+    // Handle package option selection
+    $(document).on("change", "input[name='packageOption']", function() {
+        $(".package-option-item").removeClass("selected");
+        $(this).closest(".package-option-item").addClass("selected");
+    });
+
+    // Handle package assignment/revocation
+    $(document).on("click", "#applyPackageBtn", function() {
+        const selectedOption = $("input[name='packageOption']:checked").val();
+        const userId = $("#userId").val();
+        
+        if (!selectedOption) {
+            iziToast.warning({
+                title: "Selection Required",
+                message: "Please select a package option",
+                position: "topRight",
+                timeout: 3000,
+            });
+            return;
+        }
+
+        // Show loading state
+        $(this).prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Processing...');
+
+        if (selectedOption === 'revoke') {
+            // Revoke package
+            $.ajax({
+                url: `${domainUrl}revokeUserPackage`,
+                type: "POST",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: {
+                    user_id: userId,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: "json",
+                success: function (response) {
+                    handlePackageChangeSuccess(response, userId);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Package revocation error:", error);
+                    handlePackageChangeError("Failed to revoke package. Please try again.");
+                }
+            });
+        } else {
+            // Assign package
+            $.ajax({
+                url: `${domainUrl}assignUserPackage`,
+                type: "POST",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: {
+                    user_id: userId,
+                    package_type: selectedOption,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: "json",
+                success: function (response) {
+                    handlePackageChangeSuccess(response, userId);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Package assignment error:", error);
+                    handlePackageChangeError("Failed to assign package. Please try again.");
+                }
+            });
+        }
+    });
+
+    function handlePackageChangeSuccess(response, userId) {
+        // Reset button state
+        $("#applyPackageBtn").prop("disabled", false).html('<i class="fas fa-check mr-1"></i>Apply Changes');
+        
+        if (response.status) {
+            iziToast.success({
+                title: "Success",
+                message: response.message,
+                position: "topRight",
+                timeout: 3000,
+            });
+            
+            // Close modal and reload package info
+            $("#packageManagementModal").modal("hide");
+            loadUserPackage(userId);
+            
+            // Reset radio buttons and visual state
+            $("input[name='packageOption']").prop("checked", false);
+            $(".package-option-item").removeClass("selected");
+        } else {
+            iziToast.error({
+                title: "Error",
+                message: response.message,
+                position: "topRight",
+                timeout: 4000,
+            });
+        }
+    }
+
+    function handlePackageChangeError(message) {
+        // Reset button state
+        $("#applyPackageBtn").prop("disabled", false).html('<i class="fas fa-check mr-1"></i>Apply Changes');
+        
+        iziToast.error({
+            title: "Error",
+            message: message,
+            position: "topRight",
+            timeout: 4000,
+        });
+    }
      
 });

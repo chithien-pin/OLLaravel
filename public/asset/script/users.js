@@ -9,7 +9,7 @@ $(document).ready(function () {
         aaSorting: [[0, "desc"]],
         columnDefs: [
             {
-                targets: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                targets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 orderable: false,
             },
         ],
@@ -225,6 +225,77 @@ $(document).ready(function () {
                 timeout: app.timeout,
                 animateInside: false,
                 iconUrl: app.cancleIcon,
+            });
+        }
+    });
+
+    // Expire VIP Roles Button Handler
+    $(document).on("click", "#expire-vip-roles", function(e) {
+        e.preventDefault();
+        
+        if (user_type == 1) {
+            // Show confirmation dialog
+            if (confirm("Check and process all expired VIP roles and packages? This will convert expired VIPs back to Normal users and remove expired packages.")) {
+                // Show loading state
+                $(this).prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Checking...');
+                
+                $.ajax({
+                    url: `${domainUrl}expireVipRoles`,
+                    type: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        // Reset button state
+                        $("#expire-vip-roles").prop("disabled", false).html('<i class="fas fa-search mr-1"></i>Check Expired VIPs & Packages');
+                        
+                        if (response.status) {
+                            const output = response.output || response.message;
+                            const isExpired = (output.includes("Expired 0") && output.includes("Total expired packages: 0")) ? false : true;
+                            
+                            iziToast.success({
+                                title: isExpired ? "VIPs & Packages Processed" : "All VIPs & Packages Active",
+                                message: isExpired ? output : "No expired VIP roles or packages found. All are still active.",
+                                position: "topRight",
+                                timeout: 5000,
+                            });
+                            
+                            // Reload tables to show updated data
+                            $("#UsersTable").DataTable().ajax.reload(null, false);
+                            $("#StreamersTable").DataTable().ajax.reload(null, false);
+                        } else {
+                            iziToast.error({
+                                title: "Error",
+                                message: response.message || "Failed to expire VIP roles and packages",
+                                position: "topRight",
+                                timeout: 4000,
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        // Reset button state
+                        $("#expire-vip-roles").prop("disabled", false).html('<i class="fas fa-search mr-1"></i>Check Expired VIPs & Packages');
+                        
+                        console.error("Error expiring VIP roles:", error);
+                        iziToast.error({
+                            title: "Error",
+                            message: "Failed to expire VIP roles and packages",
+                            position: "topRight",
+                            timeout: 4000,
+                        });
+                    }
+                });
+            }
+        } else {
+            iziToast.error({
+                title: "Tester Login",
+                message: "You are tester",
+                position: "topRight",
+                timeout: 4000,
             });
         }
     });

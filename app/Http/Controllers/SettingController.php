@@ -287,6 +287,9 @@ class SettingController extends Controller
       if ($request->has('post_upload_image_limit')) {
          $setting->post_upload_image_limit = $request->post_upload_image_limit;
       }
+      if ($request->has('swipe_limit')) {
+         $setting->swipe_limit = (int) $request->swipe_limit;
+      }
       $setting->save();
 
       return response()->json([

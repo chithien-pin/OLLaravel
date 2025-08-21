@@ -58,6 +58,18 @@ Route::get('viewUserDetails/{id}', [UsersController::class, 'viewUserDetails'])-
 Route::post('allowLiveToUser', [UsersController::class, 'allowLiveToUser'])->middleware(['checkLogin'])->name('allowLiveToUser');
 Route::post('restrictLiveToUser', [UsersController::class, 'restrictLiveToUser'])->middleware(['checkLogin'])->name('restrictLiveToUser');
 
+// Role Management Routes
+Route::post('assignUserRole', [UsersController::class, 'assignUserRole'])->middleware(['checkLogin'])->name('assignUserRole');
+Route::post('revokeUserRole', [UsersController::class, 'revokeUserRole'])->middleware(['checkLogin'])->name('revokeUserRole');
+Route::post('getUserRoleHistory', [UsersController::class, 'getUserRoleHistory'])->middleware(['checkLogin'])->name('getUserRoleHistory');
+Route::post('expireVipRoles', [UsersController::class, 'expireVipRoles'])->middleware(['checkLogin'])->name('expireVipRoles');
+
+// Package Management Routes  
+Route::post('assignUserPackage', [UsersController::class, 'assignUserPackage'])->middleware(['checkLogin'])->name('assignUserPackage');
+Route::post('revokeUserPackage', [UsersController::class, 'revokeUserPackage'])->middleware(['checkLogin'])->name('revokeUserPackage');
+Route::post('getUserPackageHistory', [UsersController::class, 'getUserPackageHistory'])->middleware(['checkLogin'])->name('getUserPackageHistory');
+Route::post('expirePackages', [UsersController::class, 'expirePackages'])->middleware(['checkLogin'])->name('expirePackages');
+
 /*|--------------------------------------------------------------------------|
   | package  Route                                                           |
   |--------------------------------------------------------------------------|*/
