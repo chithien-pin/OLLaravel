@@ -70,6 +70,18 @@ Route::post('revokeUserPackage', [UsersController::class, 'revokeUserPackage'])-
 Route::post('getUserPackageHistory', [UsersController::class, 'getUserPackageHistory'])->middleware(['checkLogin'])->name('getUserPackageHistory');
 Route::post('expirePackages', [UsersController::class, 'expirePackages'])->middleware(['checkLogin'])->name('expirePackages');
 
+// ViewUserDetails group routes (for frontend compatibility)
+Route::prefix('viewUserDetails')->middleware(['checkLogin'])->group(function () {
+    Route::post('assignUserRole', [UsersController::class, 'assignUserRole'])->name('viewUserDetails.assignUserRole');
+    Route::post('revokeUserRole', [UsersController::class, 'revokeUserRole'])->name('viewUserDetails.revokeUserRole');
+    Route::post('getUserRoleHistory', [UsersController::class, 'getUserRoleHistory'])->name('viewUserDetails.getUserRoleHistory');
+    Route::post('assignUserPackage', [UsersController::class, 'assignUserPackage'])->name('viewUserDetails.assignUserPackage');
+    Route::post('revokeUserPackage', [UsersController::class, 'revokeUserPackage'])->name('viewUserDetails.revokeUserPackage');
+    Route::post('getUserPackageHistory', [UsersController::class, 'getUserPackageHistory'])->name('viewUserDetails.getUserPackageHistory');
+    Route::post('userPostList', [PostController::class, 'userPostList'])->name('viewUserDetails.userPostList');
+    Route::post('userStoryList', [PostController::class, 'userStoryList'])->name('viewUserDetails.userStoryList');
+});
+
 /*|--------------------------------------------------------------------------|
   | package  Route                                                           |
   |--------------------------------------------------------------------------|*/

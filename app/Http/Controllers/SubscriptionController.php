@@ -355,7 +355,7 @@ class SubscriptionController extends Controller
             $plans = Subscription::getSubscriptionPlans();
             $planData = $plans[$request->plan_type];
 
-            \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
             // Create PaymentIntent
             $paymentIntent = \Stripe\PaymentIntent::create([
