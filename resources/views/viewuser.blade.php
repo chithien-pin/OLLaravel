@@ -8,6 +8,10 @@
         transition: all 0.2s ease;
     }
     
+    #packageManagementBtn {
+        transition: all 0.2s ease;
+    }
+    
     .role-option-item:hover {
         border-color: #4285f4 !important;
         background-color: #f8f9ff !important;
@@ -23,6 +27,23 @@
     
     .role-option-item input[type="radio"]:checked {
         accent-color: #4285f4;
+    }
+    
+    .package-option-item:hover {
+        border-color: #ff8c00 !important;
+        background-color: #fff8f0 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(255, 140, 0, 0.1);
+    }
+    
+    .package-option-item:has(input:checked) {
+        border-color: #ff8c00 !important;
+        background-color: #fff8f0 !important;
+        box-shadow: 0 2px 8px rgba(255, 140, 0, 0.15);
+    }
+    
+    .package-option-item input[type="radio"]:checked {
+        accent-color: #ff8c00;
     }
     
     .modal-content {
@@ -87,6 +108,11 @@
             <!-- User Role Management Button -->
             <h2 class="btn btn-success ml-2" id="roleManagementBtn" style="cursor: pointer;">
                 <span id="currentRoleText">Loading Role...</span>
+            </h2>
+
+            <!-- User Package Management Button -->
+            <h2 class="btn btn-warning ml-2" id="packageManagementBtn" style="cursor: pointer;">
+                <span id="currentPackageText">Loading Package...</span>
             </h2>
 
             <h2 class='btn btn-danger ml-2 deleteUser' rel='{{ $data->id }}'>
@@ -450,6 +476,75 @@
             <div class="modal-footer" style="border-top: 1px solid #f1f3f4; padding: 16px 24px 24px; justify-content: flex-end;">
                 <button type="button" class="btn btn-light mr-3" data-dismiss="modal" style="padding: 10px 24px; border-radius: 6px; font-weight: 500; border: 1px solid #dadce0;">Cancel</button>
                 <button type="button" class="btn btn-primary" id="applyRoleBtn" style="padding: 10px 24px; border-radius: 6px; font-weight: 500; background: #1a73e8; border: none; min-width: 120px;">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Package Management Modal -->
+<div class="modal fade" id="packageManagementModal" tabindex="-1" role="dialog" aria-labelledby="packageManagementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="border-bottom: 1px solid #f1f3f4; padding: 24px 24px 16px;">
+                <h4 class="modal-title mb-0" id="packageManagementModalLabel" style="font-weight: 600; color: #333;">
+                    User Package Management
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="padding: 0; margin: 0; font-size: 24px; opacity: 0.6;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <!-- Current Package -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center">
+                        <span style="color: #666; font-size: 14px; margin-right: 12px;">Current Package:</span>
+                        <span id="modalCurrentPackage" class="badge badge-warning" style="font-size: 13px; padding: 6px 12px; border-radius: 20px;">None</span>
+                        <small id="modalPackageExpiry" class="text-muted ml-3" style="font-size: 13px;"></small>
+                    </div>
+                </div>
+                
+                <!-- Package Actions -->
+                <div>
+                    <label style="color: #333; font-weight: 500; margin-bottom: 16px; display: block;">What would you like to do?</label>
+                    
+                    <div class="package-options">
+                        <label class="package-option-item" for="millionaire" style="display: block; padding: 16px; margin-bottom: 12px; border: 2px solid #e8eaed; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <input type="radio" name="packageOption" id="millionaire" value="millionaire" style="margin-right: 12px;">
+                            <div style="display: inline-block;">
+                                <div style="font-weight: 500; color: #10B981; margin-bottom: 4px;">🟢 Millionaire Package</div>
+                                <div style="font-size: 13px; color: #666;">Premium package for 1 year</div>
+                            </div>
+                        </label>
+                        
+                        <label class="package-option-item" for="billionaire" style="display: block; padding: 16px; margin-bottom: 12px; border: 2px solid #e8eaed; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <input type="radio" name="packageOption" id="billionaire" value="billionaire" style="margin-right: 12px;">
+                            <div style="display: inline-block;">
+                                <div style="font-weight: 500; color: #3B82F6; margin-bottom: 4px;">🔵 Billionaire Package</div>
+                                <div style="font-size: 13px; color: #666;">Elite package for 1 year</div>
+                            </div>
+                        </label>
+                        
+                        <label class="package-option-item" for="celebrity" style="display: block; padding: 16px; margin-bottom: 12px; border: 2px solid #e8eaed; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <input type="radio" name="packageOption" id="celebrity" value="celebrity" style="margin-right: 12px;">
+                            <div style="display: inline-block;">
+                                <div style="font-weight: 500; color: #8B5CF6; margin-bottom: 4px;">🟣 Celebrity Package</div>
+                                <div style="font-size: 13px; color: #666;">Permanent premium package (lifetime)</div>
+                            </div>
+                        </label>
+                        
+                        <label class="package-option-item" for="revokePackage" style="display: block; padding: 16px; border: 2px solid #e8eaed; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <input type="radio" name="packageOption" id="revokePackage" value="revoke" style="margin-right: 12px;">
+                            <div style="display: inline-block;">
+                                <div style="font-weight: 500; color: #d93025; margin-bottom: 4px;">Revoke Package</div>
+                                <div style="font-size: 13px; color: #666;">Remove all package privileges</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #f1f3f4; padding: 16px 24px 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-light mr-3" data-dismiss="modal" style="padding: 10px 24px; border-radius: 6px; font-weight: 500; border: 1px solid #dadce0;">Cancel</button>
+                <button type="button" class="btn btn-warning" id="applyPackageBtn" style="padding: 10px 24px; border-radius: 6px; font-weight: 500; background: #ff8c00; border: none; min-width: 120px;">Apply Changes</button>
             </div>
         </div>
     </div>

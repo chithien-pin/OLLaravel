@@ -54,6 +54,22 @@ class Users extends Model
         return $this->hasMany(Story::class, 'user_id', 'id');
     }
 
+    /**
+     * Likes given by this user (my_user_id)
+     */
+    public function likesGiven()
+    {
+        return $this->hasMany(LikedProfile::class, 'my_user_id', 'id');
+    }
+    
+    /**
+     * Likes received by this user (user_id)
+     */
+    public function likesReceived()
+    {
+        return $this->hasMany(LikedProfile::class, 'user_id', 'id');
+    }
+
     // User Role relationships and methods
     public function roles()
     {
@@ -155,9 +171,210 @@ class Users extends Model
     // Method to revoke role
     public function revokeRole()
     {
-        // Deactivate current role and assign normal role
-        $this->roles()->update(['is_active' => false]);
+        // Deactivate current role (consistent with revokePackage logic)
+        return $this->roles()->update(['is_active' => false]);
+    }
+
+    // User Package relationships and methods
+    public function packages()
+    {
+        return $this->hasMany(UserPackage::class, 'user_id', 'id');
+    }
+
+    public function activePackage()
+    {
+        return $this->hasOne(UserPackage::class, 'user_id', 'id')
+                    ->where('is_active', true)
+                    ->where(function ($query) {
+                        $query->where('package_type', 'celebrity')
+                              ->orWhere('expires_at', '>', now())
+                              ->orWhereNull('expires_at');
+                    })
+                    ->latest('granted_at');
+    }
+
+    public function currentPackage()
+    {
+        return $this->activePackage;
+    }
+
+    public function getCurrentPackageType()
+    {
+        $currentPackage = $this->currentPackage();
+        return $currentPackage ? $currentPackage->package_type : null;
+    }
+
+    public function hasPackage()
+    {
+        $currentPackage = $this->currentPackage();
+        return $currentPackage && $currentPackage->isActive();
+    }
+
+    public function isMillionaire()
+    {
+        $currentPackage = $this->currentPackage();
+        return $currentPackage && $currentPackage->package_type === 'millionaire' && $currentPackage->isActive();
+    }
+
+    public function isBillionaire()
+    {
+        $currentPackage = $this->currentPackage();
+        return $currentPackage && $currentPackage->package_type === 'billionaire' && $currentPackage->isActive();
+    }
+
+    public function isCelebrity()
+    {
+        $currentPackage = $this->currentPackage();
+        return $currentPackage && $currentPackage->package_type === 'celebrity' && $currentPackage->isActive();
+    }
+
+    public function getPackageExpiryDate()
+    {
+        $currentPackage = $this->currentPackage();
+        if ($currentPackage && $currentPackage->package_type !== 'celebrity') {
+            return $currentPackage->expires_at;
+        }
+        return null;
+    }
+
+    public function getDaysRemainingForPackage()
+    {
+        $currentPackage = $this->currentPackage();
+        if ($currentPackage) {
+            return $currentPackage->getDaysRemaining();
+        }
+        return null;
+    }
+
+    public function getPackageDisplayName()
+    {
+        $currentPackage = $this->currentPackage();
+        return $currentPackage ? $currentPackage->getPackageDisplayName() : null;
+    }
+
+    public function getPackageBadgeColor()
+    {
+        $currentPackage = $this->currentPackage();
+        return $currentPackage ? $currentPackage->getPackageBadgeColor() : null;
+    }
+
+    // Method to assign package to user
+    public function assignPackage($packageType, $adminId = null)
+    {
+        // Deactivate existing packages
+        $this->packages()->update(['is_active' => false]);
+
+        // Calculate expiry date based on package type
+        $expiresAt = null;
+        if ($packageType === 'millionaire' || $packageType === 'billionaire') {
+            $expiresAt = now()->addYear(); // 1 year duration
+        }
+        // Celebrity package is permanent (no expiry date)
+
+        // Create new package
+        return $this->packages()->create([
+            'package_type' => $packageType,
+            'granted_at' => now(),
+            'expires_at' => $expiresAt,
+            'granted_by_admin_id' => $adminId,
+            'is_active' => true
+        ]);
+    }
+
+    // Method to revoke package
+    public function revokePackage()
+    {
+        // Deactivate current package
+        return $this->packages()->update(['is_active' => false]);
+    }
+
+    // Swipe Limiting Methods
+    
+    /**
+     * Check if user can swipe today based on their role and daily limit
+     *
+     * @return bool
+     */
+    public function canSwipeToday()
+    {
+        // VIP users have unlimited swipes
+        if ($this->isVip()) {
+            return true;
+        }
+
+        // Check if we need to reset daily swipes for a new day
+        $this->resetDailySwipesIfNeeded();
+
+        // Get swipe limit from app settings
+        $appData = AppData::first();
+        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
+
+        return $this->daily_swipes < $swipeLimit;
+    }
+
+    /**
+     * Increment the daily swipe count
+     *
+     * @return bool
+     */
+    public function incrementSwipeCount()
+    {
+        // Reset daily swipes if it's a new day
+        $this->resetDailySwipesIfNeeded();
+
+        // Update swipe count and date
+        $this->daily_swipes = $this->daily_swipes + 1;
+        $this->last_swipe_date = now()->toDateString();
+        return $this->save();
+    }
+
+    /**
+     * Get remaining swipes for today
+     *
+     * @return int
+     */
+    public function getRemainingSwipes()
+    {
+        // VIP users have unlimited swipes
+        if ($this->isVip()) {
+            return -1; // -1 indicates unlimited
+        }
+
+        // Check if we need to reset daily swipes for a new day
+        $this->resetDailySwipesIfNeeded();
+
+        // Get swipe limit from app settings
+        $appData = AppData::first();
+        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
+
+        return max(0, $swipeLimit - $this->daily_swipes);
+    }
+
+    /**
+     * Reset daily swipes if it's a new day
+     *
+     * @return void
+     */
+    public function resetDailySwipesIfNeeded()
+    {
+        $today = now()->toDateString();
         
-        return $this->assignRole('normal');
+        if ($this->last_swipe_date !== $today) {
+            $this->daily_swipes = 0;
+            $this->last_swipe_date = $today;
+            $this->save();
+        }
+    }
+
+    /**
+     * Manual reset daily swipes (for admin or cronjob)
+     *
+     * @return bool
+     */
+    public function resetDailySwipes()
+    {
+        $this->daily_swipes = 0;
+        $this->last_swipe_date = now()->toDateString();
+        return $this->save();
     }
 }
