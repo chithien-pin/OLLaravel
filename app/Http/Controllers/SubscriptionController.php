@@ -55,7 +55,7 @@ class SubscriptionController extends Controller
         try {
             $request->validate([
                 'user_id' => 'required|integer|exists:users,id',
-                'plan_type' => 'required|in:starter,monthly,yearly',
+                'plan_type' => 'required|in:starter,monthly,yearly,millionaire,billionaire',
                 'payment_method_id' => 'required|string'
             ]);
 
@@ -338,7 +338,7 @@ class SubscriptionController extends Controller
         try {
             $request->validate([
                 'user_id' => 'required|integer|exists:users,id',
-                'plan_type' => 'required|in:starter,monthly,yearly',
+                'plan_type' => 'required|in:starter,monthly,yearly,millionaire,billionaire',
             ]);
 
             // Validate starter plan eligibility
@@ -396,7 +396,7 @@ class SubscriptionController extends Controller
         try {
             $request->validate([
                 'user_id' => 'required|integer|exists:users,id',
-                'plan_type' => 'required|in:starter,monthly,yearly',
+                'plan_type' => 'required|in:starter,monthly,yearly,millionaire,billionaire',
                 'payment_intent_id' => 'required|string'
             ]);
 
@@ -432,25 +432,39 @@ class SubscriptionController extends Controller
                     'confirmed_by_app' => true
                 ])
             ]);
+            
+            // Handle different subscription types
+            if ($planData['type'] === 'role') {
+                // VIP role assignment for starter, monthly, yearly
+                $duration = ($request->plan_type === 'starter' || $request->plan_type === 'monthly') ? '1_month' : '1_year';
+                $userRole = $user->assignRole('vip', $duration);
 
-            // Assign VIP role to user with proper duration
-            $duration = ($request->plan_type === 'starter' || $request->plan_type === 'monthly') ? '1_month' : '1_year';
-            $userRole = $user->assignRole('vip', $duration);
+                // Link subscription to user role
+                if ($userRole) {
+                    $userRole->update(['subscription_id' => $subscription->id]);
+                }
 
-            // Link subscription to user role
-            if ($userRole) {
-                $userRole->update(['subscription_id' => $subscription->id]);
+                $responseMessage = 'Payment confirmed and VIP access granted successfully';
+                $responseRole = 'vip';
+            } else {
+                // Package assignment for millionaire, billionaire
+                $packageType = $request->plan_type; // 'millionaire' or 'billionaire'
+                $user->assignPackage($packageType); // Only packageType is required
+
+                $responseMessage = "Payment confirmed and {$planData['name']} package activated successfully";
+                $responseRole = $packageType;
             }
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Payment confirmed and VIP access granted successfully',
+                'message' => $responseMessage,
                 'data' => [
                     'subscription_id' => $subscription->id,
                     'status' => 'active',
                     'plan_type' => $request->plan_type,
-                    'vip_expires_at' => $subscription->ends_at,
-                    'role' => 'vip',
+                    'expires_at' => $subscription->ends_at,
+                    'package_type' => $planData['type'],
+                    'role' => $responseRole,
                     'days_remaining' => $subscription->getDaysRemaining()
                 ]
             ]);
