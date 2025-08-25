@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DiamondPackController;
+use App\Http\Controllers\GiftInventoryController;
 use App\Http\Controllers\InterestController;
 use App\Http\Controllers\LiveApplicationController;
 use App\Http\Controllers\NotificationController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 
@@ -128,3 +130,26 @@ Route::post('generateAgoraToken', [SettingController::class, 'generateAgoraToken
 // Pending message routes removed - free chat only
 
 // Live stream chat notification routes removed - free chat only
+
+/*|--------------------------------------------------------------------------|
+  | Subscription Routes                                                      |
+  |--------------------------------------------------------------------------|*/
+
+Route::post('subscription/plans', [SubscriptionController::class, 'getPlans'])->middleware('checkHeader');
+Route::post('subscription/create-payment-intent', [SubscriptionController::class, 'createPaymentIntent'])->middleware('checkHeader');
+Route::post('subscription/create', [SubscriptionController::class, 'createSubscription'])->middleware('checkHeader');
+Route::post('subscription/status', [SubscriptionController::class, 'getSubscriptionStatus'])->middleware('checkHeader');
+Route::post('subscription/cancel', [SubscriptionController::class, 'cancelSubscription'])->middleware('checkHeader');
+Route::post('subscription/resume', [SubscriptionController::class, 'resumeSubscription'])->middleware('checkHeader');
+Route::post('subscription/update-payment-method', [SubscriptionController::class, 'updatePaymentMethod'])->middleware('checkHeader');
+Route::post('subscription/confirm-payment', [SubscriptionController::class, 'confirmPaymentSuccess'])->middleware('checkHeader');
+
+/*|--------------------------------------------------------------------------|
+  | Gift Inventory Routes                                                    |
+  |--------------------------------------------------------------------------|*/
+
+Route::post('sendGiftToUser', [GiftInventoryController::class, 'sendGiftToUser'])->middleware('checkHeader');
+Route::post('getUserGiftInventory', [GiftInventoryController::class, 'getUserGiftInventory'])->middleware('checkHeader');
+Route::post('convertGiftsToCoins', [GiftInventoryController::class, 'convertGiftsToCoins'])->middleware('checkHeader');
+Route::post('getGiftConversionData', [GiftInventoryController::class, 'getGiftConversionData'])->middleware('checkHeader');
+Route::post('getInventoryStats', [GiftInventoryController::class, 'getInventoryStats'])->middleware('checkHeader');
