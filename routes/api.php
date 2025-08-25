@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DiamondPackController;
+use App\Http\Controllers\GiftInventoryController;
 use App\Http\Controllers\InterestController;
 use App\Http\Controllers\LiveApplicationController;
 use App\Http\Controllers\NotificationController;
@@ -142,3 +143,13 @@ Route::post('subscription/cancel', [SubscriptionController::class, 'cancelSubscr
 Route::post('subscription/resume', [SubscriptionController::class, 'resumeSubscription'])->middleware('checkHeader');
 Route::post('subscription/update-payment-method', [SubscriptionController::class, 'updatePaymentMethod'])->middleware('checkHeader');
 Route::post('subscription/confirm-payment', [SubscriptionController::class, 'confirmPaymentSuccess'])->middleware('checkHeader');
+
+/*|--------------------------------------------------------------------------|
+  | Gift Inventory Routes                                                    |
+  |--------------------------------------------------------------------------|*/
+
+Route::post('sendGiftToUser', [GiftInventoryController::class, 'sendGiftToUser'])->middleware('checkHeader');
+Route::post('getUserGiftInventory', [GiftInventoryController::class, 'getUserGiftInventory'])->middleware('checkHeader');
+Route::post('convertGiftsToCoins', [GiftInventoryController::class, 'convertGiftsToCoins'])->middleware('checkHeader');
+Route::post('getGiftConversionData', [GiftInventoryController::class, 'getGiftConversionData'])->middleware('checkHeader');
+Route::post('getInventoryStats', [GiftInventoryController::class, 'getInventoryStats'])->middleware('checkHeader');
