@@ -25,12 +25,15 @@ class UserGiftInventory extends Model
         'received_at' => 'datetime',
         'converted_at' => 'datetime',
         'is_converted' => 'boolean',
+        'received_from_user_id' => 'array',
     ];
 
     protected $appends = [
         'total_value',
         'formatted_received_date',
-        'formatted_converted_date'
+        'formatted_converted_date',
+        'sender_count',
+        'sender_names'
     ];
 
     /**
@@ -50,11 +53,27 @@ class UserGiftInventory extends Model
     }
 
     /**
-     * Get the user who sent this gift
+     * Get all users who sent this gift (many-to-many via JSON array)
+     */
+    public function senders()
+    {
+        $senderIds = $this->received_from_user_id ?? [];
+        if (empty($senderIds)) {
+            return collect();
+        }
+        return Users::whereIn('id', $senderIds)->with('images')->get();
+    }
+
+    /**
+     * Get the first/primary sender (for backward compatibility)
      */
     public function sender()
     {
-        return $this->belongsTo(Users::class, 'received_from_user_id');
+        $senderIds = $this->received_from_user_id ?? [];
+        if (empty($senderIds)) {
+            return null;
+        }
+        return Users::with('images')->find($senderIds[0]);
     }
 
     /**
@@ -118,31 +137,69 @@ class UserGiftInventory extends Model
     }
 
     /**
+     * Get count of unique senders
+     */
+    public function getSenderCountAttribute()
+    {
+        $senderIds = $this->received_from_user_id ?? [];
+        return count(array_unique($senderIds));
+    }
+
+    /**
+     * Get names of all senders
+     */
+    public function getSenderNamesAttribute()
+    {
+        $senderIds = $this->received_from_user_id ?? [];
+        if (empty($senderIds)) {
+            return 'Unknown sender';
+        }
+        
+        $senders = Users::whereIn('id', $senderIds)->pluck('fullname')->toArray();
+        
+        if (count($senders) === 1) {
+            return $senders[0];
+        } elseif (count($senders) === 2) {
+            return $senders[0] . ' with 1 person';
+        } else {
+            return $senders[0] . ' with ' . (count($senders) - 1) . ' people';
+        }
+    }
+
+
+    /**
      * Static method to add gift to inventory
      */
     public static function addGift($userId, $giftId, $senderId = null, $quantity = 1)
     {
-        // Check if same gift from same sender already exists (to combine quantities)
+        // Check if same gift already exists for this user (regardless of sender)
         $existingGift = self::where([
             'user_id' => $userId,
             'gift_id' => $giftId,
-            'received_from_user_id' => $senderId,
             'is_converted' => false
         ])->first();
 
         if ($existingGift) {
-            // Add to existing quantity
+            // Add to existing quantity and update received time
             $existingGift->quantity += $quantity;
-            $existingGift->received_at = now(); // Update received time
+            $existingGift->received_at = now(); // Update to latest received time
+            
+            // Add sender to the list if not already present
+            $sendersList = $existingGift->received_from_user_id ?? [];
+            if ($senderId && !in_array($senderId, $sendersList)) {
+                $sendersList[] = $senderId;
+                $existingGift->received_from_user_id = $sendersList;
+            }
+            
             $existingGift->save();
             return $existingGift;
         } else {
-            // Create new inventory item
+            // Create new inventory item with sender as array
             return self::create([
                 'user_id' => $userId,
                 'gift_id' => $giftId,
                 'quantity' => $quantity,
-                'received_from_user_id' => $senderId,
+                'received_from_user_id' => $senderId ? [$senderId] : [],
                 'received_at' => now(),
             ]);
         }

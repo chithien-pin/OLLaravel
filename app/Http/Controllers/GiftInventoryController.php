@@ -83,7 +83,7 @@ class GiftInventoryController extends Controller
                 'status' => true,
                 'message' => 'Gift sent successfully',
                 'data' => [
-                    'inventory_item' => $inventoryItem->load(['gift', 'sender']),
+                    'inventory_item' => $inventoryItem->load(['gift']),
                     'sender_remaining_wallet' => $sender->wallet,
                     'gift_details' => $gift
                 ]
@@ -128,7 +128,7 @@ class GiftInventoryController extends Controller
         $offset = ($page - 1) * $limit;
 
         $query = UserGiftInventory::where('user_id', $userId)
-            ->with(['gift', 'sender.images']);
+            ->with(['gift']);
 
         // Apply filters
         if ($request->filter_converted === 'converted') {
