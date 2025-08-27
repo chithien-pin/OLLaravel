@@ -1850,6 +1850,9 @@ class UsersController extends Controller
         $user->package_display_name = $user->getPackageDisplayName();
         $user->package_badge_color = $user->getPackageBadgeColor();
         
+        // Add email field for frontend display
+        $user->email = $user->identity;
+        
         return response()->json([
             'status' => true,
             'message' =>  __('app.fetchSuccessful'),
@@ -1886,6 +1889,9 @@ class UsersController extends Controller
             $data->package_days_remaining = $data->getDaysRemainingForPackage();
             $data->package_display_name = $data->getPackageDisplayName();
             $data->package_badge_color = $data->getPackageBadgeColor();
+            
+            // Add email field for frontend display
+            $data->email = $data->identity;
         } else {
             return response()->json(['status' => false, 'message' => __('app.UserNotFound')]);
         }
