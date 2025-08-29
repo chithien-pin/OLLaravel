@@ -23,8 +23,11 @@ class SubscriptionController extends Controller
             if ($request->has('current_user_id')) {
                 $isEligibleForStarter = Subscription::isEligibleForStarterPlan($request->current_user_id);
                 
-                // If user is not eligible for starter plan, remove it from available plans
-                if (!$isEligibleForStarter) {
+                if ($isEligibleForStarter) {
+                    // First-time user: Show only Starter + Yearly (remove Monthly)
+                    unset($plans['monthly']);
+                } else {
+                    // Existing user: Show only Monthly + Yearly (remove Starter)
                     unset($plans['starter']);
                 }
                 
