@@ -958,6 +958,49 @@ class UsersController extends Controller
 
     }
 
+    function toggleLiveStreamStatus(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required|integer'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $user = Users::where('id', $request->user_id)->first();
+
+        if ($user) {
+            // Toggle between enabled (2) and disabled (0)
+            // If currently enabled (2), disable it (0)
+            // If currently disabled (0) or pending (1), enable it (2)
+            $user->can_go_live = ($user->can_go_live == 2) ? 0 : 2;
+            $user->save();
+
+            $status_message = ($user->can_go_live == 2) ? 
+                "Live streaming enabled successfully." : 
+                "Live streaming disabled successfully.";
+
+            return response()->json([
+                'status' => true,
+                'message' => $status_message,
+                'data' => [
+                    'user_id' => $user->id,
+                    'can_go_live' => $user->can_go_live,
+                    'is_eligible' => $user->can_go_live == 2
+                ]
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found',
+            ]);
+        }
+    }
+
     function increaseStreamCountOfUser(Request $request)
     {
         $rules = [
@@ -1527,6 +1570,7 @@ class UsersController extends Controller
             $user->login_type = $req->login_type;
             $user->total_collected = $appData->new_user_free_coins;
             $user->username = $this->generateUniqueUsername();
+            $user->can_go_live = 2; // Allow new users to live stream immediately
 
             $user->save();
 

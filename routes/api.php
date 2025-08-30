@@ -36,6 +36,7 @@ Route::post('fetchUsersByCordinates', [UsersController::class, 'fetchUsersByCord
 Route::post('updateUserBlockList', [UsersController::class, 'updateUserBlockList'])->middleware('checkHeader');
 Route::post('deleteMyAccount', [UsersController::class, 'deleteMyAccount'])->middleware('checkHeader');
 Route::post('minusCoinsFromWallet', [UsersController::class, 'minusCoinsFromWallet'])->middleware('checkHeader');
+Route::post('toggleLiveStreamStatus', [UsersController::class, 'toggleLiveStreamStatus'])->middleware('checkHeader');
 
 Route::post('getProfile', [UsersController::class, 'getProfile'])->middleware('checkHeader');
 Route::post('getUserDetails', [UsersController::class, 'getUserDetails'])->middleware('checkHeader');
