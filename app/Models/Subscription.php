@@ -24,6 +24,8 @@ class Subscription extends Model
         'starts_at',
         'ends_at',
         'canceled_at',
+        'webhook_confirmed_at',
+        'payment_intent_verified',
         'metadata'
     ];
 
@@ -31,6 +33,8 @@ class Subscription extends Model
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'canceled_at' => 'datetime',
+        'webhook_confirmed_at' => 'datetime',
+        'payment_intent_verified' => 'boolean',
         'metadata' => 'array',
         'amount' => 'decimal:2'
     ];
@@ -49,8 +53,23 @@ class Subscription extends Model
     // Helper methods
     public function isActive()
     {
-        return $this->status === 'active' && 
+        return ($this->status === 'active' || $this->status === 'pending_webhook') && 
                (!$this->ends_at || $this->ends_at->isFuture());
+    }
+
+    public function isPendingWebhook()
+    {
+        return $this->status === 'pending_webhook';
+    }
+
+    public function isWebhookConfirmed()
+    {
+        return $this->webhook_confirmed_at !== null;
+    }
+
+    public function isPaymentIntentVerified()
+    {
+        return $this->payment_intent_verified === true;
     }
 
     public function isExpired()
@@ -79,7 +98,12 @@ class Subscription extends Model
     // Scopes
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->whereIn('status', ['active', 'pending_webhook']);
+    }
+
+    public function scopePendingWebhook($query)
+    {
+        return $query->where('status', 'pending_webhook');
     }
 
     public function scopeForUser($query, $userId)
