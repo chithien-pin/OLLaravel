@@ -41,6 +41,36 @@ services:
     networks:
       - orange_network
 
+  # Webhook Service (Go)
+  webhook:
+    build:
+      context: ./webhook-service
+      dockerfile: Dockerfile
+    container_name: ol_webhook
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=orange_user
+      - DB_PASSWORD=orange_pass
+      - DB_NAME=orange_db
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - LARAVEL_BASE_URL=http://backend:9000
+      - LARAVEL_API_KEY=${LARAVEL_API_KEY}
+    depends_on:
+      - mysql
+      - backend
+    networks:
+      - orange_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # Nginx Web Server
   nginx:
     image: nginx:1.25-alpine
@@ -54,40 +84,9 @@ services:
       - .:/var/www/html
     depends_on:
       - backend
+      - webhook
     networks:
       - orange_network
-
-  # Webhook Service (Go)
-  webhook:
-    build:
-      context: ./webhook-service
-      dockerfile: Dockerfile
-    container_name: ol_webhook
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    environment:
-      - PORT=8080
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_NAME=orange_db
-      - DB_USER=orange_user
-      - DB_PASS=orange_pass
-      - LARAVEL_API_URL=http://backend:9000
-      - LARAVEL_API_KEY=123
-      - GIN_MODE=release
-    depends_on:
-      - mysql
-      - backend
-    networks:
-      - orange_network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
 
   # Redis (for caching and sessions)
   # redis:
