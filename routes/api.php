@@ -145,6 +145,9 @@ Route::post('subscription/resume', [SubscriptionController::class, 'resumeSubscr
 Route::post('subscription/update-payment-method', [SubscriptionController::class, 'updatePaymentMethod'])->middleware('checkHeader');
 Route::post('subscription/confirm-payment', [SubscriptionController::class, 'confirmPaymentSuccess'])->middleware('checkHeader');
 
+// Webhook notification endpoint (called by Go webhook service)
+Route::post('webhook/subscription-confirmed', [SubscriptionController::class, 'handleWebhookConfirmation'])->middleware('checkHeader');
+
 /*|--------------------------------------------------------------------------|
   | Gift Inventory Routes                                                    |
   |--------------------------------------------------------------------------|*/

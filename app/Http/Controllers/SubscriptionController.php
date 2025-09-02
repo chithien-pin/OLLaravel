@@ -482,6 +482,7 @@ class SubscriptionController extends Controller
                 'user_id' => $user->id,
                 'stripe_subscription_id' => $request->payment_intent_id,
                 'stripe_customer_id' => $paymentIntentData['customer_id'],
+                'payment_intent_id' => $request->payment_intent_id,
                 'plan_type' => $request->plan_type,
                 'stripe_price_id' => $planData['price_id'],
                 'status' => 'pending_webhook',
@@ -663,6 +664,79 @@ class SubscriptionController extends Controller
                 'success' => false,
                 'message' => 'Payment verification failed: Unable to verify with Stripe'
             ];
+        }
+    }
+
+    /**
+     * Handle webhook confirmation from Go service
+     */
+    public function handleWebhookConfirmation(Request $request)
+    {
+        Log::info('SUBSCRIPTION: Webhook confirmation received', [
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+
+        try {
+            $request->validate([
+                'user_id' => 'required|integer|exists:users,id',
+                'subscription_id' => 'required|integer',
+                'payment_intent_id' => 'required|string',
+                'confirmed_by' => 'required|string',
+                'confirmed_at' => 'required|string'
+            ]);
+
+            $user = Users::find($request->user_id);
+            $subscription = Subscription::find($request->subscription_id);
+
+            if (!$subscription) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Subscription not found'
+                ], 404);
+            }
+
+            Log::info('SUBSCRIPTION: Processing webhook confirmation', [
+                'user_id' => $user->id,
+                'subscription_id' => $subscription->id,
+                'payment_intent_id' => $request->payment_intent_id,
+                'plan_type' => $subscription->plan_type
+            ]);
+
+            // Here you can add additional business logic that should happen
+            // when a subscription is confirmed via webhook, such as:
+            // - Send confirmation email
+            // - Update user analytics
+            // - Trigger notifications
+            // - Update external systems
+
+            // For now, just log the successful webhook confirmation
+            Log::info('SUBSCRIPTION: Webhook confirmation processed successfully', [
+                'user_id' => $user->id,
+                'subscription_id' => $subscription->id,
+                'payment_intent_id' => $request->payment_intent_id
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Webhook confirmation processed successfully',
+                'data' => [
+                    'user_id' => $user->id,
+                    'subscription_id' => $subscription->id,
+                    'confirmed_at' => $request->confirmed_at
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('SUBSCRIPTION: Webhook confirmation error: ' . $e->getMessage(), [
+                'request_data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'status' => 500,
+                'message' => 'Failed to process webhook confirmation',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
         }
     }
 }
