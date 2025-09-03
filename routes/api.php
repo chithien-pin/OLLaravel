@@ -12,6 +12,7 @@ use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SuggestionController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 
@@ -167,3 +168,15 @@ Route::post('getEarningsAnalytics', [EarningsAnalyticsController::class, 'getEar
 Route::post('getGifterDemographics', [EarningsAnalyticsController::class, 'getGifterDemographics'])->middleware('checkHeader');
 Route::post('getTopPerformingStreams', [EarningsAnalyticsController::class, 'getTopPerformingStreams'])->middleware('checkHeader');
 Route::post('getFollowerGiftAnalysis', [EarningsAnalyticsController::class, 'getFollowerGiftAnalysis'])->middleware('checkHeader');
+
+/*|--------------------------------------------------------------------------|
+  | Suggestion Routes (Suggested People to Follow)                          |
+  |--------------------------------------------------------------------------|*/
+
+Route::post('getSuggestedUsers', [SuggestionController::class, 'getSuggestedUsers'])->middleware('checkHeader');
+Route::post('getSuggestionPreferences', [SuggestionController::class, 'getSuggestionPreferences'])->middleware('checkHeader');
+Route::post('updateSuggestionPreferences', [SuggestionController::class, 'updateSuggestionPreferences'])->middleware('checkHeader');
+Route::post('dismissSuggestion', [SuggestionController::class, 'dismissSuggestion'])->middleware('checkHeader');
+Route::post('undoDismissal', [SuggestionController::class, 'undoDismissal'])->middleware('checkHeader');
+Route::post('getDismissedUsers', [SuggestionController::class, 'getDismissedUsers'])->middleware('checkHeader');
+Route::post('rateSuggestion', [SuggestionController::class, 'rateSuggestion'])->middleware('checkHeader');
