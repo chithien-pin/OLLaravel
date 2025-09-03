@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DiamondPackController;
+use App\Http\Controllers\EarningsAnalyticsController;
 use App\Http\Controllers\GiftInventoryController;
 use App\Http\Controllers\InterestController;
 use App\Http\Controllers\LiveApplicationController;
@@ -145,6 +146,9 @@ Route::post('subscription/resume', [SubscriptionController::class, 'resumeSubscr
 Route::post('subscription/update-payment-method', [SubscriptionController::class, 'updatePaymentMethod'])->middleware('checkHeader');
 Route::post('subscription/confirm-payment', [SubscriptionController::class, 'confirmPaymentSuccess'])->middleware('checkHeader');
 
+// Webhook notification endpoint (called by Go webhook service)
+Route::post('webhook/subscription-confirmed', [SubscriptionController::class, 'handleWebhookConfirmation'])->middleware('checkHeader');
+
 /*|--------------------------------------------------------------------------|
   | Gift Inventory Routes                                                    |
   |--------------------------------------------------------------------------|*/
@@ -154,3 +158,12 @@ Route::post('getUserGiftInventory', [GiftInventoryController::class, 'getUserGif
 Route::post('convertGiftsToCoins', [GiftInventoryController::class, 'convertGiftsToCoins'])->middleware('checkHeader');
 Route::post('getGiftConversionData', [GiftInventoryController::class, 'getGiftConversionData'])->middleware('checkHeader');
 Route::post('getInventoryStats', [GiftInventoryController::class, 'getInventoryStats'])->middleware('checkHeader');
+
+/*|--------------------------------------------------------------------------|
+  | Earnings Analytics Routes                                                |
+  |--------------------------------------------------------------------------|*/
+
+Route::post('getEarningsAnalytics', [EarningsAnalyticsController::class, 'getEarningsAnalytics'])->middleware('checkHeader');
+Route::post('getGifterDemographics', [EarningsAnalyticsController::class, 'getGifterDemographics'])->middleware('checkHeader');
+Route::post('getTopPerformingStreams', [EarningsAnalyticsController::class, 'getTopPerformingStreams'])->middleware('checkHeader');
+Route::post('getFollowerGiftAnalysis', [EarningsAnalyticsController::class, 'getFollowerGiftAnalysis'])->middleware('checkHeader');

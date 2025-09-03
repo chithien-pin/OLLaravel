@@ -16,6 +16,11 @@ class SubscriptionController extends Controller
      */
     public function getPlans(Request $request)
     {
+        Log::info('SUBSCRIPTION: getPlans called', [
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+        
         try {
             $plans = Subscription::getSubscriptionPlans();
             
@@ -338,6 +343,11 @@ class SubscriptionController extends Controller
      */
     public function createPaymentIntent(Request $request)
     {
+        Log::info('SUBSCRIPTION: createPaymentIntent called', [
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+        
         try {
             $request->validate([
                 'user_id' => 'required|integer|exists:users,id',
@@ -392,16 +402,40 @@ class SubscriptionController extends Controller
 
 
     /**
-     * Handle successful payment confirmation from Flutter
+     * Handle successful payment confirmation from Flutter with Stripe verification
      */
     public function confirmPaymentSuccess(Request $request)
     {
+        Log::info('SUBSCRIPTION: confirmPaymentSuccess called', [
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+        
         try {
             $request->validate([
                 'user_id' => 'required|integer|exists:users,id',
                 'plan_type' => 'required|in:starter,monthly,yearly,millionaire,billionaire',
                 'payment_intent_id' => 'required|string'
             ]);
+
+            // Check for duplicate payment confirmation to prevent double processing
+            $existingSubscription = Subscription::where('stripe_subscription_id', $request->payment_intent_id)
+                ->where('user_id', $request->user_id)
+                ->first();
+
+            if ($existingSubscription) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Payment already confirmed',
+                    'data' => [
+                        'subscription_id' => $existingSubscription->id,
+                        'status' => $existingSubscription->status,
+                        'plan_type' => $existingSubscription->plan_type,
+                        'expires_at' => $existingSubscription->ends_at,
+                        'days_remaining' => $existingSubscription->getDaysRemaining()
+                    ]
+                ]);
+            }
 
             // Validate starter plan eligibility again for security
             if ($request->plan_type === 'starter') {
@@ -414,29 +448,57 @@ class SubscriptionController extends Controller
                 }
             }
 
+            Log::info('SUBSCRIPTION: About to verify PaymentIntent with Stripe', [
+                'payment_intent_id' => $request->payment_intent_id,
+                'user_id' => $request->user_id,
+                'plan_type' => $request->plan_type
+            ]);
+
+            // STEP 1: Verify PaymentIntent with Stripe API
+            $paymentIntentData = $this->verifyPaymentIntentWithStripe($request->payment_intent_id, $request->user_id, $request->plan_type);
+            
+            Log::info('SUBSCRIPTION: PaymentIntent verification result', [
+                'success' => $paymentIntentData['success'],
+                'message' => $paymentIntentData['message'] ?? null
+            ]);
+            
+            if (!$paymentIntentData['success']) {
+                Log::error('SUBSCRIPTION: PaymentIntent verification failed', [
+                    'payment_intent_id' => $request->payment_intent_id,
+                    'message' => $paymentIntentData['message']
+                ]);
+                return response()->json([
+                    'status' => 400,
+                    'message' => $paymentIntentData['message']
+                ], 400);
+            }
+
             $user = Users::find($request->user_id);
             $plans = Subscription::getSubscriptionPlans();
             $planData = $plans[$request->plan_type];
 
-            // Create local subscription record for successful payment
+            // STEP 2: Create local subscription record with pending_webhook status
             $subscription = Subscription::create([
                 'user_id' => $user->id,
-                'stripe_subscription_id' => $request->payment_intent_id, // Using payment_intent as reference
-                'stripe_customer_id' => $user->stripe_id ?? null,
+                'stripe_subscription_id' => $request->payment_intent_id,
+                'stripe_customer_id' => $paymentIntentData['customer_id'],
+                'payment_intent_id' => $request->payment_intent_id,
                 'plan_type' => $request->plan_type,
                 'stripe_price_id' => $planData['price_id'],
-                'status' => 'active',
+                'status' => 'pending_webhook',
                 'amount' => $planData['amount'],
                 'currency' => $planData['currency'],
                 'starts_at' => now(),
                 'ends_at' => ($request->plan_type === 'starter' || $request->plan_type === 'monthly') ? now()->addMonth() : now()->addYear(),
-                'metadata' => json_encode([
+                'payment_intent_verified' => true,
+                'metadata' => [
                     'payment_intent_id' => $request->payment_intent_id,
-                    'confirmed_by_app' => true
-                ])
+                    'confirmed_by_app' => true,
+                    'stripe_payment_intent_data' => $paymentIntentData['payment_intent_data']
+                ]
             ]);
-            
-            // Handle different subscription types
+
+            // STEP 3: Assign role/package immediately for better UX
             if ($planData['type'] === 'role') {
                 // VIP role assignment for starter, monthly, yearly
                 $duration = ($request->plan_type === 'starter' || $request->plan_type === 'monthly') ? '1_month' : '1_year';
@@ -447,37 +509,233 @@ class SubscriptionController extends Controller
                     $userRole->update(['subscription_id' => $subscription->id]);
                 }
 
-                $responseMessage = 'Payment confirmed and VIP access granted successfully';
+                $responseMessage = 'Payment verified and VIP access granted (pending final webhook confirmation)';
                 $responseRole = 'vip';
             } else {
                 // Package assignment for millionaire, billionaire
-                $packageType = $request->plan_type; // 'millionaire' or 'billionaire'
-                $user->assignPackage($packageType); // Only packageType is required
+                $packageType = $request->plan_type;
+                $user->assignPackage($packageType);
 
-                $responseMessage = "Payment confirmed and {$planData['name']} package activated successfully";
+                $responseMessage = "Payment verified and {$planData['name']} package activated (pending final webhook confirmation)";
                 $responseRole = $packageType;
             }
+
+            // Log successful verification
+            Log::info("Payment verification successful", [
+                'user_id' => $user->id,
+                'payment_intent_id' => $request->payment_intent_id,
+                'plan_type' => $request->plan_type,
+                'subscription_id' => $subscription->id
+            ]);
 
             return response()->json([
                 'status' => 200,
                 'message' => $responseMessage,
                 'data' => [
                     'subscription_id' => $subscription->id,
-                    'status' => 'active',
+                    'status' => 'pending_webhook',
                     'plan_type' => $request->plan_type,
                     'expires_at' => $subscription->ends_at,
                     'package_type' => $planData['type'],
                     'role' => $responseRole,
-                    'days_remaining' => $subscription->getDaysRemaining()
+                    'days_remaining' => $subscription->getDaysRemaining(),
+                    'payment_verified' => true,
+                    'webhook_pending' => true
                 ]
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Confirm payment success error: ' . $e->getMessage());
+            Log::error('Confirm payment success error: ' . $e->getMessage(), [
+                'user_id' => $request->user_id ?? null,
+                'payment_intent_id' => $request->payment_intent_id ?? null,
+                'plan_type' => $request->plan_type ?? null
+            ]);
             return response()->json([
                 'status' => 500,
                 'message' => 'Failed to confirm payment',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Payment processing failed'
+            ], 500);
+        }
+    }
+
+    /**
+     * Verify PaymentIntent with Stripe API
+     */
+    private function verifyPaymentIntentWithStripe($paymentIntentId, $userId, $planType)
+    {
+        Log::info('SUBSCRIPTION: Starting Stripe verification', [
+            'payment_intent_id' => $paymentIntentId,
+            'user_id' => $userId,
+            'plan_type' => $planType
+        ]);
+        
+        try {
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            
+            Log::info('SUBSCRIPTION: About to retrieve PaymentIntent from Stripe');
+            
+            // Retrieve PaymentIntent from Stripe
+            $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
+            
+            Log::info('SUBSCRIPTION: PaymentIntent retrieved successfully', [
+                'id' => $paymentIntent->id,
+                'status' => $paymentIntent->status,
+                'amount' => $paymentIntent->amount,
+                'currency' => $paymentIntent->currency
+            ]);
+
+            // Check if payment succeeded
+            if ($paymentIntent->status !== 'succeeded') {
+                return [
+                    'success' => false,
+                    'message' => 'Payment has not been completed successfully. Status: ' . $paymentIntent->status
+                ];
+            }
+
+            // Verify metadata if it exists
+            if (isset($paymentIntent->metadata->user_id) && $paymentIntent->metadata->user_id != $userId) {
+                return [
+                    'success' => false,
+                    'message' => 'Payment verification failed: User ID mismatch'
+                ];
+            }
+
+            if (isset($paymentIntent->metadata->plan_type) && $paymentIntent->metadata->plan_type !== $planType) {
+                return [
+                    'success' => false,
+                    'message' => 'Payment verification failed: Plan type mismatch'
+                ];
+            }
+
+            // Verify amount matches plan
+            $plans = Subscription::getSubscriptionPlans();
+            $planData = $plans[$planType];
+            $expectedAmountCents = $planData['amount'] * 100;
+
+            Log::info('SUBSCRIPTION: Amount verification', [
+                'plan_type' => $planType,
+                'plan_amount_usd' => $planData['amount'],
+                'expected_amount_cents' => $expectedAmountCents,
+                'actual_amount_cents' => $paymentIntent->amount,
+                'amounts_match' => ($paymentIntent->amount === $expectedAmountCents)
+            ]);
+
+            if ((int)$paymentIntent->amount !== (int)$expectedAmountCents) {
+                Log::error('SUBSCRIPTION: Amount mismatch details', [
+                    'expected_cents' => $expectedAmountCents,
+                    'actual_cents' => $paymentIntent->amount,
+                    'expected_type' => gettype($expectedAmountCents),
+                    'actual_type' => gettype($paymentIntent->amount)
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Payment verification failed: Amount mismatch'
+                ];
+            }
+
+            // Verify currency
+            if (strtoupper($paymentIntent->currency) !== strtoupper($planData['currency'])) {
+                return [
+                    'success' => false,
+                    'message' => 'Payment verification failed: Currency mismatch'
+                ];
+            }
+
+            return [
+                'success' => true,
+                'customer_id' => $paymentIntent->customer ?? null,
+                'payment_intent_data' => [
+                    'id' => $paymentIntent->id,
+                    'amount' => $paymentIntent->amount,
+                    'currency' => $paymentIntent->currency,
+                    'status' => $paymentIntent->status,
+                    'created' => $paymentIntent->created
+                ]
+            ];
+
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            return [
+                'success' => false,
+                'message' => 'Invalid PaymentIntent: ' . $e->getMessage()
+            ];
+        } catch (\Exception $e) {
+            Log::error('Stripe PaymentIntent verification error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Payment verification failed: Unable to verify with Stripe'
+            ];
+        }
+    }
+
+    /**
+     * Handle webhook confirmation from Go service
+     */
+    public function handleWebhookConfirmation(Request $request)
+    {
+        Log::info('SUBSCRIPTION: Webhook confirmation received', [
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+
+        try {
+            $request->validate([
+                'user_id' => 'required|integer|exists:users,id',
+                'subscription_id' => 'required|integer',
+                'payment_intent_id' => 'required|string',
+                'confirmed_by' => 'required|string',
+                'confirmed_at' => 'required|string'
+            ]);
+
+            $user = Users::find($request->user_id);
+            $subscription = Subscription::find($request->subscription_id);
+
+            if (!$subscription) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Subscription not found'
+                ], 404);
+            }
+
+            Log::info('SUBSCRIPTION: Processing webhook confirmation', [
+                'user_id' => $user->id,
+                'subscription_id' => $subscription->id,
+                'payment_intent_id' => $request->payment_intent_id,
+                'plan_type' => $subscription->plan_type
+            ]);
+
+            // Here you can add additional business logic that should happen
+            // when a subscription is confirmed via webhook, such as:
+            // - Send confirmation email
+            // - Update user analytics
+            // - Trigger notifications
+            // - Update external systems
+
+            // For now, just log the successful webhook confirmation
+            Log::info('SUBSCRIPTION: Webhook confirmation processed successfully', [
+                'user_id' => $user->id,
+                'subscription_id' => $subscription->id,
+                'payment_intent_id' => $request->payment_intent_id
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Webhook confirmation processed successfully',
+                'data' => [
+                    'user_id' => $user->id,
+                    'subscription_id' => $subscription->id,
+                    'confirmed_at' => $request->confirmed_at
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('SUBSCRIPTION: Webhook confirmation error: ' . $e->getMessage(), [
+                'request_data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'status' => 500,
+                'message' => 'Failed to process webhook confirmation',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
     }
