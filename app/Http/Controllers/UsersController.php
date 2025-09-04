@@ -774,36 +774,61 @@ class UsersController extends Controller
             ]);
         }
 
-        // Check swipe limit before allowing swipe
-        if (!$user->canSwipeToday()) {
+        try {
+            // Check swipe limit before allowing swipe
+            if (!$user->canSwipeToday()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Daily swipe limit reached! Upgrade to VIP for unlimited swipes.',
+                    'code' => 'SWIPE_LIMIT_REACHED'
+                ]);
+            }
+
+            // Increment swipe count with error handling
+            $incrementResult = $user->incrementSwipeCount();
+            
+            if (!$incrementResult) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Failed to update swipe count. Please try again.',
+                    'code' => 'UPDATE_FAILED'
+                ]);
+            }
+
+            // Refresh user model to get updated data
+            $user->refresh();
+
+            // Cache app settings to improve performance
+            $swipeLimit = \Cache::remember('app_swipe_limit', 3600, function() {
+                $appData = AppData::first();
+                return $appData ? $appData->getSwipeLimit() : 50;
+            });
+
+            $data = [
+                'can_swipe' => $user->canSwipeToday(),
+                'daily_swipes' => $user->daily_swipes,
+                'remaining_swipes' => $user->getRemainingSwipes(),
+                'swipe_limit' => $swipeLimit,
+                'is_vip' => $user->isVip(),
+                'user_role' => $user->getCurrentRoleType(),
+            ];
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Swipe count incremented successfully!',
+                'data' => $data
+            ]);
+            
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('incrementSwipeCount error for user ' . $request->user_id . ': ' . $e->getMessage());
+            
             return response()->json([
                 'status' => false,
-                'message' => 'Daily swipe limit reached! Upgrade to VIP for unlimited swipes.',
-                'code' => 'SWIPE_LIMIT_REACHED'
-            ]);
+                'message' => 'An error occurred while processing your request. Please try again.',
+                'code' => 'SERVER_ERROR'
+            ], 500);
         }
-
-        // Increment swipe count
-        $user->incrementSwipeCount();
-
-        // Return updated swipe status
-        $appData = AppData::first();
-        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
-
-        $data = [
-            'can_swipe' => $user->canSwipeToday(),
-            'daily_swipes' => $user->daily_swipes,
-            'remaining_swipes' => $user->getRemainingSwipes(),
-            'swipe_limit' => $swipeLimit,
-            'is_vip' => $user->isVip(),
-            'user_role' => $user->getCurrentRoleType(),
-        ];
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Swipe count incremented successfully!',
-            'data' => $data
-        ]);
     }
 
     function fetchBlockedProfiles(Request $request)
@@ -2767,6 +2792,260 @@ class UsersController extends Controller
                     'granted_by_admin' => $package->grantedByAdmin ? $package->grantedByAdmin->name ?? 'System' : 'System'
                 ];
             })
+        ]);
+    }
+
+    public function followMultipleUsers(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'my_user_id' => 'required|integer',
+            'user_ids' => 'required|array|min:1|max:50',
+            'user_ids.*' => 'integer',
+        ]);
+
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $myUserId = $request->my_user_id;
+        $userIds = $request->user_ids;
+
+        // Get the requesting user
+        $fromUser = Users::find($myUserId);
+        if (!$fromUser) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ]);
+        }
+
+        // Get blocked user IDs
+        $blockUserIds = explode(',', $fromUser->blocked_users);
+        $blockUserIds = array_filter($blockUserIds); // Remove empty values
+
+        $results = [];
+        $successCount = 0;
+        $failedCount = 0;
+        $followingInserts = [];
+        $notificationInserts = [];
+        $usersToNotify = [];
+
+        foreach ($userIds as $userId) {
+            $result = ['user_id' => $userId, 'success' => false, 'message' => ''];
+
+            // Skip if trying to follow themselves
+            if ($userId == $myUserId) {
+                $result['message'] = 'Cannot follow yourself';
+                $results[] = $result;
+                $failedCount++;
+                continue;
+            }
+
+            // Check if user exists
+            $toUser = Users::find($userId);
+            if (!$toUser) {
+                $result['message'] = 'User not found';
+                $results[] = $result;
+                $failedCount++;
+                continue;
+            }
+
+            // Check if user is blocked
+            if (in_array($userId, $blockUserIds)) {
+                $result['message'] = 'User is blocked';
+                $results[] = $result;
+                $failedCount++;
+                continue;
+            }
+
+            // Check if already following
+            $existingFollow = FollowingList::where('my_user_id', $myUserId)
+                                        ->where('user_id', $userId)
+                                        ->first();
+            if ($existingFollow) {
+                $result['message'] = 'Already following this user';
+                $results[] = $result;
+                $failedCount++;
+                continue;
+            }
+
+            // Prepare for batch insert
+            $followingInserts[] = [
+                'my_user_id' => $myUserId,
+                'user_id' => $userId,
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+
+            // Prepare notification data
+            $notificationInserts[] = [
+                'my_user_id' => $myUserId,
+                'user_id' => $userId,
+                'type' => Constants::notificationTypeFollow,
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+
+            // Store user for push notifications
+            if ($toUser->is_notification == 1 && $toUser->device_token) {
+                $usersToNotify[] = $toUser;
+            }
+
+            $result['success'] = true;
+            $result['message'] = 'Successfully followed';
+            $results[] = $result;
+            $successCount++;
+        }
+
+        // Batch insert following relationships
+        if (!empty($followingInserts)) {
+            try {
+                FollowingList::insert($followingInserts);
+                
+                // Batch insert notifications
+                UserNotification::insert($notificationInserts);
+
+                // Update following count for the requesting user
+                $fromUser->following = $fromUser->following + $successCount;
+                $fromUser->save();
+
+                // Update followers count for each followed user
+                $followedUserIds = array_column($followingInserts, 'user_id');
+                Users::whereIn('id', $followedUserIds)->increment('followers', 1);
+
+                // Send push notifications
+                foreach ($usersToNotify as $toUser) {
+                    $notificationDesc = $fromUser->fullname . ' has started following you.';
+                    Myfunction::sendPushToUser(env('APP_NAME'), $notificationDesc, $toUser->device_token);
+                }
+
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Error processing bulk follow: ' . $e->getMessage()
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => "Bulk follow completed. Success: {$successCount}, Failed: {$failedCount}",
+            'data' => [
+                'success_count' => $successCount,
+                'failed_count' => $failedCount,
+                'total_count' => count($userIds),
+                'results' => $results
+            ]
+        ]);
+    }
+
+    public function unfollowMultipleUsers(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'my_user_id' => 'required|integer',
+            'user_ids' => 'required|array|min:1|max:50',
+            'user_ids.*' => 'integer',
+        ]);
+
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $myUserId = $request->my_user_id;
+        $userIds = $request->user_ids;
+
+        // Get the requesting user
+        $fromUser = Users::find($myUserId);
+        if (!$fromUser) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ]);
+        }
+
+        $results = [];
+        $successCount = 0;
+        $failedCount = 0;
+        $unfollowDeletes = [];
+        $usersToUpdate = [];
+
+        foreach ($userIds as $userId) {
+            $result = ['user_id' => $userId, 'success' => false, 'message' => ''];
+
+            // Skip if trying to unfollow themselves
+            if ($userId == $myUserId) {
+                $result['message'] = 'Cannot unfollow yourself';
+                $results[] = $result;
+                $failedCount++;
+                continue;
+            }
+
+            // Check if user exists
+            $toUser = Users::find($userId);
+            if (!$toUser) {
+                $result['message'] = 'User not found';
+                $results[] = $result;
+                $failedCount++;
+                continue;
+            }
+
+            // Check if currently following
+            $existingFollow = FollowingList::where('my_user_id', $myUserId)
+                                        ->where('user_id', $userId)
+                                        ->first();
+            if (!$existingFollow) {
+                $result['message'] = 'Not following this user';
+                $results[] = $result;
+                $failedCount++;
+                continue;
+            }
+
+            // Store IDs for batch deletion
+            $unfollowDeletes[] = $userId;
+            $usersToUpdate[] = $userId;
+
+            $result['success'] = true;
+            $result['message'] = 'Successfully unfollowed';
+            $results[] = $result;
+            $successCount++;
+        }
+
+        // Batch delete following relationships
+        if (!empty($unfollowDeletes)) {
+            try {
+                // Delete following relationships
+                FollowingList::where('my_user_id', $myUserId)
+                           ->whereIn('user_id', $unfollowDeletes)
+                           ->delete();
+
+                // Update following count for the requesting user
+                $fromUser->following = max(0, $fromUser->following - $successCount);
+                $fromUser->save();
+
+                // Update followers count for each unfollowed user
+                Users::whereIn('id', $usersToUpdate)->decrement('followers', 1);
+
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Error processing bulk unfollow: ' . $e->getMessage()
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => "Bulk unfollow completed. Success: {$successCount}, Failed: {$failedCount}",
+            'data' => [
+                'success_count' => $successCount,
+                'failed_count' => $failedCount,
+                'total_count' => count($userIds),
+                'results' => $results
+            ]
         ]);
     }
 

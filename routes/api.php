@@ -12,6 +12,7 @@ use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SuggestionController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,11 +42,11 @@ Route::post('toggleLiveStreamStatus', [UsersController::class, 'toggleLiveStream
 
 Route::post('getProfile', [UsersController::class, 'getProfile'])->middleware('checkHeader');
 Route::post('getUserDetails', [UsersController::class, 'getUserDetails'])->middleware('checkHeader');
-Route::post('getRandomProfile', [UsersController::class, 'getRandomProfile'])->middleware('checkHeader');
-Route::post('getExplorePageProfileList', [UsersController::class, 'getExplorePageProfileList'])->middleware('checkHeader');
+Route::post('getRandomProfile', [UsersController::class, 'getRandomProfile'])->middleware(['checkHeader', 'throttle:90,1']);
+Route::post('getExplorePageProfileList', [UsersController::class, 'getExplorePageProfileList'])->middleware(['checkHeader', 'throttle:60,1']);
 
 Route::post('updateSavedProfile', [UsersController::class, 'updateSavedProfile'])->middleware('checkHeader');
-Route::post('updateLikedProfile', [UsersController::class, 'updateLikedProfile'])->middleware('checkHeader');
+Route::post('updateLikedProfile', [UsersController::class, 'updateLikedProfile'])->middleware(['checkHeader', 'throttle:180,1']);
 
 Route::post('fetchSavedProfiles', [UsersController::class, 'fetchSavedProfiles'])->middleware('checkHeader');
 Route::post('fetchLikedProfiles', [UsersController::class, 'fetchLikedProfiles'])->middleware('checkHeader');
@@ -70,8 +71,8 @@ Route::post('onOffAnonymous', [UsersController::class, 'onOffAnonymous'])->middl
 Route::post('onOffVideoCalls', [UsersController::class, 'onOffVideoCalls'])->middleware('checkHeader');
 
 Route::post('fetchBlockedProfiles', [UsersController::class, 'fetchBlockedProfiles'])->middleware('checkHeader');
-Route::post('getSwipeStatus', [UsersController::class, 'getSwipeStatus'])->middleware('checkHeader');
-Route::post('incrementSwipeCount', [UsersController::class, 'incrementSwipeCount'])->middleware('checkHeader');
+Route::post('getSwipeStatus', [UsersController::class, 'getSwipeStatus'])->middleware(['checkHeader', 'throttle:180,1']);
+Route::post('incrementSwipeCount', [UsersController::class, 'incrementSwipeCount'])->middleware(['checkHeader', 'throttle:90,1']);
 
 Route::post('applyForLive', [LiveApplicationController::class, 'applyForLive'])->middleware('checkHeader');
 Route::post('applyForVerification', [UsersController::class, 'applyForVerification'])->middleware('checkHeader');
@@ -92,6 +93,8 @@ Route::post('sendLivestreamNotificationToFollowers', [NotificationController::cl
 
 
 Route::post('followUser', [UsersController::class, 'followUser'])->middleware('checkHeader');
+Route::post('followMultipleUsers', [UsersController::class, 'followMultipleUsers'])->middleware('checkHeader');
+Route::post('unfollowMultipleUsers', [UsersController::class, 'unfollowMultipleUsers'])->middleware('checkHeader');
 Route::post('fetchFollowingList', [UsersController::class, 'fetchFollowingList'])->middleware('checkHeader');
 Route::post('fetchFollowersList', [UsersController::class, 'fetchFollowersList'])->middleware('checkHeader');
 Route::post('unfollowUser', [UsersController::class, 'unfollowUser'])->middleware('checkHeader');
@@ -167,3 +170,15 @@ Route::post('getEarningsAnalytics', [EarningsAnalyticsController::class, 'getEar
 Route::post('getGifterDemographics', [EarningsAnalyticsController::class, 'getGifterDemographics'])->middleware('checkHeader');
 Route::post('getTopPerformingStreams', [EarningsAnalyticsController::class, 'getTopPerformingStreams'])->middleware('checkHeader');
 Route::post('getFollowerGiftAnalysis', [EarningsAnalyticsController::class, 'getFollowerGiftAnalysis'])->middleware('checkHeader');
+
+/*|--------------------------------------------------------------------------|
+  | Suggestion Routes (Suggested People to Follow)                          |
+  |--------------------------------------------------------------------------|*/
+
+Route::post('getSuggestedUsers', [SuggestionController::class, 'getSuggestedUsers'])->middleware('checkHeader');
+Route::post('getSuggestionPreferences', [SuggestionController::class, 'getSuggestionPreferences'])->middleware('checkHeader');
+Route::post('updateSuggestionPreferences', [SuggestionController::class, 'updateSuggestionPreferences'])->middleware('checkHeader');
+Route::post('dismissSuggestion', [SuggestionController::class, 'dismissSuggestion'])->middleware('checkHeader');
+Route::post('undoDismissal', [SuggestionController::class, 'undoDismissal'])->middleware('checkHeader');
+Route::post('getDismissedUsers', [SuggestionController::class, 'getDismissedUsers'])->middleware('checkHeader');
+Route::post('rateSuggestion', [SuggestionController::class, 'rateSuggestion'])->middleware('checkHeader');
