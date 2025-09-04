@@ -42,11 +42,11 @@ Route::post('toggleLiveStreamStatus', [UsersController::class, 'toggleLiveStream
 
 Route::post('getProfile', [UsersController::class, 'getProfile'])->middleware('checkHeader');
 Route::post('getUserDetails', [UsersController::class, 'getUserDetails'])->middleware('checkHeader');
-Route::post('getRandomProfile', [UsersController::class, 'getRandomProfile'])->middleware('checkHeader');
-Route::post('getExplorePageProfileList', [UsersController::class, 'getExplorePageProfileList'])->middleware('checkHeader');
+Route::post('getRandomProfile', [UsersController::class, 'getRandomProfile'])->middleware(['checkHeader', 'throttle:90,1']);
+Route::post('getExplorePageProfileList', [UsersController::class, 'getExplorePageProfileList'])->middleware(['checkHeader', 'throttle:60,1']);
 
 Route::post('updateSavedProfile', [UsersController::class, 'updateSavedProfile'])->middleware('checkHeader');
-Route::post('updateLikedProfile', [UsersController::class, 'updateLikedProfile'])->middleware('checkHeader');
+Route::post('updateLikedProfile', [UsersController::class, 'updateLikedProfile'])->middleware(['checkHeader', 'throttle:180,1']);
 
 Route::post('fetchSavedProfiles', [UsersController::class, 'fetchSavedProfiles'])->middleware('checkHeader');
 Route::post('fetchLikedProfiles', [UsersController::class, 'fetchLikedProfiles'])->middleware('checkHeader');
@@ -71,8 +71,8 @@ Route::post('onOffAnonymous', [UsersController::class, 'onOffAnonymous'])->middl
 Route::post('onOffVideoCalls', [UsersController::class, 'onOffVideoCalls'])->middleware('checkHeader');
 
 Route::post('fetchBlockedProfiles', [UsersController::class, 'fetchBlockedProfiles'])->middleware('checkHeader');
-Route::post('getSwipeStatus', [UsersController::class, 'getSwipeStatus'])->middleware('checkHeader');
-Route::post('incrementSwipeCount', [UsersController::class, 'incrementSwipeCount'])->middleware('checkHeader');
+Route::post('getSwipeStatus', [UsersController::class, 'getSwipeStatus'])->middleware(['checkHeader', 'throttle:180,1']);
+Route::post('incrementSwipeCount', [UsersController::class, 'incrementSwipeCount'])->middleware(['checkHeader', 'throttle:90,1']);
 
 Route::post('applyForLive', [LiveApplicationController::class, 'applyForLive'])->middleware('checkHeader');
 Route::post('applyForVerification', [UsersController::class, 'applyForVerification'])->middleware('checkHeader');

@@ -774,36 +774,61 @@ class UsersController extends Controller
             ]);
         }
 
-        // Check swipe limit before allowing swipe
-        if (!$user->canSwipeToday()) {
+        try {
+            // Check swipe limit before allowing swipe
+            if (!$user->canSwipeToday()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Daily swipe limit reached! Upgrade to VIP for unlimited swipes.',
+                    'code' => 'SWIPE_LIMIT_REACHED'
+                ]);
+            }
+
+            // Increment swipe count with error handling
+            $incrementResult = $user->incrementSwipeCount();
+            
+            if (!$incrementResult) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Failed to update swipe count. Please try again.',
+                    'code' => 'UPDATE_FAILED'
+                ]);
+            }
+
+            // Refresh user model to get updated data
+            $user->refresh();
+
+            // Cache app settings to improve performance
+            $swipeLimit = \Cache::remember('app_swipe_limit', 3600, function() {
+                $appData = AppData::first();
+                return $appData ? $appData->getSwipeLimit() : 50;
+            });
+
+            $data = [
+                'can_swipe' => $user->canSwipeToday(),
+                'daily_swipes' => $user->daily_swipes,
+                'remaining_swipes' => $user->getRemainingSwipes(),
+                'swipe_limit' => $swipeLimit,
+                'is_vip' => $user->isVip(),
+                'user_role' => $user->getCurrentRoleType(),
+            ];
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Swipe count incremented successfully!',
+                'data' => $data
+            ]);
+            
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('incrementSwipeCount error for user ' . $request->user_id . ': ' . $e->getMessage());
+            
             return response()->json([
                 'status' => false,
-                'message' => 'Daily swipe limit reached! Upgrade to VIP for unlimited swipes.',
-                'code' => 'SWIPE_LIMIT_REACHED'
-            ]);
+                'message' => 'An error occurred while processing your request. Please try again.',
+                'code' => 'SERVER_ERROR'
+            ], 500);
         }
-
-        // Increment swipe count
-        $user->incrementSwipeCount();
-
-        // Return updated swipe status
-        $appData = AppData::first();
-        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
-
-        $data = [
-            'can_swipe' => $user->canSwipeToday(),
-            'daily_swipes' => $user->daily_swipes,
-            'remaining_swipes' => $user->getRemainingSwipes(),
-            'swipe_limit' => $swipeLimit,
-            'is_vip' => $user->isVip(),
-            'user_role' => $user->getCurrentRoleType(),
-        ];
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Swipe count incremented successfully!',
-            'data' => $data
-        ]);
     }
 
     function fetchBlockedProfiles(Request $request)

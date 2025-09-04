@@ -38,4 +38,30 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    /**
+     * Render an exception into an HTTP response.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Throwable  $exception
+     * @return \Symfony\Component\HttpFoundation\Response
+     *
+     * @throws \Throwable
+     */
+    public function render($request, Throwable $exception)
+    {
+        // Handle ThrottleRequestsException for API routes
+        if ($exception instanceof \Illuminate\Http\Exceptions\ThrottleRequestsException) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Too many requests. Please slow down.',
+                    'code' => 'RATE_LIMIT_EXCEEDED',
+                    'retry_after' => $exception->getHeaders()['Retry-After'] ?? 60,
+                ], 429, $exception->getHeaders());
+            }
+        }
+
+        return parent::render($request, $exception);
+    }
 }

@@ -320,9 +320,11 @@ class Users extends Model
         // Check if we need to reset daily swipes for a new day
         $this->resetDailySwipesIfNeeded();
 
-        // Get swipe limit from app settings
-        $appData = AppData::first();
-        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
+        // Cache app settings to improve performance
+        $swipeLimit = \Cache::remember('app_swipe_limit', 3600, function() {
+            $appData = AppData::first();
+            return $appData ? $appData->getSwipeLimit() : 50;
+        });
 
         return $this->daily_swipes < $swipeLimit;
     }
@@ -334,13 +336,16 @@ class Users extends Model
      */
     public function incrementSwipeCount()
     {
-        // Reset daily swipes if it's a new day
-        $this->resetDailySwipesIfNeeded();
+        // Use database transaction to prevent race conditions
+        return \DB::transaction(function () {
+            // Reset daily swipes if it's a new day
+            $this->resetDailySwipesIfNeeded();
 
-        // Update swipe count and date
-        $this->daily_swipes = $this->daily_swipes + 1;
-        $this->last_swipe_date = now()->toDateString();
-        return $this->save();
+            // Use atomic increment to prevent race conditions
+            return $this->increment('daily_swipes', 1, [
+                'last_swipe_date' => now()->toDateString()
+            ]);
+        });
     }
 
     /**
@@ -358,9 +363,11 @@ class Users extends Model
         // Check if we need to reset daily swipes for a new day
         $this->resetDailySwipesIfNeeded();
 
-        // Get swipe limit from app settings
-        $appData = AppData::first();
-        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
+        // Cache app settings to improve performance
+        $swipeLimit = \Cache::remember('app_swipe_limit', 3600, function() {
+            $appData = AppData::first();
+            return $appData ? $appData->getSwipeLimit() : 50;
+        });
 
         return max(0, $swipeLimit - $this->daily_swipes);
     }
@@ -375,9 +382,11 @@ class Users extends Model
         $today = now()->toDateString();
         
         if ($this->last_swipe_date !== $today) {
-            $this->daily_swipes = 0;
-            $this->last_swipe_date = $today;
-            $this->save();
+            // Use atomic update to prevent race conditions
+            $this->update([
+                'daily_swipes' => 0,
+                'last_swipe_date' => $today
+            ]);
         }
     }
 
