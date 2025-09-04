@@ -93,6 +93,8 @@ Route::post('sendLivestreamNotificationToFollowers', [NotificationController::cl
 
 
 Route::post('followUser', [UsersController::class, 'followUser'])->middleware('checkHeader');
+Route::post('followMultipleUsers', [UsersController::class, 'followMultipleUsers'])->middleware('checkHeader');
+Route::post('unfollowMultipleUsers', [UsersController::class, 'unfollowMultipleUsers'])->middleware('checkHeader');
 Route::post('fetchFollowingList', [UsersController::class, 'fetchFollowingList'])->middleware('checkHeader');
 Route::post('fetchFollowersList', [UsersController::class, 'fetchFollowersList'])->middleware('checkHeader');
 Route::post('unfollowUser', [UsersController::class, 'unfollowUser'])->middleware('checkHeader');
