@@ -148,6 +148,8 @@ Route::post('subscription/cancel', [SubscriptionController::class, 'cancelSubscr
 Route::post('subscription/resume', [SubscriptionController::class, 'resumeSubscription'])->middleware('checkHeader');
 Route::post('subscription/update-payment-method', [SubscriptionController::class, 'updatePaymentMethod'])->middleware('checkHeader');
 Route::post('subscription/confirm-payment', [SubscriptionController::class, 'confirmPaymentSuccess'])->middleware('checkHeader');
+Route::post('subscription/confirm-iap', [SubscriptionController::class, 'confirmIAPPayment'])->middleware('checkHeader');
+Route::post('subscription/simple-confirm', [SubscriptionController::class, 'simpleConfirm'])->middleware('checkHeader');
 
 // Webhook notification endpoint (called by Go webhook service)
 Route::post('webhook/subscription-confirmed', [SubscriptionController::class, 'handleWebhookConfirmation'])->middleware('checkHeader');
@@ -182,3 +184,10 @@ Route::post('dismissSuggestion', [SuggestionController::class, 'dismissSuggestio
 Route::post('undoDismissal', [SuggestionController::class, 'undoDismissal'])->middleware('checkHeader');
 Route::post('getDismissedUsers', [SuggestionController::class, 'getDismissedUsers'])->middleware('checkHeader');
 Route::post('rateSuggestion', [SuggestionController::class, 'rateSuggestion'])->middleware('checkHeader');
+
+/*|--------------------------------------------------------------------------|
+  | iOS Subscription Routes (Apple IAP)                                     |
+  |--------------------------------------------------------------------------|*/
+
+Route::get('subscription/ios-plans', [SubscriptionController::class, 'getIOSSubscriptionPlans'])->middleware('checkHeader');
+Route::post('subscription/ios-confirm', [SubscriptionController::class, 'confirmIOSSubscription'])->middleware('checkHeader');

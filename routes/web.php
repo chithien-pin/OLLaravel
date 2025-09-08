@@ -6,6 +6,7 @@ use App\Http\Controllers\LiveApplicationController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\SubscriptionPackController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RedeemRequestsController;
@@ -162,6 +163,17 @@ Route::post('addDiamondPack', [DiamondPackController::class, 'addDiamondPack'])-
 Route::post('updateDiamondPack', [DiamondPackController::class, 'updateDiamondPack'])->name('updateDiamondPack')->middleware(['checkLogin']);
 Route::get('getDiamondPackById/{id}', [DiamondPackController::class, 'getDiamondPackById'])->name('getDiamondPackById')->middleware(['checkLogin']);
 Route::post('deleteDiamondPack', [DiamondPackController::class, 'deleteDiamondPack'])->name('deleteDiamondPack')->middleware(['checkLogin']);
+
+/*|--------------------------------------------------------------------------|
+  | Subscription Pack Routes                                                  |
+  |--------------------------------------------------------------------------|*/
+
+Route::get('subscriptionpacks', [SubscriptionPackController::class, 'subscriptionpacks'])->name('subscriptionpacks')->middleware(['checkLogin']);
+Route::post('fetchSubscriptionPackages', [SubscriptionPackController::class, 'fetchSubscriptionPackages'])->name('fetchSubscriptionPackages')->middleware(['checkLogin']);
+Route::post('addSubscriptionPack', [SubscriptionPackController::class, 'addSubscriptionPack'])->name('addSubscriptionPack')->middleware(['checkLogin']);
+Route::post('updateSubscriptionPack', [SubscriptionPackController::class, 'updateSubscriptionPack'])->name('updateSubscriptionPack')->middleware(['checkLogin']);
+Route::get('getSubscriptionPackById/{id}', [SubscriptionPackController::class, 'getSubscriptionPackById'])->name('getSubscriptionPackById')->middleware(['checkLogin']);
+Route::post('deleteSubscriptionPack', [SubscriptionPackController::class, 'deleteSubscriptionPack'])->name('deleteSubscriptionPack')->middleware(['checkLogin']);
 
 /*|--------------------------------------------------------------------------|
 | Gift  Route

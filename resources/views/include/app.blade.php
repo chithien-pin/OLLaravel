@@ -114,6 +114,12 @@
                                 <span>{{ __('app.Diamond_packs') }}</span>
                             </a>
                         </li>
+                        <li class="sideBarli subscriptionpackSideA">
+                            <a href="{{ route('subscriptionpacks') }}" class="nav-link">
+                                <i class="fas fa-crown"></i>
+                                <span>{{ __('Subscription Packs') }}</span>
+                            </a>
+                        </li>
                         <li class="sideBarli giftSideA">
                             <a href="{{ route('gifts') }}" class="nav-link">
                                 <i class="fas fa-gift"></i>

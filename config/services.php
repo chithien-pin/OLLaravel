@@ -40,4 +40,12 @@ return [
         ],
     ],
 
+    'apple' => [
+        'shared_secret' => env('APPLE_SHARED_SECRET'),
+        'team_id' => env('APPLE_TEAM_ID'),
+        'bundle_id' => env('APPLE_BUNDLE_ID'),
+        'production_url' => 'https://buy.itunes.apple.com/verifyReceipt',
+        'sandbox_url' => 'https://sandbox.itunes.apple.com/verifyReceipt',
+    ],
+
 ];
