@@ -783,7 +783,7 @@ class UsersController extends Controller
                     'code' => 'SWIPE_LIMIT_REACHED'
                 ]);
             }
-
+            
             // Increment swipe count with error handling
             $incrementResult = $user->incrementSwipeCount();
             
@@ -798,11 +798,9 @@ class UsersController extends Controller
             // Refresh user model to get updated data
             $user->refresh();
 
-            // Cache app settings to improve performance
-            $swipeLimit = \Cache::remember('app_swipe_limit', 3600, function() {
-                $appData = AppData::first();
-                return $appData ? $appData->getSwipeLimit() : 50;
-            });
+            // Get app settings directly from database
+            $appData = AppData::first();
+            $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
 
             $data = [
                 'can_swipe' => $user->canSwipeToday(),
@@ -820,8 +818,7 @@ class UsersController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            // Log the error for debugging
-            \Log::error('incrementSwipeCount error for user ' . $request->user_id . ': ' . $e->getMessage());
+            \Log::error('INCREMENT_SWIPE Exception: ' . $e->getMessage());
             
             return response()->json([
                 'status' => false,

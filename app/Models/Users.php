@@ -13,6 +13,16 @@ class Users extends Model
     public $table = "users";
     public $timestamps = false;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'daily_swipes',
+        'last_swipe_date',
+    ];
+
     public function images()
     {
         return $this->hasMany(Images::class, 'user_id', 'id');
@@ -320,11 +330,9 @@ class Users extends Model
         // Check if we need to reset daily swipes for a new day
         $this->resetDailySwipesIfNeeded();
 
-        // Cache app settings to improve performance
-        $swipeLimit = \Cache::remember('app_swipe_limit', 3600, function() {
-            $appData = AppData::first();
-            return $appData ? $appData->getSwipeLimit() : 50;
-        });
+        // Get app settings directly from database
+        $appData = AppData::first();
+        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
 
         return $this->daily_swipes < $swipeLimit;
     }
@@ -363,11 +371,9 @@ class Users extends Model
         // Check if we need to reset daily swipes for a new day
         $this->resetDailySwipesIfNeeded();
 
-        // Cache app settings to improve performance
-        $swipeLimit = \Cache::remember('app_swipe_limit', 3600, function() {
-            $appData = AppData::first();
-            return $appData ? $appData->getSwipeLimit() : 50;
-        });
+        // Get app settings directly from database
+        $appData = AppData::first();
+        $swipeLimit = $appData ? $appData->getSwipeLimit() : 50;
 
         return max(0, $swipeLimit - $this->daily_swipes);
     }
