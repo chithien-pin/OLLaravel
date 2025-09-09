@@ -1,6 +1,100 @@
 @extends('include.app')
 @section('header')
-
+    <style>
+        /* Payment Gateway column with proper tooltip support */
+        .table td:nth-child(6), 
+        .table th:nth-child(6) {
+            width: 160px !important;
+            max-width: 160px !important;
+            min-width: 160px !important;
+            word-wrap: break-word;
+        }
+        
+        /* Allow tooltip to display properly */
+        .table td:nth-child(6) {
+            overflow: visible !important;
+            white-space: normal !important;
+            position: relative;
+        }
+        
+        /* Header should not truncate */
+        .table th:nth-child(6) {
+            white-space: normal !important;
+            overflow: visible !important;
+        }
+        
+        /* Compact action column with uniform buttons */
+        .table td:nth-child(7), 
+        .table th:nth-child(7) {
+            width: 100px !important;
+            max-width: 100px !important;
+            min-width: 100px !important;
+            text-align: center;
+            vertical-align: middle !important;
+        }
+        
+        /* Uniform action buttons */
+        .btn-compact {
+            padding: 4px 8px !important;
+            font-size: 11px !important;
+            border-radius: 4px !important;
+            margin: 1px 0 !important;
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
+            text-align: center;
+            font-weight: 500;
+            border: none !important;
+            display: block;
+        }
+        
+        /* Stack buttons vertically */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            align-items: center;
+        }
+        
+        /* Make table responsive without breaking layout */
+        .table {
+            table-layout: fixed !important;
+            width: 100% !important;
+        }
+        
+        /* Compact display for payment info */
+        .payment-compact {
+            display: inline-block;
+            max-width: 130px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Modal form styling */
+        #viewRequest .form-control {
+            font-size: 13px !important;
+            padding: 6px 8px !important;
+        }
+        
+        #viewRequest label {
+            font-size: 12px !important;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        #viewRequest .card-body {
+            padding: 15px !important;
+        }
+        
+        #viewRequest .col-md-6 {
+            padding: 0 8px !important;
+        }
+        
+        #viewRequest .row {
+            margin: 0 -8px !important;
+        }
+    </style>
     <script src="{{ asset('asset/script/redeemRequests.js') }}"></script>
 @endsection
 @section('content')
@@ -106,7 +200,33 @@
                         </div>
 
 
+                        <!-- Bank Transfer Details Section -->
                         <div class="form-group">
+                            <label><strong>Bank Transfer Details</strong></label>
+                            <div class="card border-light">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label><strong>Account Holder Name:</strong></label>
+                                            <input id="account_holder_name" type="text" class="form-control mb-2" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label><strong>Bank Name:</strong></label>
+                                            <input id="bank_name" type="text" class="form-control mb-2" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label><strong>Account Number:</strong></label>
+                                            <input id="account_number" type="text" class="form-control mb-2" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Legacy Account Details (for old records) -->
+                        <div class="form-group" id="legacy_account_details" style="display: none;">
                             <label> {{ __('app.Account_details') }}</label>
                             <textarea id="account_details" type="text" name="account_details" class="form-control" required readonly></textarea>
                         </div>

@@ -13,4 +13,6 @@ final class Constants
     const notificationTypeComment = 2;
     const notificationTypeLike = 3;
     const notificationTypeLikeProfile = 4;
+    const notificationTypeRedeemCompleted = 5;
+    const notificationTypeRedeemCancelled = 6;
 }
