@@ -2023,10 +2023,8 @@ class UsersController extends Controller
                     $followersCount->followers += 1;
                     $followersCount->save();
  
-                    if ($toUser->is_notification == 1) {
-                        $notificationDesc = $fromUser->fullname . ' has stared following you.';
-                        Myfunction::sendPushToUser(env('APP_NAME'), $notificationDesc, $toUser->device_token);
-                    }
+                    // Send follow notification with event data
+                    Myfunction::sendFollowNotification($fromUser, $toUser);
                     
                     $updatedUser = Users::where('id', $request->user_id)->first();
                     
