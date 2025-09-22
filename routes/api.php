@@ -117,6 +117,7 @@ Route::post('likePost', [PostController::class, 'likePost'])->middleware('checkH
 Route::post('dislikePost', [PostController::class, 'dislikePost'])->middleware('checkHeader');
 Route::post('deleteMyPost', [PostController::class, 'deleteMyPost'])->middleware('checkHeader');
 Route::post('fetchPostByUser', [PostController::class, 'fetchPostByUser'])->middleware('checkHeader');
+Route::post('getUserFeed', [PostController::class, 'getUserFeed'])->middleware('checkHeader');
 Route::post('fetchPostsByHashtag', [PostController::class, 'fetchPostsByHashtag'])->middleware('checkHeader');
 Route::post('fetchPostByPostId', [PostController::class, 'fetchPostByPostId'])->middleware('checkHeader');
 Route::post('increasePostViewCount', [PostController::class, 'increasePostViewCount'])->middleware('checkHeader');

@@ -16,7 +16,9 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Users;
 use Carbon\Carbon;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
@@ -763,6 +765,67 @@ class PostController extends Controller
         ]);
     }
 
+    public function getUserFeed(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'my_user_id' => 'required',
+            'user_id' => 'required',
+            'start' => 'required',
+            'limit' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $user = Users::where('id', $request->user_id)->first();
+
+        if ($user) {
+
+            $blockUserIds = Users::where('id', $request->my_user_id)->pluck('blocked_users')->first();
+
+            // Only fetch posts that have content (exclude text-only posts)
+            $fetchPosts = Post::where('user_id', $request->user_id)
+                                ->whereNotIn('user_id', explode(',', $blockUserIds))
+                                ->whereHas('content') // This filters out posts without content
+                                ->with(['content', 'user', 'user.stories', 'user.images'])
+                                ->orderBy('created_at', 'desc')
+                                ->offset($request->start)
+                                ->limit($request->limit)
+                                ->get();
+
+            foreach ($fetchPosts as $fetchPost) {
+                $isPostLike = Like::where('user_id', $request->my_user_id)->where('post_id', $fetchPost->id)->first();
+                $fetchPost->is_like = $isPostLike ? 1 : 0;
+
+                $blockUserIds = Users::where('is_block', 1)->pluck('id');
+
+                $comments_count = Comment::whereNotIn('user_id', $blockUserIds)->where('post_id', $fetchPost->id)->count();
+                $likes_count = Like::whereNotIn('user_id', $blockUserIds)->where('post_id', $fetchPost->id)->count();
+
+                $fetchPost->comments_count = $comments_count;
+                $fetchPost->likes_count = $likes_count;
+
+                foreach ($fetchPost->user->stories as $story) {
+                    $story->is_viewed = $story->view_by_user_ids ? in_array($request->my_user_id, explode(',', $story->view_by_user_ids)) : false;
+                }
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Fetch user feed successfully',
+                'data' => $fetchPosts,
+            ]);
+
+        }
+        return response()->json([
+            'status' => false,
+            'message' => 'User not found',
+        ]);
+    }
+
     public function fetchPostsByHashtag(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -978,21 +1041,44 @@ class PostController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        $postContent = PostContent::where('post_id', $request->post_id)->where('content_type', Constants::contentVideo)->first();
+        // Try to find any content for this post (image or video)
+        $postContent = PostContent::where('post_id', $request->post_id)->first();
+
         if ($postContent) {
-            $postContent->view_count += 1;
+            // Post has content (image or video)
+            $postContent->view_count = ($postContent->view_count ?? 0) + 1;
             $postContent->save();
 
             return response()->json([
                 'status' => true,
                 'message' => 'Add post view count',
                 'data' => $postContent,
-            ]);    
+            ]);
         } else {
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong',
-            ]);    
+            // Text-only post - add view_count to posts table
+            $post = Post::find($request->post_id);
+            if ($post) {
+                // Add view_count field to posts table if doesn't exist
+                if (!Schema::hasColumn('posts', 'view_count')) {
+                    Schema::table('posts', function (Blueprint $table) {
+                        $table->integer('view_count')->default(0);
+                    });
+                }
+
+                $post->view_count = ($post->view_count ?? 0) + 1;
+                $post->save();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Add post view count',
+                    'data' => $post,
+                ]);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Post not found',
+                ]);
+            }
         }
         
     }
