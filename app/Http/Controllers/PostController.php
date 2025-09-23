@@ -329,6 +329,30 @@ class PostController extends Controller
 
         if ($request->hasFile('content')) {
             $files = $request->file('content');
+
+            // Check for video duration and file size limits if content_type is video (1)
+            if ($request->content_type == 1) {
+                foreach ($files as $file) {
+                    // Check file size (3MB limit)
+                    $fileSize = $file->getSize();
+                    if ($fileSize > 3 * 1024 * 1024) { // 3MB
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'Video file size cannot exceed 3MB',
+                        ]);
+                    }
+
+                    // Check video duration (30 seconds limit)
+                    $videoDuration = $this->getVideoDuration($file);
+                    if ($videoDuration > 30) {
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'Video duration cannot exceed 30 seconds',
+                        ]);
+                    }
+                }
+            }
+
             for ($i = 0; $i < count($files); $i++) {
                 $postContent = new PostContent();
                 $postContent->post_id = $post->id;
@@ -1297,6 +1321,32 @@ class PostController extends Controller
         echo json_encode($json_data);
         exit();
     }
-    
-    
+
+    /**
+     * Get video duration in seconds using ffprobe command
+     */
+    private function getVideoDuration($videoFile)
+    {
+        try {
+            // Try using ffprobe command if available
+            $path = $videoFile->getRealPath();
+            $command = "ffprobe -v quiet -show_entries format=duration -hide_banner -of default=noprint_wrappers=1:nokey=1 " . escapeshellarg($path);
+            $duration = shell_exec($command);
+
+            if ($duration && is_numeric(trim($duration))) {
+                return (float) trim($duration);
+            }
+
+            // If ffprobe is not available, return 0 to allow upload
+            // (Frontend validation should handle this case)
+            return 0;
+
+        } catch (\Exception $e) {
+            // Log error and return 0 to allow upload
+            error_log("Video duration check failed: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+
 }
