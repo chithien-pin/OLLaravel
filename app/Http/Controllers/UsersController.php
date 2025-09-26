@@ -2226,6 +2226,8 @@ class UsersController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'my_user_id' => 'required',
+            'start' => 'integer|min:0',
+            'limit' => 'integer|min:1|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -2237,7 +2239,11 @@ class UsersController extends Controller
         $user = Users::where('id', $request->my_user_id)->first();
 
         if ($user) {
-            
+
+            // Pagination parameters
+            $start = $request->input('start', 0);
+            $limit = $request->input('limit', 30);
+
             $blockUserIds = explode(',', $user->block_user_ids);
 
             $followingUsers = FollowingList::where('my_user_id', $request->my_user_id)
@@ -2273,11 +2279,13 @@ class UsersController extends Controller
             }
 
             $fetchPosts = Post::with('content')
-                                ->inRandomOrder()
+                                ->orderBy('created_at', 'desc') // Changed from inRandomOrder for pagination
                                 ->with(['user','user.stories','user.images'])
                                 ->whereRelation('user', 'is_block', 0)
                                 ->whereNotIn('user_id', array_merge($blockUserIds))
-                                ->limit(10)
+                                ->whereHas('content') // FILTER: Only posts with images/videos (no text-only posts)
+                                ->offset($start)
+                                ->limit($limit)
                                 ->get();
            
 
@@ -2331,6 +2339,142 @@ class UsersController extends Controller
                     'posts' => $fetchPosts,
                 ]
             ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'User Not Found',
+            ]);
+        }
+    }
+
+    public function fetchFollowingPageData(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'my_user_id' => 'required',
+            'start' => 'integer|min:0',
+            'limit' => 'integer|min:1|max:50',
+        ]);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+        $user = Users::where('id', $request->my_user_id)->first();
+        if ($user) {
+
+            // Pagination parameters
+            $start = $request->input('start', 0);
+            $limit = $request->input('limit', 30);
+
+            $blockUserIds = explode(',', $user->block_user_ids);
+            $followingUsers = FollowingList::where('my_user_id', $request->my_user_id)
+                                        ->whereRelation('story', 'created_at', '>=', now()->subDay()->toDateTimeString())
+                                        ->with('user', 'user.images')
+                                        ->whereRelation('user', 'is_block', 0)
+                                        ->get()
+                                        ->pluck('user');
+            foreach($followingUsers as $followingUser) {
+                $stories = Story::where('user_id', $followingUser->id)
+                                ->where('created_at', '>=', now()->subDay()->toDateTimeString())
+                                ->get();
+
+                foreach ($stories as $story) {
+                    $story->storyView = $story->view_by_user_ids ? in_array($request->my_user_id, explode(',', $story->view_by_user_ids)) : false;
+                }
+                $followingUser->stories = $stories;
+
+                // Add role information to each following user
+                $followingUser->role_type = $followingUser->getCurrentRoleType();
+                $followingUser->is_vip = $followingUser->isVip();
+                $followingUser->role_expires_at = $followingUser->getRoleExpiryDate();
+                $followingUser->role_days_remaining = $followingUser->getDaysRemainingForVip();
+
+                // Add package information to following user
+                $followingUser->package_type = $followingUser->getCurrentPackageType();
+                $followingUser->has_package = $followingUser->hasPackage();
+                $followingUser->package_expires_at = $followingUser->getPackageExpiryDate();
+                $followingUser->package_days_remaining = $followingUser->getDaysRemainingForPackage();
+                $followingUser->package_display_name = $followingUser->getPackageDisplayName();
+                $followingUser->package_badge_color = $followingUser->getPackageBadgeColor();
+            }
+
+            // Get IDs of users that current user is following
+            // FIX: Use correct column name 'user_id' instead of 'following_user_id'
+            $followingUserIds = FollowingList::where('my_user_id', $request->my_user_id)
+                                            ->pluck('user_id')
+                                            ->toArray();
+
+            // DEBUG: Also check with the strict filter
+            $strictFollowingUserIds = FollowingList::where('my_user_id', $request->my_user_id)
+                                            ->whereRelation('user', 'is_block', 0)
+                                            ->pluck('user_id')
+                                            ->toArray();
+            \Log::info("DEBUG fetchFollowingPageData - All following IDs: " . json_encode($followingUserIds));
+            \Log::info("DEBUG fetchFollowingPageData - Strict following IDs (not blocked): " . json_encode($strictFollowingUserIds));
+
+            // DEBUG: Log following user IDs
+            \Log::info("DEBUG fetchFollowingPageData - User {$request->my_user_id} is following user IDs: " . json_encode($followingUserIds));
+            \Log::info("DEBUG fetchFollowingPageData - Block user IDs: " . json_encode($blockUserIds));
+
+            // Check if following users have any posts at all
+            $allPostsFromFollowing = Post::whereIn('user_id', $followingUserIds)->count();
+            \Log::info("DEBUG fetchFollowingPageData - Total posts from followed users: {$allPostsFromFollowing}");
+
+            // Fetch posts ONLY from followed users WITH content (images/videos only)
+            $fetchPosts = Post::with('content')
+                                ->orderBy('created_at', 'desc') // Changed from inRandomOrder for pagination
+                                ->with(['user','user.stories','user.images'])
+                                ->whereRelation('user', 'is_block', 0)
+                                ->whereNotIn('user_id', array_merge($blockUserIds))
+                                ->whereIn('user_id', $followingUserIds) // FILTER: Only posts from followed users
+                                ->whereHas('content') // FILTER: Only posts with images/videos (no text-only posts)
+                                ->offset($start)
+                                ->limit($limit)
+                                ->get();
+
+            // DEBUG: Log final query result
+            \Log::info("DEBUG fetchFollowingPageData - Final filtered posts count: " . $fetchPosts->count());
+
+            if (!$fetchPosts->isEmpty()) {
+                foreach ($fetchPosts as $fetchPost) {
+                    $isPostLike = Like::where('user_id', $request->my_user_id)->where('post_id', $fetchPost->id)->first();
+                    if ($isPostLike) {
+                        $fetchPost->is_like = 1;
+                    } else {
+                        $fetchPost->is_like = 0;
+                    }
+
+                    // Add role information to post users
+                    if ($fetchPost->user) {
+                        $fetchPost->user->role_type = $fetchPost->user->getCurrentRoleType();
+                        $fetchPost->user->is_vip = $fetchPost->user->isVip();
+                        $fetchPost->user->role_expires_at = $fetchPost->user->getRoleExpiryDate();
+                        $fetchPost->user->role_days_remaining = $fetchPost->user->getDaysRemainingForVip();
+
+                        // Add package information to post user
+                        $fetchPost->user->package_type = $fetchPost->user->getCurrentPackageType();
+                        $fetchPost->user->has_package = $fetchPost->user->hasPackage();
+                        $fetchPost->user->package_expires_at = $fetchPost->user->getPackageExpiryDate();
+                        $fetchPost->user->package_days_remaining = $fetchPost->user->getDaysRemainingForPackage();
+                        $fetchPost->user->package_display_name = $fetchPost->user->getPackageDisplayName();
+                        $fetchPost->user->package_badge_color = $fetchPost->user->getPackageBadgeColor();
+                    }
+                }
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Fetch following posts',
+                    'data' =>  [
+                        'users_stories' => $followingUsers,
+                        'posts' => $fetchPosts,
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No posts from following users available',
+                ]);
+            }
         } else {
             return response()->json([
                 'status' => false,

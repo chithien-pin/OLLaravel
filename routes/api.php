@@ -100,6 +100,7 @@ Route::post('fetchFollowersList', [UsersController::class, 'fetchFollowersList']
 Route::post('unfollowUser', [UsersController::class, 'unfollowUser'])->middleware('checkHeader');
 
 Route::post('fetchHomePageData', [UsersController::class, 'fetchHomePageData'])->middleware('checkHeader');
+Route::post('fetchFollowingPageData', [UsersController::class, 'fetchFollowingPageData'])->middleware('checkHeader');
 
 Route::post('createStory', [PostController::class, 'createStory'])->middleware('checkHeader');
 Route::post('viewStory', [PostController::class, 'viewStory'])->middleware('checkHeader');
