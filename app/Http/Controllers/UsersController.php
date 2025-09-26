@@ -2305,7 +2305,7 @@ class UsersController extends Controller
                         $fetchPost->user->is_vip = $fetchPost->user->isVip();
                         $fetchPost->user->role_expires_at = $fetchPost->user->getRoleExpiryDate();
                         $fetchPost->user->role_days_remaining = $fetchPost->user->getDaysRemainingForVip();
-                        
+
                         // Add package information to post user
                         $fetchPost->user->package_type = $fetchPost->user->getCurrentPackageType();
                         $fetchPost->user->has_package = $fetchPost->user->hasPackage();
@@ -2313,6 +2313,28 @@ class UsersController extends Controller
                         $fetchPost->user->package_days_remaining = $fetchPost->user->getDaysRemainingForPackage();
                         $fetchPost->user->package_display_name = $fetchPost->user->getPackageDisplayName();
                         $fetchPost->user->package_badge_color = $fetchPost->user->getPackageBadgeColor();
+
+                        // Add following status for post user
+                        $followingStatus = FollowingList::whereRelation('user', 'is_block', 0)
+                                                       ->where('user_id', $request->my_user_id)
+                                                       ->where('my_user_id', $fetchPost->user->id)
+                                                       ->first();
+                        $followingStatus2 = FollowingList::whereRelation('user', 'is_block', 0)
+                                                        ->where('my_user_id', $request->my_user_id)
+                                                        ->where('user_id', $fetchPost->user->id)
+                                                        ->first();
+
+                        // Calculate following status
+                        // 0: No relationship, 1: Other follows me, 2: I follow other, 3: Mutual following
+                        if ($followingStatus == null && $followingStatus2 == null) {
+                            $fetchPost->user->followingStatus = 0;
+                        } elseif ($followingStatus != null && $followingStatus2 == null) {
+                            $fetchPost->user->followingStatus = 1;
+                        } elseif ($followingStatus == null && $followingStatus2 != null) {
+                            $fetchPost->user->followingStatus = 2;
+                        } elseif ($followingStatus && $followingStatus2) {
+                            $fetchPost->user->followingStatus = 3;
+                        }
                     }
                 }
                 
@@ -2458,6 +2480,28 @@ class UsersController extends Controller
                         $fetchPost->user->package_days_remaining = $fetchPost->user->getDaysRemainingForPackage();
                         $fetchPost->user->package_display_name = $fetchPost->user->getPackageDisplayName();
                         $fetchPost->user->package_badge_color = $fetchPost->user->getPackageBadgeColor();
+
+                        // Add following status for post user
+                        $followingStatus = FollowingList::whereRelation('user', 'is_block', 0)
+                                                       ->where('user_id', $request->my_user_id)
+                                                       ->where('my_user_id', $fetchPost->user->id)
+                                                       ->first();
+                        $followingStatus2 = FollowingList::whereRelation('user', 'is_block', 0)
+                                                        ->where('my_user_id', $request->my_user_id)
+                                                        ->where('user_id', $fetchPost->user->id)
+                                                        ->first();
+
+                        // Calculate following status
+                        // 0: No relationship, 1: Other follows me, 2: I follow other, 3: Mutual following
+                        if ($followingStatus == null && $followingStatus2 == null) {
+                            $fetchPost->user->followingStatus = 0;
+                        } elseif ($followingStatus != null && $followingStatus2 == null) {
+                            $fetchPost->user->followingStatus = 1;
+                        } elseif ($followingStatus == null && $followingStatus2 != null) {
+                            $fetchPost->user->followingStatus = 2;
+                        } elseif ($followingStatus && $followingStatus2) {
+                            $fetchPost->user->followingStatus = 3;
+                        }
                     }
                 }
 
