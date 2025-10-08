@@ -333,12 +333,12 @@ class PostController extends Controller
             // Check for video duration and file size limits if content_type is video (1)
             if ($request->content_type == 1) {
                 foreach ($files as $file) {
-                    // Check file size (3MB limit)
+                    // Check file size (15MB limit)
                     $fileSize = $file->getSize();
-                    if ($fileSize > 3 * 1024 * 1024) { // 3MB
+                    if ($fileSize > 15 * 1024 * 1024) { // 15MB
                         return response()->json([
                             'status' => false,
-                            'message' => 'Video file size cannot exceed 3MB',
+                            'message' => 'Video file size cannot exceed 15MB',
                         ]);
                     }
 
