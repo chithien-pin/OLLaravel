@@ -15,6 +15,7 @@ use App\Models\Story;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Users;
+use App\Jobs\ProcessVideoToHLS;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
@@ -356,15 +357,22 @@ class PostController extends Controller
             for ($i = 0; $i < count($files); $i++) {
                 $postContent = new PostContent();
                 $postContent->post_id = $post->id;
-                $path = GlobalFunction::saveFileAndGivePath($files[$i]);
-                $postContent->content = $path;
+                $contentPath = GlobalFunction::saveFileAndGivePath($files[$i]);
+                $postContent->content = $contentPath;
                 if ($request->hasFile('thumbnail')) {
                     $thumbnails = $request->file('thumbnail');
-                    $path = GlobalFunction::saveFileAndGivePath($thumbnails[$i]);
-                    $postContent->thumbnail = $path;
+                    $thumbnailPath = GlobalFunction::saveFileAndGivePath($thumbnails[$i]);
+                    $postContent->thumbnail = $thumbnailPath;
                 }
                 $postContent->content_type = $request->content_type;
                 $postContent->save();
+
+                // Dispatch HLS processing job for videos
+                if ($request->content_type == 1) {
+                    // This is a video, process it to HLS format - use content path, NOT thumbnail path
+                    ProcessVideoToHLS::dispatch($postContent, $contentPath);
+                    error_log("HLS processing job dispatched for post_content: " . $postContent->id);
+                }
             }
         }
 
@@ -774,6 +782,18 @@ class PostController extends Controller
                 foreach ($fetchPost->user->stories as $story) {
                     $story->is_viewed = $story->view_by_user_ids ? in_array($request->my_user_id, explode(',', $story->view_by_user_ids)) : false;
                 }
+
+                // Transform content URLs for HLS if available
+                foreach ($fetchPost->content as $content) {
+                    if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
+                        // Replace content path with HLS path for videos that have been processed
+                        $content->content = '/storage/' . $content->hls_path;
+                        // Add flag to indicate this is HLS
+                        $content->is_hls_stream = true;
+                    } else {
+                        $content->is_hls_stream = false;
+                    }
+                }
             }
 
             return response()->json([
@@ -835,6 +855,18 @@ class PostController extends Controller
                 foreach ($fetchPost->user->stories as $story) {
                     $story->is_viewed = $story->view_by_user_ids ? in_array($request->my_user_id, explode(',', $story->view_by_user_ids)) : false;
                 }
+
+                // Transform content URLs for HLS if available
+                foreach ($fetchPost->content as $content) {
+                    if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
+                        // Replace content path with HLS path for videos that have been processed
+                        $content->content = '/storage/' . $content->hls_path;
+                        // Add flag to indicate this is HLS
+                        $content->is_hls_stream = true;
+                    } else {
+                        $content->is_hls_stream = false;
+                    }
+                }
             }
 
             return response()->json([
@@ -880,8 +912,20 @@ class PostController extends Controller
                             ->offset($request->start)
                             ->limit($request->limit)
                             ->get();
-            
+
             foreach ($hashtagPosts as $post) {
+                // Transform content URLs for HLS if available
+                foreach ($post->content as $content) {
+                    if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
+                        // Replace content path with HLS path for videos that have been processed
+                        $content->content = $content->hls_path;
+                        // Add flag to indicate this is HLS
+                        $content->is_hls_stream = true;
+                    } else {
+                        $content->is_hls_stream = false;
+                    }
+                }
+
                 foreach ($post->user->stories as $story) {
                     $story->is_viewed = $story->view_by_user_ids ? in_array($request->user_id, explode(',', $story->view_by_user_ids)) : false;
                 }
@@ -926,13 +970,25 @@ class PostController extends Controller
                             ->with(['content','user', 'user.stories', 'user.images'])
                             ->orderBy('created_at', 'desc')
                             ->first();
-                            
+
             $isPostLike = Like::where('user_id', $request->user_id)->where('post_id', $post->id)->first();
             $post->is_like = $isPostLike ? 1 : 0;
-            
-                foreach ($post->user->stories as $story) {
-                    $story->is_viewed = $story->view_by_user_ids ? in_array($request->user_id, explode(',', $story->view_by_user_ids)) : false;
+
+            // Transform content URLs for HLS if available
+            foreach ($post->content as $content) {
+                if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
+                    // Replace content path with HLS path for videos that have been processed
+                    $content->content = $content->hls_path;
+                    // Add flag to indicate this is HLS
+                    $content->is_hls_stream = true;
+                } else {
+                    $content->is_hls_stream = false;
                 }
+            }
+
+            foreach ($post->user->stories as $story) {
+                $story->is_viewed = $story->view_by_user_ids ? in_array($request->user_id, explode(',', $story->view_by_user_ids)) : false;
+            }
 
             return response()->json([
                 'status' => true,

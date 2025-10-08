@@ -2298,7 +2298,19 @@ class UsersController extends Controller
                     } else {
                         $fetchPost->is_like = 0;
                     }
-                    
+
+                    // Transform content URLs for HLS if available
+                    foreach ($fetchPost->content as $content) {
+                        if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
+                            // Replace content path with HLS path for videos that have been processed
+                            $content->content = '/storage/' . $content->hls_path;
+                            // Add flag to indicate this is HLS
+                            $content->is_hls_stream = true;
+                        } else {
+                            $content->is_hls_stream = false;
+                        }
+                    }
+
                     // Add role information to post users
                     if ($fetchPost->user) {
                         $fetchPost->user->role_type = $fetchPost->user->getCurrentRoleType();
@@ -2464,6 +2476,18 @@ class UsersController extends Controller
                         $fetchPost->is_like = 1;
                     } else {
                         $fetchPost->is_like = 0;
+                    }
+
+                    // Transform content URLs for HLS if available
+                    foreach ($fetchPost->content as $content) {
+                        if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
+                            // Replace content path with HLS path for videos that have been processed
+                            $content->content = '/storage/' . $content->hls_path;
+                            // Add flag to indicate this is HLS
+                            $content->is_hls_stream = true;
+                        } else {
+                            $content->is_hls_stream = false;
+                        }
                     }
 
                     // Add role information to post users
