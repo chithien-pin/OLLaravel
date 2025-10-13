@@ -14,7 +14,7 @@ $(document).ready(function () {
         aaSorting: [[0, "desc"]],
         columnDefs: [
             {
-                targets: [0, 1, 2],
+                targets: [0, 1, 2, 3],
                 orderable: false,
             },
         ],
@@ -75,11 +75,21 @@ $(document).ready(function () {
         var amount = $(this).data("amount");
         var android_product_id = $(this).data("android_product_id");
         var ios_product_id = $(this).data("ios_product_id");
+        var image = $(this).data("image");
 
         $("#diamondPackId").val(id);
         $("#edit_amount").val(amount);
         $("#edit_playstore").val(android_product_id);
         $("#edit_appstore").val(ios_product_id);
+
+        // Show current image preview
+        if (image) {
+            var imageUrl = domainUrl + '../' + image;
+            $("#current_image_preview").html('<img src="' + imageUrl + '" alt="Current Image" style="max-width: 150px; border-radius: 5px;"><br><small class="text-muted">Current image</small>');
+        } else {
+            $("#current_image_preview").html('<small class="text-muted">No image uploaded</small>');
+        }
+
         $("#editDiamondPack").modal("show");
     });
         

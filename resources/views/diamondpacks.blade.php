@@ -17,6 +17,7 @@
                         <th> {{ __('app.Diamond_Amount') }}</th>
                         <th> {{ __('app.Playstoreid') }}</th>
                         <th> {{ __('app.Appstoreid') }}</th>
+                        <th>Image</th>
                         <th width="200px" style="text-align: right;"> {{ __('app.Action') }}</th>
                     </tr>
                 </thead>
@@ -51,6 +52,14 @@
                         <div class="form-group">
                             <label> {{ __('app.Appstoreid') }}</label>
                             <input type="text" name="ios_product_id" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Diamond Pack Image</label>
+                            <input type="file" name="image" class="form-control" accept="image/png,image/jpeg,image/jpg">
+                            <small class="form-text text-muted">
+                                Upload PNG or JPG only. Max size: 2MB (optional)
+                            </small>
                         </div>
 
                         <div class="form-group">
@@ -91,6 +100,15 @@
                         <div class="form-group">
                             <label> {{ __('app.Appstoreid') }}</label>
                             <input type="text" id="edit_appstore" name="ios_product_id" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Diamond Pack Image</label>
+                            <input type="file" name="image" id="edit_image" class="form-control" accept="image/png,image/jpeg,image/jpg">
+                            <small class="form-text text-muted">
+                                Upload PNG or JPG only. Max size: 2MB (optional)
+                            </small>
+                            <div id="current_image_preview" style="margin-top: 10px;"></div>
                         </div>
 
                         <div class="form-group">

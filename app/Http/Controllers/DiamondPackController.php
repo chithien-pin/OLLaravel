@@ -26,10 +26,26 @@ class DiamondPackController extends Controller
 
     public function addDiamondPack(Request $request)
     {
+        // Validate image if uploaded
+        if ($request->hasFile('image')) {
+            $request->validate([
+                'image' => 'image|mimes:jpeg,jpg,png|max:2048', // Max 2MB
+            ]);
+        }
+
         $pack = new DiamondPacks();
         $pack->amount = $request->amount;
         $pack->android_product_id = $request->android_product_id;
         $pack->ios_product_id = $request->ios_product_id;
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('images/diamond_packs'), $imageName);
+            $pack->image = 'images/diamond_packs/' . $imageName;
+        }
+
         $pack->save();
 
         return response()->json([
@@ -46,10 +62,31 @@ class DiamondPackController extends Controller
 
     function updateDiamondPack(Request $request)
     {
+        // Validate image if uploaded
+        if ($request->hasFile('image')) {
+            $request->validate([
+                'image' => 'image|mimes:jpeg,jpg,png|max:2048', // Max 2MB
+            ]);
+        }
+
         $pack = DiamondPacks::where('id', $request->id)->first();
         $pack->amount = $request->amount;
         $pack->android_product_id = $request->android_product_id;
         $pack->ios_product_id = $request->ios_product_id;
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($pack->image && file_exists(public_path($pack->image))) {
+                unlink(public_path($pack->image));
+            }
+
+            $image = $request->file('image');
+            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('images/diamond_packs'), $imageName);
+            $pack->image = 'images/diamond_packs/' . $imageName;
+        }
+
         $pack->save();
 
         return response()->json([
@@ -61,12 +98,18 @@ class DiamondPackController extends Controller
     function deleteDiamondPack(Request $request)
     {
         $diamondPack = DiamondPacks::where('id', $request->diamond_pack_id)->first();
+
+        // Delete image file if exists
+        if ($diamondPack->image && file_exists(public_path($diamondPack->image))) {
+            unlink(public_path($diamondPack->image));
+        }
+
         $diamondPack->delete();
-        
+
         return response()->json([
             'status' => true,
             'message' => 'Diamond Pack Deleted',
-        ]);        
+        ]);
     }
 
     function fetchDiamondPackages(Request $request)
@@ -108,16 +151,26 @@ class DiamondPackController extends Controller
         }
         $data = array();
         foreach ($result as $item) {
- 
+
+            // Image preview
+            $imageHtml = '';
+            if ($item->image) {
+                $imageUrl = asset($item->image);
+                $imageHtml = '<img src="'.$imageUrl.'" alt="Diamond Pack" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">';
+            } else {
+                $imageHtml = '<span class="text-muted">No image</span>';
+            }
+
             $block = '<span class="float-end">
-                            <a href="" rel="' . $item->id . '" 
-                                class="btn btn-success edit mr-2" 
-                                data-amount="'. $item->amount .'" 
+                            <a href="" rel="' . $item->id . '"
+                                class="btn btn-success edit mr-2"
+                                data-amount="'. $item->amount .'"
                                 data-android_product_id="'. $item->android_product_id .'"
-                                data-ios_product_id="'. $item->ios_product_id .'"> 
-                                Edit 
+                                data-ios_product_id="'. $item->ios_product_id .'"
+                                data-image="'. ($item->image ?? '') .'">
+                                Edit
                             </a>
-                            <a rel="'.$item->id.'" class="btn btn-danger delete text-white"> 
+                            <a rel="'.$item->id.'" class="btn btn-danger delete text-white">
                                 Delete
                             </a>
                         </span>';
@@ -126,6 +179,7 @@ class DiamondPackController extends Controller
                 $item->amount,
                 $item->android_product_id,
                 $item->ios_product_id,
+                $imageHtml,
                 $block
             );
         }
