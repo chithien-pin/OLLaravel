@@ -25,15 +25,19 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-        
+
         // Expire VIP roles daily at midnight
         $schedule->command('roles:expire-vip')->daily();
-        
+
         // Expire packages daily at midnight
         $schedule->command('packages:expire')->daily();
-        
+
         // Reset daily swipe count at midnight
         $schedule->command('swipes:reset-daily')->daily();
+
+        // Cleanup abandoned livestream sessions every 5 minutes
+        // This removes stale Firebase documents from users who killed the app while streaming
+        $schedule->command('livestream:cleanup-abandoned')->everyFiveMinutes();
     }
 
     /**
