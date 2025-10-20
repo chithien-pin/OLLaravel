@@ -16,11 +16,13 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Users;
 use App\Jobs\ProcessVideoToHLS;
+use App\Services\CloudflareStreamService;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
@@ -328,7 +330,56 @@ class PostController extends Controller
         }
         $post->save();
 
-        if ($request->hasFile('content')) {
+        // Check if this is a Cloudflare Stream video upload
+        if ($request->has('cloudflare_video_id') && $request->content_type == 1) {
+            // This is a video uploaded directly to Cloudflare Stream
+            $postContent = new PostContent();
+            $postContent->post_id = $post->id;
+            $postContent->cloudflare_video_id = $request->cloudflare_video_id;
+            $postContent->cloudflare_status = 'uploading'; // Initial status
+            $postContent->content_type = 1; // Video type
+            $postContent->content = ''; // Set empty content value to avoid database error
+            $postContent->thumbnail = ''; // Set empty thumbnail value
+
+            // If thumbnail URL provided from client (after successful upload)
+            if ($request->has('cloudflare_thumbnail_url')) {
+                $postContent->cloudflare_thumbnail_url = $request->cloudflare_thumbnail_url;
+            }
+
+            // Store any additional info
+            if ($request->has('cloudflare_upload_id')) {
+                $postContent->cloudflare_upload_id = $request->cloudflare_upload_id;
+            }
+
+            $postContent->save();
+
+            // Get video details from Cloudflare to update status
+            try {
+                $cloudflareService = new CloudflareStreamService();
+                $videoDetails = $cloudflareService->getVideoDetails($request->cloudflare_video_id);
+
+                if ($videoDetails['success']) {
+                    $postContent->cloudflare_status = $videoDetails['status'];
+                    $postContent->cloudflare_duration = $videoDetails['duration'];
+                    $postContent->cloudflare_hls_url = $videoDetails['hls'];
+                    $postContent->cloudflare_dash_url = $videoDetails['dash'];
+                    $postContent->cloudflare_thumbnail_url = $videoDetails['thumbnail'];
+                    $postContent->cloudflare_stream_url = $videoDetails['hls'];
+                    $postContent->save();
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to get Cloudflare video details', [
+                    'video_id' => $request->cloudflare_video_id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
+            Log::info('Post created with Cloudflare Stream video', [
+                'post_id' => $post->id,
+                'cloudflare_video_id' => $request->cloudflare_video_id,
+            ]);
+
+        } else if ($request->hasFile('content')) {
             $files = $request->file('content');
 
             // Check for video duration and file size limits if content_type is video (1)
@@ -377,6 +428,11 @@ class PostController extends Controller
         }
 
         $post = Post::where('id', $post->id)->with('content', 'user', 'user.images', 'user.stories')->first();
+
+        // Transform content URLs for Cloudflare Stream or HLS
+        foreach ($post->content as $content) {
+            $content->transformForResponse();
+        }
 
         return response()->json([
             'status' => true,
@@ -583,6 +639,11 @@ class PostController extends Controller
                         $userNotification->save();
                     }
 
+                    // Transform content URLs for Cloudflare Stream or HLS
+                    foreach ($post->content as $content) {
+                        $content->transformForResponse();
+                    }
+
                     $like->post = $post;
 
                     return response()->json([
@@ -783,16 +844,9 @@ class PostController extends Controller
                     $story->is_viewed = $story->view_by_user_ids ? in_array($request->my_user_id, explode(',', $story->view_by_user_ids)) : false;
                 }
 
-                // Transform content URLs for HLS if available
+                // Transform content URLs for Cloudflare Stream or HLS
                 foreach ($fetchPost->content as $content) {
-                    if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
-                        // Replace content path with HLS path for videos that have been processed
-                        $content->content = '/storage/' . $content->hls_path;
-                        // Add flag to indicate this is HLS
-                        $content->is_hls_stream = true;
-                    } else {
-                        $content->is_hls_stream = false;
-                    }
+                    $content->transformForResponse();
                 }
             }
 
@@ -856,16 +910,9 @@ class PostController extends Controller
                     $story->is_viewed = $story->view_by_user_ids ? in_array($request->my_user_id, explode(',', $story->view_by_user_ids)) : false;
                 }
 
-                // Transform content URLs for HLS if available
+                // Transform content URLs for Cloudflare Stream or HLS
                 foreach ($fetchPost->content as $content) {
-                    if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
-                        // Replace content path with HLS path for videos that have been processed
-                        $content->content = '/storage/' . $content->hls_path;
-                        // Add flag to indicate this is HLS
-                        $content->is_hls_stream = true;
-                    } else {
-                        $content->is_hls_stream = false;
-                    }
+                    $content->transformForResponse();
                 }
             }
 
@@ -914,16 +961,9 @@ class PostController extends Controller
                             ->get();
 
             foreach ($hashtagPosts as $post) {
-                // Transform content URLs for HLS if available
+                // Transform content URLs for Cloudflare Stream or HLS
                 foreach ($post->content as $content) {
-                    if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
-                        // Replace content path with HLS path for videos that have been processed
-                        $content->content = $content->hls_path;
-                        // Add flag to indicate this is HLS
-                        $content->is_hls_stream = true;
-                    } else {
-                        $content->is_hls_stream = false;
-                    }
+                    $content->transformForResponse();
                 }
 
                 foreach ($post->user->stories as $story) {
@@ -974,16 +1014,9 @@ class PostController extends Controller
             $isPostLike = Like::where('user_id', $request->user_id)->where('post_id', $post->id)->first();
             $post->is_like = $isPostLike ? 1 : 0;
 
-            // Transform content URLs for HLS if available
+            // Transform content URLs for Cloudflare Stream or HLS
             foreach ($post->content as $content) {
-                if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
-                    // Replace content path with HLS path for videos that have been processed
-                    $content->content = $content->hls_path;
-                    // Add flag to indicate this is HLS
-                    $content->is_hls_stream = true;
-                } else {
-                    $content->is_hls_stream = false;
-                }
+                $content->transformForResponse();
             }
 
             foreach ($post->user->stories as $story) {

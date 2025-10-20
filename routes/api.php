@@ -8,6 +8,7 @@ use App\Http\Controllers\LiveApplicationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\CloudflareController;
 use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
@@ -123,6 +124,11 @@ Route::post('fetchPostsByHashtag', [PostController::class, 'fetchPostsByHashtag'
 Route::post('fetchPostByPostId', [PostController::class, 'fetchPostByPostId'])->middleware('checkHeader');
 Route::post('increasePostViewCount', [PostController::class, 'increasePostViewCount'])->middleware('checkHeader');
 
+// Cloudflare Stream Routes for Direct Creator Upload
+Route::post('cloudflare/getUploadUrl', [CloudflareController::class, 'getUploadUrl'])->middleware('checkHeader');
+Route::post('cloudflare/checkVideoStatus', [CloudflareController::class, 'checkVideoStatus'])->middleware('checkHeader');
+Route::post('cloudflare/deleteVideo', [CloudflareController::class, 'deleteVideo'])->middleware('checkHeader');
+Route::post('cloudflare/webhook', [CloudflareController::class, 'webhook']); // No auth for webhook
 
 Route::get('test', [UsersController::class, 'test'])->middleware('checkHeader');
 

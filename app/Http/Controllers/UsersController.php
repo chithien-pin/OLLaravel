@@ -2262,8 +2262,12 @@ class UsersController extends Controller
         $fetchPosts = Post::select('posts.id', 'posts.user_id', 'posts.description', 'posts.comments_count', 'posts.likes_count', 'posts.created_at')
                             ->with([
                                 'content' => function($query) {
-                                    // Only load first content item (thumbnail) for feed grid
-                                    $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count', 'is_hls', 'hls_path', 'processing_status')
+                                    // Load all fields including Cloudflare fields
+                                    $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count',
+                                                   'is_hls', 'hls_path', 'processing_status',
+                                                   'cloudflare_video_id', 'cloudflare_stream_url', 'cloudflare_thumbnail_url',
+                                                   'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
+                                                   'cloudflare_duration')
                                           ->orderBy('id', 'asc');
                                 },
                                 'user' => function($query) {
@@ -2321,14 +2325,9 @@ class UsersController extends Controller
             // Set like status from batch query
             $fetchPost->is_like = in_array($fetchPost->id, $likedPostIds) ? 1 : 0;
 
-            // Transform HLS content
+            // Transform content URLs for Cloudflare Stream or HLS
             foreach ($fetchPost->content as $content) {
-                if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
-                    $content->content = '/storage/' . $content->hls_path;
-                    $content->is_hls_stream = true;
-                } else {
-                    $content->is_hls_stream = false;
-                }
+                $content->transformForResponse();
             }
 
             // Add user metadata
@@ -2423,8 +2422,12 @@ class UsersController extends Controller
         $fetchPosts = Post::select('posts.id', 'posts.user_id', 'posts.description', 'posts.comments_count', 'posts.likes_count', 'posts.created_at')
                             ->with([
                                 'content' => function($query) {
-                                    // Only load first content item (thumbnail) for feed grid
-                                    $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count', 'is_hls', 'hls_path', 'processing_status')
+                                    // Load all fields including Cloudflare fields
+                                    $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count',
+                                                   'is_hls', 'hls_path', 'processing_status',
+                                                   'cloudflare_video_id', 'cloudflare_stream_url', 'cloudflare_thumbnail_url',
+                                                   'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
+                                                   'cloudflare_duration')
                                           ->orderBy('id', 'asc');
                                 },
                                 'user' => function($query) {
@@ -2483,14 +2486,9 @@ class UsersController extends Controller
             // Set like status from batch query
             $fetchPost->is_like = in_array($fetchPost->id, $likedPostIds) ? 1 : 0;
 
-            // Transform HLS content
+            // Transform content URLs for Cloudflare Stream or HLS
             foreach ($fetchPost->content as $content) {
-                if ($content->content_type == 1 && $content->is_hls && $content->hls_path && $content->processing_status === 'completed') {
-                    $content->content = '/storage/' . $content->hls_path;
-                    $content->is_hls_stream = true;
-                } else {
-                    $content->is_hls_stream = false;
-                }
+                $content->transformForResponse();
             }
 
             // Add user metadata
