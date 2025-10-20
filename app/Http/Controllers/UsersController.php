@@ -2264,7 +2264,6 @@ class UsersController extends Controller
                                 'content' => function($query) {
                                     // Load all fields including Cloudflare fields
                                     $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count',
-                                                   'is_hls', 'hls_path', 'processing_status',
                                                    'cloudflare_video_id', 'cloudflare_stream_url', 'cloudflare_thumbnail_url',
                                                    'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
                                                    'cloudflare_duration')
@@ -2424,7 +2423,6 @@ class UsersController extends Controller
                                 'content' => function($query) {
                                     // Load all fields including Cloudflare fields
                                     $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count',
-                                                   'is_hls', 'hls_path', 'processing_status',
                                                    'cloudflare_video_id', 'cloudflare_stream_url', 'cloudflare_thumbnail_url',
                                                    'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
                                                    'cloudflare_duration')

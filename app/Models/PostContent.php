@@ -15,10 +15,6 @@ class PostContent extends Model
         'content',
         'thumbnail',
         'content_type',
-        'is_hls',
-        'hls_path',
-        'processing_status',
-        'processing_error',
         // Cloudflare Stream fields
         'cloudflare_video_id',
         'cloudflare_stream_url',
@@ -32,7 +28,7 @@ class PostContent extends Model
     ];
 
     /**
-     * Get the video URL (Cloudflare Stream, HLS or regular)
+     * Get the video URL (Cloudflare Stream or original)
      *
      * @return string
      */
@@ -41,11 +37,6 @@ class PostContent extends Model
         // If Cloudflare Stream is ready, return Cloudflare HLS URL
         if ($this->cloudflare_status === 'ready' && $this->cloudflare_hls_url) {
             return $this->cloudflare_hls_url;
-        }
-
-        // If local HLS is ready, return HLS path (legacy support)
-        if ($this->is_hls && $this->hls_path && $this->processing_status === 'completed') {
-            return $this->hls_path;
         }
 
         // Otherwise return original content path
@@ -86,8 +77,7 @@ class PostContent extends Model
     public function isProcessing()
     {
         return $this->cloudflare_status === 'processing' ||
-               $this->cloudflare_status === 'uploading' ||
-               $this->processing_status === 'processing';
+               $this->cloudflare_status === 'uploading';
     }
 
     /**
@@ -99,26 +89,16 @@ class PostContent extends Model
     public function transformForResponse()
     {
         if ($this->content_type == 1) { // Video type
-            // Priority 1: Use Cloudflare Stream if ready
+            // Use Cloudflare Stream if ready
             if ($this->cloudflare_status === 'ready' && $this->cloudflare_hls_url) {
                 $this->content = $this->cloudflare_hls_url;
                 $this->is_cloudflare_stream = true;
-                $this->is_hls_stream = false;
 
                 // Add Cloudflare-specific fields to response
                 $this->cloudflare_video_url = $this->cloudflare_hls_url;
                 $this->cloudflare_thumbnail = $this->cloudflare_thumbnail_url;
-
-            // Priority 2: Use local HLS if ready (legacy support)
-            } elseif ($this->is_hls && $this->hls_path && $this->processing_status === 'completed') {
-                $this->content = '/storage/' . $this->hls_path;
-                $this->is_hls_stream = true;
-                $this->is_cloudflare_stream = false;
-
-            // Priority 3: Use original file (fallback)
             } else {
-                // Keep original content path
-                $this->is_hls_stream = false;
+                // Keep original content path (fallback)
                 $this->is_cloudflare_stream = false;
             }
 
