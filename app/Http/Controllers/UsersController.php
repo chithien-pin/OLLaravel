@@ -2282,7 +2282,18 @@ class UsersController extends Controller
                             ])
                             ->whereRelation('user', 'is_block', 0)
                             ->whereNotIn('user_id', array_merge($blockUserIds))
-                            ->whereHas('content')
+                            ->whereHas('content', function($query) {
+                                // Only show posts where:
+                                // - Images (content_type = 0) are always shown
+                                // - Videos (content_type = 1) are ONLY shown when cloudflare_status = 'ready'
+                                $query->where(function($q) {
+                                    $q->where('content_type', 0) // Images
+                                      ->orWhere(function($subQ) {
+                                          $subQ->where('content_type', 1) // Videos
+                                               ->where('cloudflare_status', 'ready'); // Only ready videos
+                                      });
+                                });
+                            })
                             ->orderBy('created_at', 'desc')
                             ->offset($start)
                             ->limit($limit)
@@ -2442,7 +2453,18 @@ class UsersController extends Controller
                             ->whereRelation('user', 'is_block', 0)
                             ->whereNotIn('user_id', array_merge($blockUserIds))
                             ->whereIn('user_id', $followingUserIds)
-                            ->whereHas('content')
+                            ->whereHas('content', function($query) {
+                                // Only show posts where:
+                                // - Images (content_type = 0) are always shown
+                                // - Videos (content_type = 1) are ONLY shown when cloudflare_status = 'ready'
+                                $query->where(function($q) {
+                                    $q->where('content_type', 0) // Images
+                                      ->orWhere(function($subQ) {
+                                          $subQ->where('content_type', 1) // Videos
+                                               ->where('cloudflare_status', 'ready'); // Only ready videos
+                                      });
+                                });
+                            })
                             ->orderBy('created_at', 'desc')
                             ->offset($start)
                             ->limit($limit)
