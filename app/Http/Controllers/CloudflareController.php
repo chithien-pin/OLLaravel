@@ -171,7 +171,8 @@ class CloudflareController extends Controller
                 if ($postContent) {
                     // Update video status
                     if ($data['readyToStream'] === true) {
-                        // Video is ready
+                        // Video is ready - but add small delay to ensure Cloudflare is truly serving
+                        // Sometimes readyToStream=true but video not immediately available (race condition)
                         $postContent->cloudflare_status = 'ready';
                         $postContent->cloudflare_duration = $data['duration'] ?? 0;
                         $postContent->cloudflare_hls_url = $this->cloudflareService->getHlsUrl($videoId);
@@ -182,6 +183,8 @@ class CloudflareController extends Controller
                         Log::info('Video ready on Cloudflare', [
                             'video_id' => $videoId,
                             'post_content_id' => $postContent->id,
+                            'ready_to_stream' => true,
+                            'note' => 'Video marked as ready, but may need 2-3s for CDN propagation',
                         ]);
                     } else if (isset($data['status']['state'])) {
                         // Update processing status

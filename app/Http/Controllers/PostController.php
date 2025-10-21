@@ -352,19 +352,31 @@ class PostController extends Controller
 
             $postContent->save();
 
-            // Get video details from Cloudflare to update status
+            // Get video details from Cloudflare to populate metadata
+            // BUT keep status as 'processing' until webhook confirms ready
             try {
                 $cloudflareService = new CloudflareStreamService();
                 $videoDetails = $cloudflareService->getVideoDetails($request->cloudflare_video_id);
 
                 if ($videoDetails['success']) {
-                    $postContent->cloudflare_status = $videoDetails['status'];
+                    // Set status to 'processing' regardless of Cloudflare response
+                    // CDN propagation takes 5-30 seconds even after readyToStream=true
+                    // Webhook will update to 'ready' when truly available
+                    $postContent->cloudflare_status = 'processing';
+
+                    // Update metadata but keep processing status
                     $postContent->cloudflare_duration = $videoDetails['duration'];
                     $postContent->cloudflare_hls_url = $videoDetails['hls'];
                     $postContent->cloudflare_dash_url = $videoDetails['dash'];
                     $postContent->cloudflare_thumbnail_url = $videoDetails['thumbnail'];
                     $postContent->cloudflare_stream_url = $videoDetails['hls'];
                     $postContent->save();
+
+                    Log::info('Cloudflare video details fetched, status kept as processing', [
+                        'video_id' => $request->cloudflare_video_id,
+                        'cloudflare_status_from_api' => $videoDetails['status'],
+                        'forced_status' => 'processing'
+                    ]);
                 }
             } catch (\Exception $e) {
                 Log::error('Failed to get Cloudflare video details', [
