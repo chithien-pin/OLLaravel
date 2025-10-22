@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\PostContent;
 use App\Services\CloudflareStreamService;
+use App\Services\CloudflareImagesService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -12,10 +13,12 @@ use Illuminate\Support\Facades\Validator;
 class CloudflareController extends Controller
 {
     protected $cloudflareService;
+    protected $cloudflareImagesService;
 
-    public function __construct(CloudflareStreamService $cloudflareService)
+    public function __construct(CloudflareStreamService $cloudflareService, CloudflareImagesService $cloudflareImagesService)
     {
         $this->cloudflareService = $cloudflareService;
+        $this->cloudflareImagesService = $cloudflareImagesService;
     }
 
     /**
@@ -272,6 +275,123 @@ class CloudflareController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'An error occurred while deleting video',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get upload URL for Cloudflare Images (Direct Creator Upload)
+     * Client will use this URL to upload image directly to Cloudflare
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getImageUploadUrl(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer',
+            'metadata' => 'array', // Optional metadata
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ], 400);
+        }
+
+        try {
+            // Request upload URL from Cloudflare Images
+            $metadata = $request->metadata ?? [];
+            $metadata['user_id'] = $request->user_id;
+            $metadata['uploaded_at'] = now()->toIso8601String();
+
+            $result = $this->cloudflareImagesService->requestUploadUrl($metadata);
+
+            if ($result['success']) {
+                // Log the upload request
+                Log::info('Cloudflare Images upload URL requested', [
+                    'user_id' => $request->user_id,
+                    'image_id' => $result['id'],
+                ]);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Upload URL generated successfully',
+                    'data' => [
+                        'upload_url' => $result['uploadURL'],
+                        'image_id' => $result['id'],
+                        'expires_at' => now()->addHours(2)->toIso8601String(),
+                    ],
+                ]);
+            }
+
+            return response()->json([
+                'status' => false,
+                'message' => $result['error'] ?? 'Failed to generate upload URL',
+            ], 500);
+
+        } catch (\Exception $e) {
+            Log::error('Error generating image upload URL', [
+                'error' => $e->getMessage(),
+                'user_id' => $request->user_id,
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'An error occurred while generating upload URL',
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete image from Cloudflare Images
+     * Called when a post is deleted
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteImage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image_id' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ], 400);
+        }
+
+        try {
+            $success = $this->cloudflareImagesService->deleteImage($request->image_id);
+
+            if ($success) {
+                Log::info('Image deleted from Cloudflare', [
+                    'image_id' => $request->image_id,
+                ]);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Image deleted successfully',
+                ]);
+            }
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to delete image',
+            ], 500);
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting image from Cloudflare', [
+                'error' => $e->getMessage(),
+                'image_id' => $request->image_id,
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'An error occurred while deleting image',
             ], 500);
         }
     }

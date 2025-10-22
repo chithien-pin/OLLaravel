@@ -24,7 +24,20 @@ class PostContent extends Model
         'cloudflare_status',
         'cloudflare_error',
         'cloudflare_duration',
-        'cloudflare_upload_id'
+        'cloudflare_upload_id',
+        // Cloudflare Images fields
+        'cloudflare_image_id',
+        'cloudflare_image_url',
+        'cloudflare_image_variants',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'cloudflare_image_variants' => 'array',
     ];
 
     /**
@@ -51,6 +64,35 @@ class PostContent extends Model
     public function isCloudflareStream()
     {
         return !empty($this->cloudflare_video_id) && $this->cloudflare_status === 'ready';
+    }
+
+    /**
+     * Check if image is using Cloudflare Images
+     *
+     * @return bool
+     */
+    public function isCloudflareImage()
+    {
+        return !empty($this->cloudflare_image_id);
+    }
+
+    /**
+     * Get image URL for a specific variant
+     *
+     * @param string $variant Variant name (thumbnail, medium, large, public)
+     * @return string|null
+     */
+    public function getImageUrl($variant = 'public')
+    {
+        if (!$this->isCloudflareImage()) {
+            return null;
+        }
+
+        if (isset($this->cloudflare_image_variants[$variant])) {
+            return $this->cloudflare_image_variants[$variant];
+        }
+
+        return $this->cloudflare_image_url;
     }
 
     /**
@@ -82,7 +124,7 @@ class PostContent extends Model
 
     /**
      * Transform content for API response
-     * This method updates the content URL based on video processing status
+     * This method updates the content URL based on video/image processing status
      *
      * @return void
      */
@@ -109,11 +151,33 @@ class PostContent extends Model
             } else {
                 $this->is_processing = false;
             }
-        }
 
-        // Use Cloudflare thumbnail if available
-        if ($this->cloudflare_thumbnail_url) {
-            $this->thumbnail = $this->cloudflare_thumbnail_url;
+            // Use Cloudflare thumbnail if available
+            if ($this->cloudflare_thumbnail_url) {
+                $this->thumbnail = $this->cloudflare_thumbnail_url;
+            }
+        } elseif ($this->content_type == 0) { // Image type
+            // Use Cloudflare Images if available
+            if ($this->isCloudflareImage()) {
+                // Use public variant for main content
+                $this->content = $this->cloudflare_image_variants['public'] ?? $this->cloudflare_image_url;
+
+                // Use thumbnail variant for thumbnail
+                $this->thumbnail = $this->cloudflare_image_variants['thumbnail'] ?? $this->content;
+
+                $this->is_cloudflare_image = true;
+
+                // Add all variant URLs to response
+                $this->cloudflare_image_thumbnail = $this->cloudflare_image_variants['thumbnail'] ?? null;
+                $this->cloudflare_image_medium = $this->cloudflare_image_variants['medium'] ?? null;
+                $this->cloudflare_image_large = $this->cloudflare_image_variants['large'] ?? null;
+            } else {
+                // Legacy: Local storage images
+                $this->is_cloudflare_image = false;
+
+                // Keep original content and thumbnail paths
+                // (will be transformed to full URLs by GlobalFunction::createMediaUrl elsewhere)
+            }
         }
     }
 }

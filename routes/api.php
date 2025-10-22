@@ -124,11 +124,15 @@ Route::post('fetchPostsByHashtag', [PostController::class, 'fetchPostsByHashtag'
 Route::post('fetchPostByPostId', [PostController::class, 'fetchPostByPostId'])->middleware('checkHeader');
 Route::post('increasePostViewCount', [PostController::class, 'increasePostViewCount'])->middleware('checkHeader');
 
-// Cloudflare Stream Routes for Direct Creator Upload
+// Cloudflare Stream Routes for Direct Creator Upload (Videos)
 Route::post('cloudflare/getUploadUrl', [CloudflareController::class, 'getUploadUrl'])->middleware('checkHeader');
 Route::post('cloudflare/checkVideoStatus', [CloudflareController::class, 'checkVideoStatus'])->middleware('checkHeader');
 Route::post('cloudflare/deleteVideo', [CloudflareController::class, 'deleteVideo'])->middleware('checkHeader');
 Route::post('cloudflare/webhook', [CloudflareController::class, 'webhook']); // No auth for webhook
+
+// Cloudflare Images Routes for Direct Creator Upload (Images)
+Route::post('cloudflare/getImageUploadUrl', [CloudflareController::class, 'getImageUploadUrl'])->middleware('checkHeader');
+Route::post('cloudflare/deleteImage', [CloudflareController::class, 'deleteImage'])->middleware('checkHeader');
 
 Route::get('test', [UsersController::class, 'test'])->middleware('checkHeader');
 

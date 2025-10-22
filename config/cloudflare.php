@@ -31,4 +31,30 @@ return [
         'height' => 360,
         'fit' => 'crop',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cloudflare Images Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Settings for Cloudflare Images API for image uploads and optimization.
+    |
+    */
+
+    'images' => [
+        'account_hash' => env('CLOUDFLARE_IMAGES_ACCOUNT_HASH'), // Account hash for image delivery URLs
+
+        'variants' => [
+            'thumbnail' => '200x200',   // Feed grid, story rings
+            'medium' => '640x640',      // Post detail view
+            'large' => '1080x1080',     // Full screen view
+            'public' => 'original',     // Original uploaded image
+        ],
+
+        'max_upload_size_mb' => 10, // Maximum image size in MB
+
+        'allowed_formats' => ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+
+        'upload_url_expiry_hours' => 2, // Upload URL expiry time in hours
+    ],
 ];

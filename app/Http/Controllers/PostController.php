@@ -390,6 +390,62 @@ class PostController extends Controller
                 'cloudflare_video_id' => $request->cloudflare_video_id,
             ]);
 
+        } else if ($request->has('cloudflare_image_ids') && is_array($request->cloudflare_image_ids)) {
+            // This is images uploaded directly to Cloudflare Images
+            $imageIds = $request->cloudflare_image_ids;
+
+            Log::info('Post created with Cloudflare Images', [
+                'post_id' => $post->id,
+                'image_count' => count($imageIds),
+            ]);
+
+            $cloudflareImagesService = new \App\Services\CloudflareImagesService();
+
+            foreach ($imageIds as $index => $imageId) {
+                $postContent = new PostContent();
+                $postContent->post_id = $post->id;
+                $postContent->cloudflare_image_id = $imageId;
+                $postContent->content_type = 0; // Image type
+                $postContent->content = ''; // Empty content for Cloudflare Images
+                $postContent->thumbnail = ''; // Empty thumbnail
+
+                // Get image details and variants from Cloudflare
+                try {
+                    $imageDetails = $cloudflareImagesService->getImageDetails($imageId);
+
+                    if ($imageDetails['success']) {
+                        // Store image URL and all variants
+                        $postContent->cloudflare_image_url = $imageDetails['variants']['public'] ?? '';
+                        $postContent->cloudflare_image_variants = $imageDetails['variants'];
+
+                        Log::info('Cloudflare image details fetched', [
+                            'post_id' => $post->id,
+                            'image_id' => $imageId,
+                            'index' => $index,
+                        ]);
+                    } else {
+                        Log::warning('Failed to get Cloudflare image details', [
+                            'image_id' => $imageId,
+                            'error' => $imageDetails['error'] ?? 'Unknown error',
+                        ]);
+
+                        // Still save the record with just the image_id
+                        // Variants can be reconstructed using CloudflareImagesService::getImageVariants()
+                        $postContent->cloudflare_image_variants = $cloudflareImagesService->getImageVariants($imageId);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Exception getting Cloudflare image details', [
+                        'image_id' => $imageId,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    // Fallback: Construct variants URLs directly
+                    $postContent->cloudflare_image_variants = $cloudflareImagesService->getImageVariants($imageId);
+                }
+
+                $postContent->save();
+            }
+
         } else if ($request->hasFile('content')) {
             // Traditional file upload (images only)
             // Videos MUST use Cloudflare Stream upload path

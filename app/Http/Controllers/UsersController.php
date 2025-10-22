@@ -2262,11 +2262,14 @@ class UsersController extends Controller
         $fetchPosts = Post::select('posts.id', 'posts.user_id', 'posts.description', 'posts.comments_count', 'posts.likes_count', 'posts.created_at')
                             ->with([
                                 'content' => function($query) {
-                                    // Load all fields including Cloudflare fields
+                                    // Load all fields including Cloudflare Stream (video) and Cloudflare Images (photo) fields
                                     $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count',
+                                                   // Cloudflare Stream fields (videos)
                                                    'cloudflare_video_id', 'cloudflare_stream_url', 'cloudflare_thumbnail_url',
                                                    'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
-                                                   'cloudflare_duration')
+                                                   'cloudflare_duration',
+                                                   // Cloudflare Images fields (photos)
+                                                   'cloudflare_image_id', 'cloudflare_image_url', 'cloudflare_image_variants')
                                           ->orderBy('id', 'asc');
                                 },
                                 'user' => function($query) {
@@ -2432,11 +2435,14 @@ class UsersController extends Controller
         $fetchPosts = Post::select('posts.id', 'posts.user_id', 'posts.description', 'posts.comments_count', 'posts.likes_count', 'posts.created_at')
                             ->with([
                                 'content' => function($query) {
-                                    // Load all fields including Cloudflare fields
+                                    // Load all fields including Cloudflare Stream (video) and Cloudflare Images (photo) fields
                                     $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count',
+                                                   // Cloudflare Stream fields (videos)
                                                    'cloudflare_video_id', 'cloudflare_stream_url', 'cloudflare_thumbnail_url',
                                                    'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
-                                                   'cloudflare_duration')
+                                                   'cloudflare_duration',
+                                                   // Cloudflare Images fields (photos)
+                                                   'cloudflare_image_id', 'cloudflare_image_url', 'cloudflare_image_variants')
                                           ->orderBy('id', 'asc');
                                 },
                                 'user' => function($query) {
