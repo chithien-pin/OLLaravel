@@ -2073,6 +2073,11 @@ class UsersController extends Controller
         $user = Users::where('id', $request->my_user_id)->first();
         $blockUserIds = explode(',', $user->blocked_users);
 
+        // Get liked users array (same logic as getExplorePageProfileList)
+        $likedUsers = LikedProfile::where('my_user_id', $request->my_user_id)
+            ->pluck('user_id')
+            ->toArray();
+
         $fetchFollowingList = FollowingList::whereRelation('user', 'is_block', 0)
                                             ->whereNotIn('user_id', $blockUserIds)
                                             ->where('my_user_id', $request->my_user_id)
@@ -2084,13 +2089,13 @@ class UsersController extends Controller
                                             ->limit($request->limit)
                                             ->get()
                                             ->pluck('user')
-                                            ->map(function($user) {
+                                            ->map(function($user) use ($likedUsers) {
                                                 // Add role information to each user
                                                 $user->role_type = $user->getCurrentRoleType();
                                                 $user->is_vip = $user->isVip();
                                                 $user->role_expires_at = $user->getRoleExpiryDate();
                                                 $user->role_days_remaining = $user->getDaysRemainingForVip();
-                                                
+
                                                 // Add package information to user in collection
                                                 $user->package_type = $user->getCurrentPackageType();
                                                 $user->has_package = $user->hasPackage();
@@ -2098,6 +2103,10 @@ class UsersController extends Controller
                                                 $user->package_days_remaining = $user->getDaysRemainingForPackage();
                                                 $user->package_display_name = $user->getPackageDisplayName();
                                                 $user->package_badge_color = $user->getPackageBadgeColor();
+
+                                                // Add is_like status (same logic as getExplorePageProfileList)
+                                                $user->is_like = in_array($user->id, $likedUsers);
+
                                                 return $user;
                                             });
  

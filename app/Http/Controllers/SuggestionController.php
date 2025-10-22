@@ -366,17 +366,22 @@ class SuggestionController extends Controller
         // Get all potential candidates
         $candidates = $baseQuery->get();
 
+        // Get liked users array (same logic as getExplorePageProfileList)
+        $likedUsers = \App\Models\LikedProfile::where('my_user_id', $user->id)
+            ->pluck('user_id')
+            ->toArray();
+
         // Calculate scores for each candidate
-        $scoredCandidates = $candidates->map(function($candidate) use ($user, $preferences) {
+        $scoredCandidates = $candidates->map(function($candidate) use ($user, $preferences, $likedUsers) {
             $score = $this->calculateUserScore($user, $candidate, $preferences);
             $candidate->suggestion_score = $score['total_score'];
             $candidate->suggestion_reason = $score['primary_reason'];
             $candidate->score_breakdown = $score['breakdown'];
-            
+
             // Add role information
             $candidate->current_role_type = $candidate->getCurrentRoleType();
             $candidate->is_vip_user = $candidate->isVip();
-            
+
             // Add package information
             $candidate->current_package_type = $candidate->getCurrentPackageType();
             $candidate->has_package = $candidate->hasPackage();
@@ -384,7 +389,10 @@ class SuggestionController extends Controller
             $candidate->is_billionaire = $candidate->isBillionaire();
             $candidate->is_celebrity = $candidate->isCelebrity();
             $candidate->package_badge_color = $candidate->getPackageBadgeColor();
-            
+
+            // Add is_like status (same logic as getExplorePageProfileList)
+            $candidate->is_like = in_array($candidate->id, $likedUsers);
+
             return $candidate;
         });
 
