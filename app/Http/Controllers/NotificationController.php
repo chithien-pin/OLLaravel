@@ -503,4 +503,89 @@ class NotificationController extends Controller
             'data' => $result
         ]);
     }
+
+    /**
+     * Get all notifications (both user and admin notifications merged)
+     * Returns unified notification list sorted by created_at
+     */
+    function getAllNotifications(Request $req)
+    {
+        $rules = [
+            'user_id' => 'required',
+            'start' => 'required',
+            'count' => 'required',
+        ];
+
+        $validator = Validator::make($req->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $start = (int) $req->start;
+        $count = (int) $req->count;
+
+        // Fetch extra items to ensure we have enough after merging
+        // We fetch 2x the requested count from each source to handle edge cases
+        $fetchLimit = $count * 2;
+
+        // Get user notifications (personal)
+        $userNotifications = UserNotification::where('user_id', $req->user_id)
+            ->with('user')
+            ->with('user.images')
+            ->orderBy('created_at', 'DESC')
+            ->limit($fetchLimit)
+            ->get()
+            ->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'source' => 'personal',
+                    'type' => $notification->type,
+                    'my_user_id' => $notification->my_user_id,
+                    'user_id' => $notification->user_id,
+                    'item_id' => $notification->item_id,
+                    'user' => $notification->user,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'created_at' => $notification->created_at,
+                    'updated_at' => $notification->updated_at,
+                ];
+            });
+
+        // Get admin notifications (platform)
+        $adminNotifications = AdminNotification::orderBy('created_at', 'DESC')
+            ->limit($fetchLimit)
+            ->get()
+            ->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'source' => 'platform',
+                    'type' => null,
+                    'my_user_id' => null,
+                    'user_id' => null,
+                    'item_id' => null,
+                    'user' => null,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'created_at' => $notification->created_at,
+                    'updated_at' => $notification->updated_at,
+                ];
+            });
+
+        // Merge both collections
+        $allNotifications = $userNotifications->concat($adminNotifications);
+
+        // Sort by created_at descending
+        $allNotifications = $allNotifications->sortByDesc('created_at')->values();
+
+        // Apply pagination
+        $paginatedNotifications = $allNotifications->slice($start, $count)->values();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'data get successfully',
+            'data' => $paginatedNotifications
+        ]);
+    }
 }

@@ -62,6 +62,7 @@ Route::post('searchUsersForInterest', [UsersController::class, 'searchUsersForIn
 
 Route::post('getUserNotifications', [NotificationController::class, 'getUserNotifications'])->middleware('checkHeader');
 Route::post('getAdminNotifications', [NotificationController::class, 'getAdminNotifications'])->middleware('checkHeader');
+Route::post('getAllNotifications', [NotificationController::class, 'getAllNotifications'])->middleware('checkHeader');
 
 Route::post('getDiamondPacks', [DiamondPackController::class, 'getDiamondPacks'])->middleware('checkHeader');
 
