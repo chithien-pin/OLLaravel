@@ -129,6 +129,7 @@ Route::post('increasePostViewCount', [PostController::class, 'increasePostViewCo
 Route::post('cloudflare/getUploadUrl', [CloudflareController::class, 'getUploadUrl'])->middleware('checkHeader');
 Route::post('cloudflare/checkVideoStatus', [CloudflareController::class, 'checkVideoStatus'])->middleware('checkHeader');
 Route::post('cloudflare/deleteVideo', [CloudflareController::class, 'deleteVideo'])->middleware('checkHeader');
+Route::post('cloudflare/getDownloadUrl', [CloudflareController::class, 'getDownloadUrl'])->middleware('checkHeader');
 Route::post('cloudflare/webhook', [CloudflareController::class, 'webhook']); // No auth for webhook
 
 // Cloudflare Images Routes for Direct Creator Upload (Images)

@@ -395,4 +395,80 @@ class CloudflareController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get download URL for a Cloudflare Stream video
+     * Generates a temporary MP4 download link
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getDownloadUrl(Request $request)
+    {
+        try {
+            // Validate request
+            $validator = Validator::make($request->all(), [
+                'video_id' => 'required|string',
+                'user_id' => 'required|integer',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(),
+                ], 400);
+            }
+
+            Log::info('Generating download URL', [
+                'user_id' => $request->user_id,
+                'video_id' => $request->video_id,
+            ]);
+
+            // Get download URL from Cloudflare
+            $result = $this->cloudflareService->getDownloadUrl($request->video_id);
+
+            if ($result['success']) {
+                Log::info('Download URL generated successfully', [
+                    'user_id' => $request->user_id,
+                    'video_id' => $request->video_id,
+                    'expires_at' => $result['expires_at'] ?? null,
+                ]);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Download URL generated successfully',
+                    'data' => [
+                        'download_url' => $result['download_url'],
+                        'video_id' => $request->video_id,
+                        'expires_at' => $result['expires_at'] ?? null,
+                        'file_size' => $result['file_size'] ?? null,
+                        'format' => $result['format'] ?? 'mp4',
+                    ],
+                ]);
+            }
+
+            Log::warning('Failed to generate download URL', [
+                'user_id' => $request->user_id,
+                'video_id' => $request->video_id,
+                'error' => $result['error'] ?? 'Unknown error',
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => $result['error'] ?? 'Failed to generate download URL',
+            ], 500);
+
+        } catch (\Exception $e) {
+            Log::error('Error generating download URL', [
+                'error' => $e->getMessage(),
+                'video_id' => $request->video_id ?? null,
+                'user_id' => $request->user_id ?? null,
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'An error occurred while generating download URL',
+            ], 500);
+        }
+    }
 }
