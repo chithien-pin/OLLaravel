@@ -189,6 +189,36 @@ class CloudflareController extends Controller
                             'ready_to_stream' => true,
                             'note' => 'Video marked as ready, but may need 2-3s for CDN propagation',
                         ]);
+
+                        // Pre-generate download URL in background for faster user downloads
+                        try {
+                            Log::info('Pre-generating download URL for video', [
+                                'video_id' => $videoId,
+                            ]);
+
+                            // Call getDownloadUrl to trigger Cloudflare to start generating the download
+                            // We don't need to wait for the result, just trigger the generation
+                            $downloadResult = $this->cloudflareService->getDownloadUrl($videoId);
+
+                            if ($downloadResult['success']) {
+                                Log::info('Download URL pre-generated successfully', [
+                                    'video_id' => $videoId,
+                                    'download_url' => $downloadResult['download_url'] ?? null,
+                                ]);
+                            } else {
+                                Log::warning('Download URL pre-generation started (processing)', [
+                                    'video_id' => $videoId,
+                                    'status' => $downloadResult['status'] ?? 'unknown',
+                                    'message' => $downloadResult['error'] ?? 'Processing',
+                                ]);
+                            }
+                        } catch (\Exception $e) {
+                            // Don't fail webhook if download generation fails
+                            Log::error('Failed to pre-generate download URL', [
+                                'video_id' => $videoId,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
                     } else if (isset($data['status']['state'])) {
                         // Update processing status
                         switch ($data['status']['state']) {
