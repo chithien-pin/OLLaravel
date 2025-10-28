@@ -1556,16 +1556,28 @@ class UsersController extends Controller
     function generateUniqueUsername()
     {
         $characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-        $username = '';
-        $length = 8; 
 
         do {
-            for ($i = 0; $i < $length; $i++) {
-                $username .= $characters[rand(0, strlen($characters) - 1)];
+            $username = '';
+
+            // Generate first part (4 characters)
+            $firstPart = '';
+            for ($i = 0; $i < 4; $i++) {
+                $firstPart .= $characters[rand(0, strlen($characters) - 1)];
             }
 
+            // Generate second part (4 characters)
+            $secondPart = '';
+            for ($i = 0; $i < 4; $i++) {
+                $secondPart .= $characters[rand(0, strlen($characters) - 1)];
+            }
+
+            // Combine with @ prefix and . separator
+            // Format: @xxxx.yyyy (e.g., @ab12.cd34)
+            $username = '@' . $firstPart . '.' . $secondPart;
+
             $existingUser = Users::where('username', $username)->first();
-        } while ($existingUser); 
+        } while ($existingUser);
 
         return $username;
     }
