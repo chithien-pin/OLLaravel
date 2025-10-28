@@ -1678,8 +1678,7 @@ class UsersController extends Controller
     {
 
         $rules = [
-            'start' => 'required',
-            'count' => 'required',
+            'keyword' => 'required',
         ];
 
         $validator = Validator::make($req->all(), $rules);
@@ -1689,28 +1688,26 @@ class UsersController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        $result =  Users::with('images')
-                ->Where('fullname', 'LIKE', "%{$req->keyword}%")
-                ->orWhere('username', 'LIKE', "%{$req->keyword}%")
+        // Search by exact username match only
+        $user = Users::with('images')
+                ->where('username', $req->keyword)
                 ->has('images')
                 ->where('is_block', 0)
                 ->where('anonymous', 0)
-                ->offset($req->start)
-                ->limit($req->count)
-                ->get();
+                ->first();
 
-
-        if (isEmpty($result)) {
+        if (!$user) {
             return response()->json([
                 'status' => true,
                 'message' => 'No data found',
-                'data' => $result
+                'data' => []
             ]);
         }
+
         return response()->json([
             'status' => true,
             'message' => 'data get successfully',
-            'data' => $result
+            'data' => [$user]
         ]);
     }
 
