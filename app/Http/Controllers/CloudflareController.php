@@ -219,6 +219,27 @@ class CloudflareController extends Controller
                                 'error' => $e->getMessage(),
                             ]);
                         }
+
+                        // 🔥 CDN WARMUP: Dispatch background job to warm up CDN cache globally
+                        // This will trigger Cloudflare edge servers worldwide to cache the video
+                        // Result: Users globally get instant playback (no cold start)
+                        try {
+                            Log::info('🔥 [CDN_WARMUP] Dispatching warmup job for video', [
+                                'video_id' => $videoId,
+                            ]);
+
+                            \App\Jobs\WarmupCloudflareVideo::dispatch($videoId);
+
+                            Log::info('🔥 [CDN_WARMUP] Warmup job dispatched successfully', [
+                                'video_id' => $videoId,
+                            ]);
+                        } catch (\Exception $e) {
+                            // Don't fail webhook if warmup dispatch fails
+                            Log::error('🔥 [CDN_WARMUP] Failed to dispatch warmup job', [
+                                'video_id' => $videoId,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
                     } else if (isset($data['status']['state'])) {
                         // Update processing status
                         switch ($data['status']['state']) {

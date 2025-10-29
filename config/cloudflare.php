@@ -57,4 +57,38 @@ return [
 
         'upload_url_expiry_hours' => 2, // Upload URL expiry time in hours
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | CDN Warmup Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure periodic CDN warmup to maintain cache and ensure fast playback.
+    | Warmup runs on schedule to trigger Cloudflare edge servers globally.
+    |
+    */
+
+    'warmup_strategy' => env('CLOUDFLARE_WARMUP_STRATEGY', 'both'),
+    // Options: 'recent', 'popular', 'both'
+    //   - recent: Warm 50 most recent videos (last 7 days)
+    //   - popular: Warm 50 most viewed videos (all time)
+    //   - both: Warm top 30 recent + top 30 popular
+
+    'warmup_limit_recent' => env('CLOUDFLARE_WARMUP_LIMIT_RECENT', 50),
+    // How many recent videos to warm (when strategy = 'recent')
+
+    'warmup_limit_popular' => env('CLOUDFLARE_WARMUP_LIMIT_POPULAR', 50),
+    // How many popular videos to warm (when strategy = 'popular')
+
+    'warmup_limit_both_recent' => env('CLOUDFLARE_WARMUP_LIMIT_BOTH_RECENT', 30),
+    // How many recent videos when strategy = 'both'
+
+    'warmup_limit_both_popular' => env('CLOUDFLARE_WARMUP_LIMIT_BOTH_POPULAR', 30),
+    // How many popular videos when strategy = 'both'
+
+    'warmup_schedule_enabled' => env('CLOUDFLARE_WARMUP_SCHEDULE_ENABLED', true),
+    // Enable/disable scheduled warmup (every 2 hours)
+
+    'warmup_schedule_interval' => env('CLOUDFLARE_WARMUP_SCHEDULE_INTERVAL', 2),
+    // Warmup interval in hours (default: 2 hours)
 ];

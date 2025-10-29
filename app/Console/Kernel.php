@@ -38,6 +38,21 @@ class Kernel extends ConsoleKernel
         // Cleanup abandoned livestream sessions every 5 minutes
         // This removes stale Firebase documents from users who killed the app while streaming
         $schedule->command('livestream:cleanup-abandoned')->everyFiveMinutes();
+
+        // 🔥 Periodic CDN Warmup - Maintain cache for popular/recent videos
+        // Runs every 2 hours (configurable) to prevent Cloudflare cache expiration
+        // Strategy: warm top 30 recent + top 30 popular videos globally (60 total)
+        // This ensures consistent performance and eliminates cold start delays
+        if (config('cloudflare.warmup_schedule_enabled', true)) {
+            $interval = config('cloudflare.warmup_schedule_interval', 2);
+            $schedule->command('videos:warmup-recent')
+                ->cron("0 */{$interval} * * *") // Every N hours at :00 minutes
+                ->withoutOverlapping() // Prevent concurrent runs
+                ->runInBackground() // Don't block other scheduled tasks
+                ->onFailure(function () {
+                    \Log::error('🔥 [PERIODIC_WARMUP] Scheduled warmup failed to execute');
+                });
+        }
     }
 
     /**
