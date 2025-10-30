@@ -44,6 +44,11 @@ class WarmupCloudflareVideo implements ShouldQueue
         'singapore'   => '1.1.1.1',    // Asia Pacific
         'tokyo'       => '8.8.8.8',    // Japan
         'sydney'      => '9.9.9.9',    // Australia
+        'mumbai'      => '182.19.96.1',    // India
+        'dubai'       => '213.42.20.20',   // UAE (Dubai) - Etisalat
+        'doha'        => '212.77.192.3',   // Qatar - Ooredoo (400km from Dubai)
+        'bahrain'     => '195.229.147.1',  // Bahrain - Batelco (close to Dubai)
+        'riyadh'      => '212.26.130.20',  // Saudi Arabia
         'london'      => '1.0.0.1',    // Europe (UK)
         'stockholm'   => '8.8.4.4',    // Europe (Sweden)
         'new_york'    => '4.2.2.2',    // US East
