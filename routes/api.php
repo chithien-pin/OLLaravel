@@ -136,6 +136,9 @@ Route::post('cloudflare/webhook', [CloudflareController::class, 'webhook']); // 
 Route::post('cloudflare/getImageUploadUrl', [CloudflareController::class, 'getImageUploadUrl'])->middleware('checkHeader');
 Route::post('cloudflare/deleteImage', [CloudflareController::class, 'deleteImage'])->middleware('checkHeader');
 
+// Cloudflare CDN Warmup Route (called by Cloudflare Worker)
+Route::post('cdn/videos-to-warm', [PostController::class, 'getVideosToWarm']); // No auth - Worker calls this
+
 Route::get('test', [UsersController::class, 'test'])->middleware('checkHeader');
 
 Route::get('deleteStoryFromWeb', [PostController::class, 'deleteStoryFromWeb'])->name('deleteStoryFromWeb');

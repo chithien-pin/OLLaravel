@@ -1473,4 +1473,83 @@ class PostController extends Controller
         echo json_encode($json_data);
         exit();
     }
+
+    /**
+     * Get videos to warm for CDN cache
+     * Called by Cloudflare Worker to get list of videos that need cache warming
+     *
+     * Strategy:
+     * - 30 most recent videos (last 7 days) - for fresh content
+     * - 30 most viewed videos (all time) - for popular content
+     * - Merge and deduplicate
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getVideosToWarm(Request $request)
+    {
+        try {
+            Log::info('🔥 [CDN_WARMUP_API] Request received from Cloudflare Worker');
+
+            // Get 30 most recent videos (last 7 days)
+            $recentVideos = PostContent::where('content_type', 1) // Video only
+                ->where('cloudflare_status', 'ready')
+                ->whereNotNull('cloudflare_video_id')
+                ->whereNotNull('cloudflare_hls_url')
+                ->where('created_at', '>=', now()->subDays(7))
+                ->orderBy('created_at', 'desc')
+                ->limit(30)
+                ->get(['id', 'post_id', 'cloudflare_video_id', 'cloudflare_hls_url', 'cloudflare_thumbnail_url', 'view_count', 'created_at']);
+
+            Log::info('🔥 [CDN_WARMUP_API] Found ' . $recentVideos->count() . ' recent videos');
+
+            // Get 30 most viewed videos (all time)
+            $popularVideos = PostContent::where('content_type', 1)
+                ->where('cloudflare_status', 'ready')
+                ->whereNotNull('cloudflare_video_id')
+                ->whereNotNull('cloudflare_hls_url')
+                ->where('view_count', '>', 0)
+                ->orderBy('view_count', 'desc')
+                ->limit(30)
+                ->get(['id', 'post_id', 'cloudflare_video_id', 'cloudflare_hls_url', 'cloudflare_thumbnail_url', 'view_count', 'created_at']);
+
+            Log::info('🔥 [CDN_WARMUP_API] Found ' . $popularVideos->count() . ' popular videos');
+
+            // Merge and deduplicate by cloudflare_video_id
+            $allVideos = $recentVideos->merge($popularVideos);
+            $uniqueVideos = $allVideos->unique('cloudflare_video_id');
+
+            Log::info('🔥 [CDN_WARMUP_API] Total unique videos after merge: ' . $uniqueVideos->count());
+
+            // Transform to simple array for Worker
+            $videosToWarm = $uniqueVideos->map(function($video) {
+                return [
+                    'video_id' => $video->cloudflare_video_id,
+                    'hls_url' => $video->cloudflare_hls_url,
+                    'thumbnail_url' => $video->cloudflare_thumbnail_url,
+                    'view_count' => $video->view_count ?? 0,
+                    'age_days' => now()->diffInDays($video->created_at),
+                ];
+            })->values(); // Reset array keys
+
+            Log::info('🔥 [CDN_WARMUP_API] Returning ' . $videosToWarm->count() . ' videos to Worker');
+
+            return response()->json([
+                'status' => true,
+                'count' => $videosToWarm->count(),
+                'data' => $videosToWarm,
+                'generated_at' => now()->toIso8601String(),
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('🔥 [CDN_WARMUP_API] Error: ' . $e->getMessage());
+            Log::error('🔥 [CDN_WARMUP_API] Trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to get videos for warming',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
