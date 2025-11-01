@@ -41,6 +41,32 @@ class PostContent extends Model
     ];
 
     /**
+     * Accessor: Convert Cloudflare HLS URL to use proxy worker
+     * This ensures all HLS manifest requests go through our caching proxy
+     * for better global performance (especially US users)
+     *
+     * @param string|null $value
+     * @return string|null
+     */
+    public function getCloudflareHlsUrlAttribute($value)
+    {
+        if (empty($value)) {
+            return $value;
+        }
+
+        // Extract video ID from the original URL
+        // Format: https://customer-xxx.cloudflarestream.com/{VIDEO_ID}/manifest/video.m3u8
+        if (preg_match('/\/([a-f0-9]+)\/manifest\/video\.m3u8/', $value, $matches)) {
+            $videoId = $matches[1];
+            $proxyUrl = env('CLOUDFLARE_HLS_PROXY_URL', 'https://orange-hls-proxy.lbthuan917.workers.dev');
+            return "{$proxyUrl}/{$videoId}/manifest/video.m3u8";
+        }
+
+        // Return original if pattern doesn't match
+        return $value;
+    }
+
+    /**
      * Get the video URL (Cloudflare Stream or original)
      *
      * @return string

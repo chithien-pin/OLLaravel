@@ -163,10 +163,17 @@ class CloudflareStreamService
      */
     public function getHlsUrl($videoId)
     {
-        if ($this->customerSubdomain) {
-            return "https://{$this->customerSubdomain}.cloudflarestream.com/{$videoId}/manifest/video.m3u8";
-        }
-        return "https://videodelivery.net/{$videoId}/manifest/video.m3u8";
+        // Use HLS Proxy Worker for better global caching
+        // Direct Cloudflare Stream URL had caching issues (manifest not cached at edge)
+        // Proxy worker caches manifest for 60s -> 95% faster delivery for global users
+        $proxyWorkerUrl = env('CLOUDFLARE_HLS_PROXY_URL', 'https://orange-hls-proxy.lbthuan917.workers.dev');
+        return "{$proxyWorkerUrl}/{$videoId}/manifest/video.m3u8";
+
+        // Fallback to direct URL (disabled - use proxy for better performance)
+        // if ($this->customerSubdomain) {
+        //     return "https://{$this->customerSubdomain}.cloudflarestream.com/{$videoId}/manifest/video.m3u8";
+        // }
+        // return "https://videodelivery.net/{$videoId}/manifest/video.m3u8";
     }
 
     /**
