@@ -2287,7 +2287,10 @@ class UsersController extends Controller
                                                    'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
                                                    'cloudflare_duration',
                                                    // Cloudflare Images fields (photos)
-                                                   'cloudflare_image_id', 'cloudflare_image_url', 'cloudflare_image_variants')
+                                                   'cloudflare_image_id', 'cloudflare_image_url', 'cloudflare_image_variants',
+                                                   // R2 Storage fields (videos) - for FREE bandwidth!
+                                                   'r2_mp4_url', 'r2_key', 'r2_file_size', 'r2_uploaded_at',
+                                                   'use_r2', 'r2_status')
                                           ->orderBy('id', 'asc');
                                 },
                                 'user' => function($query) {
@@ -2460,7 +2463,10 @@ class UsersController extends Controller
                                                    'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
                                                    'cloudflare_duration',
                                                    // Cloudflare Images fields (photos)
-                                                   'cloudflare_image_id', 'cloudflare_image_url', 'cloudflare_image_variants')
+                                                   'cloudflare_image_id', 'cloudflare_image_url', 'cloudflare_image_variants',
+                                                   // R2 Storage fields (videos) - for FREE bandwidth!
+                                                   'r2_mp4_url', 'r2_key', 'r2_file_size', 'r2_uploaded_at',
+                                                   'use_r2', 'r2_status')
                                           ->orderBy('id', 'asc');
                                 },
                                 'user' => function($query) {

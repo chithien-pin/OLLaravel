@@ -29,6 +29,13 @@ class PostContent extends Model
         'cloudflare_image_id',
         'cloudflare_image_url',
         'cloudflare_image_variants',
+        // R2 Storage fields
+        'r2_mp4_url',
+        'r2_key',
+        'r2_file_size',
+        'r2_uploaded_at',
+        'use_r2',
+        'r2_status',
     ];
 
     /**
@@ -41,19 +48,74 @@ class PostContent extends Model
     ];
 
     /**
-     * Get the video URL (Cloudflare Stream or original)
+     * Get the video URL (R2 MP4 > Cloudflare Stream HLS > original)
      *
      * @return string
      */
     public function getVideoUrl()
     {
-        // If Cloudflare Stream is ready, return Cloudflare HLS URL
+        // Priority 1: R2 MP4 if available and preferred (FREE bandwidth!)
+        if ($this->shouldUseR2() && $this->r2_mp4_url) {
+            return $this->r2_mp4_url;
+        }
+
+        // Priority 2: Cloudflare Stream HLS
         if ($this->cloudflare_status === 'ready' && $this->cloudflare_hls_url) {
             return $this->cloudflare_hls_url;
         }
 
-        // Otherwise return original content path
+        // Priority 3: Original content path (fallback)
         return $this->content;
+    }
+
+    /**
+     * Check if should use R2 for this video
+     *
+     * @return bool
+     */
+    public function shouldUseR2()
+    {
+        // If R2 is not ready, don't use it
+        if ($this->r2_status !== 'ready' || empty($this->r2_mp4_url)) {
+            return false;
+        }
+
+        // If use_r2 is explicitly set, use that preference
+        if ($this->use_r2 !== null) {
+            return (bool)$this->use_r2;
+        }
+
+        // Default strategy: Use R2 for videos older than 7 days
+        $videoAge = now()->diffInDays($this->created_at);
+        return $videoAge > 7;
+    }
+
+    /**
+     * Check if R2 is available for this video
+     *
+     * @return bool
+     */
+    public function isR2Available()
+    {
+        return !empty($this->r2_mp4_url) && $this->r2_status === 'ready';
+    }
+
+    /**
+     * Get the preferred video source
+     *
+     * @return string 'r2'|'stream'|'local'
+     */
+    public function getVideoSource()
+    {
+        if ($this->shouldUseR2() && $this->r2_mp4_url) {
+            return 'r2';
+        }
+
+        if ($this->cloudflare_status === 'ready' && $this->cloudflare_hls_url) {
+            return 'stream';
+        }
+
+        return 'local';
     }
 
     /**
@@ -134,28 +196,33 @@ class PostContent extends Model
             // Use Cloudflare Stream if ready
             if ($this->cloudflare_status === 'ready' && $this->cloudflare_hls_url) {
                 $this->content = $this->cloudflare_hls_url;
-                $this->is_cloudflare_stream = true;
+                $this->setAttribute('is_cloudflare_stream', true);
 
                 // Add Cloudflare-specific fields to response
-                $this->cloudflare_video_url = $this->cloudflare_hls_url;
-                $this->cloudflare_thumbnail = $this->cloudflare_thumbnail_url;
+                $this->setAttribute('cloudflare_video_url', $this->cloudflare_hls_url);
+                $this->setAttribute('cloudflare_thumbnail', $this->cloudflare_thumbnail_url);
             } else {
                 // Keep original content path (fallback)
-                $this->is_cloudflare_stream = false;
+                $this->setAttribute('is_cloudflare_stream', false);
             }
 
             // Add processing status info
             if ($this->cloudflare_status === 'processing' || $this->cloudflare_status === 'uploading') {
-                $this->is_processing = true;
-                $this->processing_message = 'Video is being processed, please check back later';
+                $this->setAttribute('is_processing', true);
+                $this->setAttribute('processing_message', 'Video is being processed, please check back later');
             } else {
-                $this->is_processing = false;
+                $this->setAttribute('is_processing', false);
             }
 
             // Use Cloudflare thumbnail if available
             if ($this->cloudflare_thumbnail_url) {
                 $this->thumbnail = $this->cloudflare_thumbnail_url;
             }
+
+            // Add R2 fields to API response using setAttribute() for proper JSON serialization
+            $this->setAttribute('is_r2_available', $this->isR2Available());
+            $this->setAttribute('video_source', $this->getVideoSource());
+            // r2_mp4_url is already a database column, it will be included automatically
         } elseif ($this->content_type == 0) { // Image type
             // Use Cloudflare Images if available
             if ($this->isCloudflareImage()) {
@@ -165,15 +232,15 @@ class PostContent extends Model
                 // Use thumbnail variant for thumbnail
                 $this->thumbnail = $this->cloudflare_image_variants['thumbnail'] ?? $this->content;
 
-                $this->is_cloudflare_image = true;
+                $this->setAttribute('is_cloudflare_image', true);
 
                 // Add all variant URLs to response
-                $this->cloudflare_image_thumbnail = $this->cloudflare_image_variants['thumbnail'] ?? null;
-                $this->cloudflare_image_medium = $this->cloudflare_image_variants['medium'] ?? null;
-                $this->cloudflare_image_large = $this->cloudflare_image_variants['large'] ?? null;
+                $this->setAttribute('cloudflare_image_thumbnail', $this->cloudflare_image_variants['thumbnail'] ?? null);
+                $this->setAttribute('cloudflare_image_medium', $this->cloudflare_image_variants['medium'] ?? null);
+                $this->setAttribute('cloudflare_image_large', $this->cloudflare_image_variants['large'] ?? null);
             } else {
                 // Legacy: Local storage images
-                $this->is_cloudflare_image = false;
+                $this->setAttribute('is_cloudflare_image', false);
 
                 // Keep original content and thumbnail paths
                 // (will be transformed to full URLs by GlobalFunction::createMediaUrl elsewhere)
