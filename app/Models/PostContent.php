@@ -214,9 +214,18 @@ class PostContent extends Model
                 $this->setAttribute('is_processing', false);
             }
 
-            // Use Cloudflare thumbnail if available
+            // ⚡ CRITICAL FIX: Use ONLY Cloudflare thumbnail when available
+            // This ELIMINATES 404 requests to legacy storage paths
             if ($this->cloudflare_thumbnail_url) {
+                // Set thumbnail to Cloudflare URL - frontend will use this
                 $this->thumbnail = $this->cloudflare_thumbnail_url;
+
+                // Also expose explicit Cloudflare field for frontend preference logic
+                $this->setAttribute('cloudflare_thumbnail', $this->cloudflare_thumbnail_url);
+            } else {
+                // No Cloudflare thumbnail yet - keep using legacy thumbnail
+                // (happens during processing or for old posts not migrated yet)
+                // Frontend should use ConstRes.aImageBaseUrl + thumbnail path
             }
 
             // Add R2 fields to API response using setAttribute() for proper JSON serialization
@@ -224,26 +233,28 @@ class PostContent extends Model
             $this->setAttribute('video_source', $this->getVideoSource());
             // r2_mp4_url is already a database column, it will be included automatically
         } elseif ($this->content_type == 0) { // Image type
-            // Use Cloudflare Images if available
+            // ⚡ CRITICAL FIX: Use ONLY Cloudflare Images when available
+            // This ELIMINATES 404 requests to legacy storage paths
             if ($this->isCloudflareImage()) {
-                // Use public variant for main content
+                // Use public variant for main content (full resolution)
                 $this->content = $this->cloudflare_image_variants['public'] ?? $this->cloudflare_image_url;
 
-                // Use thumbnail variant for thumbnail
+                // Use thumbnail variant for thumbnail (optimized for grid view)
                 $this->thumbnail = $this->cloudflare_image_variants['thumbnail'] ?? $this->content;
 
                 $this->setAttribute('is_cloudflare_image', true);
 
-                // Add all variant URLs to response
+                // Add all variant URLs to response for frontend to choose optimal size
                 $this->setAttribute('cloudflare_image_thumbnail', $this->cloudflare_image_variants['thumbnail'] ?? null);
                 $this->setAttribute('cloudflare_image_medium', $this->cloudflare_image_variants['medium'] ?? null);
                 $this->setAttribute('cloudflare_image_large', $this->cloudflare_image_variants['large'] ?? null);
+                $this->setAttribute('cloudflare_image_public', $this->cloudflare_image_variants['public'] ?? null);
             } else {
-                // Legacy: Local storage images
+                // Legacy: Local storage images (old posts not migrated yet)
                 $this->setAttribute('is_cloudflare_image', false);
 
                 // Keep original content and thumbnail paths
-                // (will be transformed to full URLs by GlobalFunction::createMediaUrl elsewhere)
+                // Frontend should use ConstRes.aImageBaseUrl + content/thumbnail path
             }
         }
     }
