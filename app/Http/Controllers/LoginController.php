@@ -50,8 +50,6 @@ class LoginController extends Controller
     }
     function login()
     {
-        Artisan::call('storage:link');
-
         if (Session::get('user_name')) {
             return redirect('index');
         }
@@ -67,8 +65,6 @@ class LoginController extends Controller
         }
 
         $data = Admin::where('user_name', $req->user_name)->first();
-
-        Artisan::call('storage:link');
 
         if ($req->user_name == $data['user_name'] && $req->user_password == $data['user_password']) {
             $req->session()->put('user_name', $data['user_name']);
