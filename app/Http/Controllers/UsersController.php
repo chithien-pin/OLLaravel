@@ -2405,6 +2405,116 @@ class UsersController extends Controller
     }
 
     /**
+     * PUBLIC API: Fetch trending/recent video posts for guest users
+     *
+     * Purpose: Early video preload before user login
+     * - No authentication required (public endpoint)
+     * - Returns only video posts (no images)
+     * - Returns only ready videos (cloudflare_status = 'ready')
+     * - Lightweight response (minimal user data, no likes/following status)
+     * - Rate limited to prevent abuse
+     *
+     * Use case: Called at splash screen to preload videos during login flow
+     * Timeline: Splash (0s) → Call API → Login (10s) → Onboarding (15s) → Dashboard
+     * Result: Videos are ready when user reaches dashboard (instant playback)
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function fetchGuestFeed(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'limit' => 'integer|min:1|max:20', // Max 20 posts for guests
+        ]);
+
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $limit = $request->input('limit', 15);
+
+        // ⚡ LIGHTWEIGHT: Only video posts, only ready videos
+        $fetchPosts = Post::select('posts.id', 'posts.user_id', 'posts.description',
+                                    'posts.created_at', 'posts.likes_count', 'posts.comments_count')
+            ->with([
+                'content' => function($query) {
+                    // Only load video fields (no images)
+                    $query->select('id', 'post_id', 'content', 'thumbnail',
+                                  'content_type', 'view_count',
+                                  // Cloudflare Stream fields
+                                  'cloudflare_video_id', 'cloudflare_hls_url',
+                                  'cloudflare_thumbnail_url', 'cloudflare_status',
+                                  'cloudflare_duration',
+                                  // R2 Storage fields
+                                  'r2_mp4_url', 'r2_key', 'use_r2', 'r2_status')
+                          ->where('content_type', 1) // Only videos
+                          ->orderBy('id', 'asc');
+                },
+                'user' => function($query) {
+                    // Minimal user info (no following status, no package info)
+                    $query->select('id', 'fullname', 'username', 'bio', 'followers', 'following')
+                          ->with(['images' => function($q) {
+                              // Only first profile image
+                              $q->select('id', 'user_id', 'image')
+                                ->orderBy('id', 'asc')
+                                ->limit(1);
+                          }]);
+                }
+            ])
+            ->whereRelation('user', 'is_block', 0) // Only non-blocked users
+            ->whereHas('content', function($query) {
+                // Only ready videos (critical filter)
+                $query->where('content_type', 1) // Videos only
+                      ->where('cloudflare_status', 'ready'); // Only ready
+            })
+            ->orderBy('created_at', 'desc') // Latest first (or add trending algorithm later)
+            ->limit($limit)
+            ->get();
+
+        if ($fetchPosts->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No posts available',
+            ]);
+        }
+
+        // Transform content URLs (Cloudflare Stream HLS)
+        foreach ($fetchPosts as $fetchPost) {
+            foreach ($fetchPost->content as $content) {
+                $content->transformForResponse();
+            }
+
+            // Add minimal user metadata (role, VIP status only)
+            if ($fetchPost->user) {
+                $fetchPost->user->role_type = $fetchPost->user->getCurrentRoleType();
+                $fetchPost->user->is_vip = $fetchPost->user->isVip();
+                $fetchPost->user->role_expires_at = $fetchPost->user->getRoleExpiryDate();
+                $fetchPost->user->role_days_remaining = $fetchPost->user->getDaysRemainingForVip();
+
+                // No package info for guests (reduce response size)
+                $fetchPost->user->package_type = null;
+                $fetchPost->user->has_package = false;
+
+                // No following status for guests (not logged in)
+                $fetchPost->user->followingStatus = 0;
+            }
+
+            // No like status for guests (not logged in)
+            $fetchPost->is_like = 0;
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Guest feed fetched successfully',
+            'data' => [
+                'posts' => $fetchPosts,
+            ]
+        ]);
+    }
+
+    /**
      * OPTIMIZED: Fetch following page data with improved performance
      * - Removed unnecessary users_stories query (saves 100+ queries)
      * - Batch query for likes (reduces N+1 to 2 queries)

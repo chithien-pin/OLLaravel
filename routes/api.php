@@ -30,6 +30,15 @@ use Illuminate\Support\Facades\Route;
 
 
 /*|--------------------------------------------------------------------------|
+  | Public Routes (No Authentication Required)                               |
+  |--------------------------------------------------------------------------|*/
+
+// PUBLIC API: Guest feed for early video preload before login
+// Rate limited to 20 requests per minute to prevent abuse
+Route::post('fetchGuestFeed', [UsersController::class, 'fetchGuestFeed'])
+    ->middleware('throttle:20,1');
+
+/*|--------------------------------------------------------------------------|
   | Users Route                                                              |
   |--------------------------------------------------------------------------|*/
 
