@@ -34,9 +34,9 @@ use Illuminate\Support\Facades\Route;
   |--------------------------------------------------------------------------|*/
 
 // PUBLIC API: Guest feed for early video preload before login
-// Rate limited to 20 requests per minute to prevent abuse
+// Protected by API key authentication + rate limiting (20 requests per minute)
 Route::post('fetchGuestFeed', [UsersController::class, 'fetchGuestFeed'])
-    ->middleware('throttle:20,1');
+    ->middleware(['guestApiKey', 'throttle:20,1']);
 
 /*|--------------------------------------------------------------------------|
   | Users Route                                                              |
