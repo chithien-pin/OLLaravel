@@ -807,6 +807,41 @@ class PostController extends Controller
         }
     }
 
+    public function deletePost(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'post_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        // Find post and verify ownership
+        $post = Post::where('id', $request->post_id)
+                    ->where('user_id', $request->user_id)
+                    ->first();
+
+        if (!$post) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Post not found or you do not have permission to delete this post',
+            ]);
+        }
+
+        // Soft delete the post (updates deleted_at field)
+        $post->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Post deleted successfully',
+            'data' => $post,
+        ]);
+    }
+
     public function deleteMyPost(Request $request)
     {
         $post = Post::where('id', $request->post_id)->where('user_id', $request->user_id)->first();
@@ -823,7 +858,7 @@ class PostController extends Controller
 
             $postLikes = Like::where('post_id', $request->post_id)->get();
             $postLikes->each->delete();
-            
+
             $postReport = Report::where('post_id', $request->post_id)->get();
             $postReport->each->delete();
 

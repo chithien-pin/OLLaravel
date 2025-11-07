@@ -127,6 +127,7 @@ Route::post('fetchComments', [PostController::class, 'fetchComments'])->middlewa
 Route::post('deleteComment', [PostController::class, 'deleteComment'])->middleware('checkHeader');
 Route::post('likePost', [PostController::class, 'likePost'])->middleware('checkHeader');
 Route::post('dislikePost', [PostController::class, 'dislikePost'])->middleware('checkHeader');
+Route::post('deletePost', [PostController::class, 'deletePost'])->middleware('checkHeader');
 Route::post('deleteMyPost', [PostController::class, 'deleteMyPost'])->middleware('checkHeader');
 Route::post('fetchPostByUser', [PostController::class, 'fetchPostByUser'])->middleware('checkHeader');
 Route::post('getUserFeed', [PostController::class, 'getUserFeed'])->middleware('checkHeader');
