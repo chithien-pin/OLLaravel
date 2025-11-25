@@ -43,6 +43,8 @@ Route::post('fetchGuestFeed', [UsersController::class, 'fetchGuestFeed'])
   |--------------------------------------------------------------------------|*/
 
 Route::post('register', [UsersController::class, 'addUserDetails'])->middleware('checkHeader');
+Route::post('updateIpNetwork', [UsersController::class, 'updateIpNetwork'])->middleware('checkHeader');
+Route::post('updateLanguage', [UsersController::class, 'updateLanguage'])->middleware('checkHeader');
 Route::post('updateProfile', [UsersController::class, 'updateProfile'])->middleware('checkHeader');
 Route::post('fetchUsersByCordinates', [UsersController::class, 'fetchUsersByCordinates'])->middleware('checkHeader');
 Route::post('updateUserBlockList', [UsersController::class, 'updateUserBlockList'])->middleware('checkHeader');

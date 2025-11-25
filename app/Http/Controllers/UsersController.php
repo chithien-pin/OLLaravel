@@ -1606,6 +1606,17 @@ class UsersController extends Controller
             $user->username = $this->generateUniqueUsername();
             $user->can_go_live = 2; // Allow new users to live stream immediately
 
+            // Location tracking fields (detected from device at registration)
+            if ($req->has('country')) {
+                $user->country = $req->country;
+            }
+            if ($req->has('ip_network')) {
+                $user->ip_network = $req->ip_network;
+            }
+            if ($req->has('language')) {
+                $user->language = $req->language;
+            }
+
             $user->save();
 
             // Assign default Normal role to new user
@@ -1619,16 +1630,107 @@ class UsersController extends Controller
                 'data' => $data
             ]);
         } else {
-            Users::where('identity', $req->identity)->update([
+            $updateData = [
                 'device_token' => $req->device_token,
                 'device_type' => $req->device_type,
                 'login_type' => $req->login_type,
-            ]);
+            ];
+
+            // country: Only update if currently NULL (one-time)
+            if ($data->country == null && $req->has('country')) {
+                $updateData['country'] = $req->country;
+            }
+
+            // ip_network: Always update on each login
+            if ($req->has('ip_network')) {
+                $updateData['ip_network'] = $req->ip_network;
+            }
+
+            // language: Never update for existing users (only set on registration)
+
+            Users::where('identity', $req->identity)->update($updateData);
 
             $data = Users::with('images')->where('id', $data['id'])->first();
 
             return response()->json(['status' => true, 'message' => __('app.UserAllReadyExists'), 'data' => $data]);
         }
+    }
+
+    /**
+     * Update IP network when app opens (for logged-in users)
+     * Also updates country if it's NULL
+     */
+    function updateIpNetwork(Request $req)
+    {
+        $rules = [
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($req->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $user = Users::where('id', $req->user_id)->first();
+
+        if ($user == null) {
+            return response()->json(['status' => false, 'message' => 'User not found']);
+        }
+
+        $updateData = [];
+
+        // ip_network: Always update
+        if ($req->has('ip_network') && $req->ip_network != null) {
+            $updateData['ip_network'] = $req->ip_network;
+        }
+
+        // country: Only update if currently NULL
+        if ($user->country == null && $req->has('country') && $req->country != null) {
+            $updateData['country'] = $req->country;
+        }
+
+        if (!empty($updateData)) {
+            Users::where('id', $req->user_id)->update($updateData);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'IP network updated successfully',
+        ]);
+    }
+
+    /**
+     * Update user's preferred language
+     */
+    function updateLanguage(Request $req)
+    {
+        $rules = [
+            'user_id' => 'required',
+            'language' => 'required',
+        ];
+
+        $validator = Validator::make($req->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $user = Users::where('id', $req->user_id)->first();
+
+        if ($user == null) {
+            return response()->json(['status' => false, 'message' => 'User not found']);
+        }
+
+        $user->language = $req->language;
+        $user->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Language updated successfully',
+        ]);
     }
 
     function searchUsersForInterest(Request $req)
