@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Users;
 use App\Services\CloudflareStreamService;
+use App\Services\TranslationService;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
@@ -529,8 +530,12 @@ class PostController extends Controller
 
                 if ($toUser->id != $user->id) {
                     if ($toUser->is_notification == 1) {
-                        $notificationDesc = $user->fullname . ' has commented: ' . $request->description;
-                        Myfunction::sendPushToUser(env('APP_NAME'), $notificationDesc, $toUser->device_token);
+                        $title = TranslationService::forUser($toUser, 'notification.title.app');
+                        $notificationDesc = TranslationService::forUser($toUser, 'notification.comment', [
+                            'name' => $user->fullname,
+                            'comment' => substr($request->description, 0, 50)
+                        ]);
+                        Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token);
                     }
                 }
 
@@ -674,8 +679,11 @@ class PostController extends Controller
 
                     if ($toUser->id != $user->id) {
                         if($toUser->is_notification == 1) {
-                            $notificationDesc = $user->fullname . ' has liked your post.';
-                            Myfunction::sendPushToUser("Post Like", $notificationDesc, $toUser->device_token);
+                            $title = TranslationService::forUser($toUser, 'notification.title.app');
+                            $notificationDesc = TranslationService::forUser($toUser, 'notification.post_like', [
+                                'name' => $user->fullname
+                            ]);
+                            Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token);
                         }
                     }
 

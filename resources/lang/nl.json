@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name is je gaan volgen.",
+    "notification.comment": ":name heeft gereageerd op je bericht: :comment",
+    "notification.post_like": ":name vindt je bericht leuk.",
+    "notification.profile_like": ":name vindt je profiel leuk, je zou hun profiel moeten bekijken!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "Nieuwe volger",
+    "notification.title.comment": "Nieuwe reactie",
+    "notification.title.post_like": "Bericht geliked",
+    "notification.title.profile_like": "Profiel geliked"
+}

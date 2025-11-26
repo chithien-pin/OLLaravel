@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name بدأ بمتابعتك.",
+    "notification.comment": ":name علق على منشورك: :comment",
+    "notification.post_like": ":name أعجب بمنشورك.",
+    "notification.profile_like": ":name أعجب بملفك الشخصي، يجب عليك التحقق من ملفهم الشخصي!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "متابع جديد",
+    "notification.title.comment": "تعليق جديد",
+    "notification.title.post_like": "إعجاب بالمنشور",
+    "notification.title.profile_like": "إعجاب بالملف الشخصي"
+}

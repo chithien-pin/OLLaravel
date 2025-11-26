@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name đã bắt đầu theo dõi bạn.",
+    "notification.comment": ":name đã bình luận bài viết của bạn: :comment",
+    "notification.post_like": ":name đã thích bài viết của bạn.",
+    "notification.profile_like": ":name đã thích hồ sơ của bạn, bạn nên xem hồ sơ của họ!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "Người theo dõi mới",
+    "notification.title.comment": "Bình luận mới",
+    "notification.title.post_like": "Lượt thích bài viết",
+    "notification.title.profile_like": "Lượt thích hồ sơ"
+}

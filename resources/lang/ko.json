@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name님이 회원님을 팔로우하기 시작했습니다.",
+    "notification.comment": ":name님이 회원님의 게시물에 댓글을 남겼습니다: :comment",
+    "notification.post_like": ":name님이 회원님의 게시물을 좋아합니다.",
+    "notification.profile_like": ":name님이 회원님의 프로필을 좋아합니다. 그들의 프로필을 확인해보세요!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "새 팔로워",
+    "notification.title.comment": "새 댓글",
+    "notification.title.post_like": "게시물 좋아요",
+    "notification.title.profile_like": "프로필 좋아요"
+}

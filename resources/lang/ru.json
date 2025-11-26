@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name начал(а) следить за вами.",
+    "notification.comment": ":name прокомментировал(а) вашу публикацию: :comment",
+    "notification.post_like": ":name понравилась ваша публикация.",
+    "notification.profile_like": ":name понравился ваш профиль, вам стоит посмотреть их профиль!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "Новый подписчик",
+    "notification.title.comment": "Новый комментарий",
+    "notification.title.post_like": "Понравилась публикация",
+    "notification.title.profile_like": "Понравился профиль"
+}

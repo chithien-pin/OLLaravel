@@ -97,6 +97,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | List of all locales supported by the application. This is used by the
+    | TranslationService to validate and normalize locale codes.
+    |
+    */
+
+    'supported_locales' => [
+        'en', 'vi', 'ar', 'da', 'de', 'el', 'es', 'fr', 'hi', 'id',
+        'it', 'ja', 'ko', 'nb', 'nl', 'pl', 'pt', 'ru', 'th', 'tr', 'zh'
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Faker Locale
     |--------------------------------------------------------------------------
     |

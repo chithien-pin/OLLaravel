@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name seni takip etmeye başladı.",
+    "notification.comment": ":name gönderine yorum yaptı: :comment",
+    "notification.post_like": ":name gönderini beğendi.",
+    "notification.profile_like": ":name profilini beğendi, onların profiline bakmalısın!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "Yeni Takipçi",
+    "notification.title.comment": "Yeni Yorum",
+    "notification.title.post_like": "Gönderi Beğenildi",
+    "notification.title.profile_like": "Profil Beğenildi"
+}

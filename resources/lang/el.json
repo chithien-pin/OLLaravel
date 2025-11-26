@@ -1,0 +1,12 @@
+{
+    "notification.follow": "Ο/Η :name άρχισε να σε ακολουθεί.",
+    "notification.comment": "Ο/Η :name σχολίασε τη δημοσίευσή σου: :comment",
+    "notification.post_like": "Στον/Στην :name άρεσε η δημοσίευσή σου.",
+    "notification.profile_like": "Στον/Στην :name άρεσε το προφίλ σου, πρέπει να δεις το προφίλ του/της!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "Νέος ακόλουθος",
+    "notification.title.comment": "Νέο σχόλιο",
+    "notification.title.post_like": "Αρέσει η δημοσίευση",
+    "notification.title.profile_like": "Αρέσει το προφίλ"
+}

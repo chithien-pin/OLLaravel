@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name has started following you.",
+    "notification.comment": ":name commented on your post: :comment",
+    "notification.post_like": ":name liked your post.",
+    "notification.profile_like": ":name has liked your profile, you should check their profile!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "New Follower",
+    "notification.title.comment": "New Comment",
+    "notification.title.post_like": "Post Liked",
+    "notification.title.profile_like": "Profile Liked"
+}

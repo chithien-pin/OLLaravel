@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name har begynt å følge deg.",
+    "notification.comment": ":name kommenterte innlegget ditt: :comment",
+    "notification.post_like": ":name likte innlegget ditt.",
+    "notification.profile_like": ":name likte profilen din, du bør sjekke profilen deres!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "Ny følger",
+    "notification.title.comment": "Ny kommentar",
+    "notification.title.post_like": "Innlegg likt",
+    "notification.title.profile_like": "Profil likt"
+}

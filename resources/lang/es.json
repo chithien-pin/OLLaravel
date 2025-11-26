@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name ha comenzado a seguirte.",
+    "notification.comment": ":name comentó tu publicación: :comment",
+    "notification.post_like": "A :name le gustó tu publicación.",
+    "notification.profile_like": "A :name le gustó tu perfil, ¡deberías ver su perfil!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "Nuevo seguidor",
+    "notification.title.comment": "Nuevo comentario",
+    "notification.title.post_like": "Me gusta en publicación",
+    "notification.title.profile_like": "Me gusta en perfil"
+}

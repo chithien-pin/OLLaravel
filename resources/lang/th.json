@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name เริ่มติดตามคุณแล้ว",
+    "notification.comment": ":name แสดงความคิดเห็นในโพสต์ของคุณ: :comment",
+    "notification.post_like": ":name ถูกใจโพสต์ของคุณ",
+    "notification.profile_like": ":name ถูกใจโปรไฟล์ของคุณ คุณควรดูโปรไฟล์ของพวกเขา!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "ผู้ติดตามใหม่",
+    "notification.title.comment": "ความคิดเห็นใหม่",
+    "notification.title.post_like": "ถูกใจโพสต์",
+    "notification.title.profile_like": "ถูกใจโปรไฟล์"
+}

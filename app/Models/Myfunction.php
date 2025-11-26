@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Google\Client;
 use Illuminate\Support\Facades\File;
+use App\Services\TranslationService;
 
 class Myfunction extends Model
 {
@@ -91,8 +92,10 @@ class Myfunction extends Model
             return;
         }
 
-        $title = env('APP_NAME');
-        $message = $fromUser->fullname . ' has started following you.';
+        $title = TranslationService::forUser($toUser, 'notification.title.app');
+        $message = TranslationService::forUser($toUser, 'notification.follow', [
+            'name' => $fromUser->fullname
+        ]);
 
         $eventData = [
             'event_type' => Constants::eventTypeUserFollow,
@@ -176,8 +179,10 @@ class Myfunction extends Model
             return;
         }
 
-        $title = env('APP_NAME');
-        $message = $fromUser->fullname . ' liked your post.';
+        $title = TranslationService::forUser($toUser, 'notification.title.app');
+        $message = TranslationService::forUser($toUser, 'notification.post_like', [
+            'name' => $fromUser->fullname
+        ]);
 
         $eventData = [
             'event_type' => Constants::eventTypePostLike,
@@ -203,8 +208,11 @@ class Myfunction extends Model
             return;
         }
 
-        $title = env('APP_NAME');
-        $message = $fromUser->fullname . ' commented on your post: ' . substr($commentText, 0, 50);
+        $title = TranslationService::forUser($toUser, 'notification.title.app');
+        $message = TranslationService::forUser($toUser, 'notification.comment', [
+            'name' => $fromUser->fullname,
+            'comment' => substr($commentText, 0, 50)
+        ]);
 
         $eventData = [
             'event_type' => Constants::eventTypePostComment,

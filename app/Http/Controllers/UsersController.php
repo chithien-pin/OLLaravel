@@ -24,6 +24,7 @@ use App\Models\UserNotification;
 use App\Models\Users;
 use App\Models\UserRole;
 use App\Models\VerifyRequest;
+use App\Services\TranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Artisan;
@@ -698,8 +699,11 @@ class UsersController extends Controller
                 $userNotification->save();
 
                 if ($user->id != $my_user->id && $user->is_notification) {
-                    $message = "{$my_user->fullname} has liked your profile, you should check their profile!";
-                    Myfunction::sendPushToUser(env('APP_NAME'), $message, $user->device_token);
+                    $title = TranslationService::forUser($user, 'notification.title.app');
+                    $message = TranslationService::forUser($user, 'notification.profile_like', [
+                        'name' => $my_user->fullname
+                    ]);
+                    Myfunction::sendPushToUser($title, $message, $user->device_token);
                 }
 
             }
@@ -3366,8 +3370,11 @@ class UsersController extends Controller
 
                 // Send push notifications
                 foreach ($usersToNotify as $toUser) {
-                    $notificationDesc = $fromUser->fullname . ' has started following you.';
-                    Myfunction::sendPushToUser(env('APP_NAME'), $notificationDesc, $toUser->device_token);
+                    $title = TranslationService::forUser($toUser, 'notification.title.app');
+                    $notificationDesc = TranslationService::forUser($toUser, 'notification.follow', [
+                        'name' => $fromUser->fullname
+                    ]);
+                    Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token);
                 }
 
             } catch (\Exception $e) {

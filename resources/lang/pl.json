@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name zaczął Cię obserwować.",
+    "notification.comment": ":name skomentował Twój post: :comment",
+    "notification.post_like": ":name polubił Twój post.",
+    "notification.profile_like": ":name polubił Twój profil, powinieneś sprawdzić jego profil!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "Nowy obserwujący",
+    "notification.title.comment": "Nowy komentarz",
+    "notification.title.post_like": "Post polubiony",
+    "notification.title.profile_like": "Profil polubiony"
+}

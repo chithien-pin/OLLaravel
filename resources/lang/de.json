@@ -1,0 +1,12 @@
+{
+    "notification.follow": ":name folgt dir jetzt.",
+    "notification.comment": ":name hat deinen Beitrag kommentiert: :comment",
+    "notification.post_like": ":name gefällt dein Beitrag.",
+    "notification.profile_like": ":name gefällt dein Profil, du solltest ihr Profil ansehen!",
+
+    "notification.title.app": "Orange",
+    "notification.title.follow": "Neuer Follower",
+    "notification.title.comment": "Neuer Kommentar",
+    "notification.title.post_like": "Beitrag gefällt",
+    "notification.title.profile_like": "Profil gefällt"
+}
