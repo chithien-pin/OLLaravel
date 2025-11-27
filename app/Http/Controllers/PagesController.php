@@ -21,12 +21,31 @@ class PagesController extends Controller
     //
 
     function privacypolicy(Request $request){
-        $data = Pages::first();
-       return $data->privacy;
+        $lang = $request->query('lang', 'en');
+
+        // Find by language
+        $data = Pages::where('language', $lang)->first();
+
+        // Fallback to English if not found
+        if (!$data) {
+            $data = Pages::where('language', 'en')->first();
+        }
+
+        return $data->privacy ?? '';
     }
+
     function termsOfUse(Request $request){
-        $data = Pages::first();
-       return $data->termsofuse;
+        $lang = $request->query('lang', 'en');
+
+        // Find by language
+        $data = Pages::where('language', $lang)->first();
+
+        // Fallback to English if not found
+        if (!$data) {
+            $data = Pages::where('language', 'en')->first();
+        }
+
+        return $data->termsofuse ?? '';
     }
 
     function viewTerms(Request $request){

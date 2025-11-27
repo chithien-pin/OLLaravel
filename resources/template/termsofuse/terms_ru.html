@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Условия использования - GYPSYLIVE</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            /* ===== CSS Variables - GYPSYLIVE Theme ===== */
+            :root {
+                --primary: #00bfa5;
+                --primary-dark: #00897b;
+                --primary-light: #64ffda;
+                --secondary: #1a237e;
+                --accent: #00e5ff;
+                --teal: #009688;
+                --cyan: #00bcd4;
+                --green: #4caf50;
+                --light-green: #8bc34a;
+                --bg-gradient-1: #00bfa5;
+                --bg-gradient-2: #00acc1;
+                --bg-gradient-3: #26a69a;
+                --text-primary: #263238;
+                --text-secondary: #546e7a;
+                --text-light: #90a4ae;
+                --white: #ffffff;
+                --gray-50: #eceff1;
+                --gray-100: #cfd8dc;
+                --gray-200: #b0bec5;
+                --success: #4caf50;
+                --warning: #ffc107;
+                --danger: #f44336;
+                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                --shadow-glow: 0 0 40px rgba(0, 191, 165, 0.3);
+                --radius-sm: 8px;
+                --radius-md: 12px;
+                --radius-lg: 20px;
+                --radius-xl: 30px;
+            }
+
+            /* ===== Reset & Base ===== */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: "Inter", -apple-system, BlinkMacSystemFont,
+                    "Segoe UI", Roboto, sans-serif;
+                line-height: 1.7;
+                color: var(--text-primary);
+                background: var(--gray-50);
+                overflow-x: hidden;
+            }
+
+            /* ===== Animations ===== */
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes fadeInLeft {
+                from {
+                    opacity: 0;
+                    transform: translateX(-30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes scaleIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0) rotate(0deg);
+                }
+                50% {
+                    transform: translateY(-20px) rotate(5deg);
+                }
+            }
+
+            @keyframes floatReverse {
+                0%,
+                100% {
+                    transform: translateY(0) rotate(0deg);
+                }
+                50% {
+                    transform: translateY(-15px) rotate(-5deg);
+                }
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                50% {
+                    transform: scale(1.05);
+                    opacity: 0.8;
+                }
+            }
+
+            @keyframes gradientShift {
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes shimmer {
+                0% {
+                    background-position: -200% 0;
+                }
+                100% {
+                    background-position: 200% 0;
+                }
+            }
+
+            @keyframes bounceIn {
+                0% {
+                    opacity: 0;
+                    transform: scale(0.3);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+                70% {
+                    transform: scale(0.9);
+                }
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            @keyframes glow {
+                0%,
+                100% {
+                    box-shadow: 0 0 20px rgba(0, 191, 165, 0.4);
+                }
+                50% {
+                    box-shadow: 0 0 40px rgba(0, 191, 165, 0.6);
+                }
+            }
+
+            @keyframes slideInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(50px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* ===== Header ===== */
+            .header {
+                background: linear-gradient(
+                    135deg,
+                    var(--cyan) 0%,
+                    var(--teal) 50%,
+                    var(--green) 100%
+                );
+                background-size: 200% 200%;
+                animation: gradientShift 12s ease infinite;
+                padding: 100px 20px 120px;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header::before {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    transparent 70%
+                );
+                animation: float 6s ease-in-out infinite;
+            }
+
+            .header::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 100px;
+                background: linear-gradient(
+                    to top,
+                    var(--gray-50),
+                    transparent
+                );
+            }
+
+            /* Floating shapes */
+            .floating-shape {
+                position: absolute;
+                opacity: 0.15;
+            }
+
+            .shape-1 {
+                width: 250px;
+                height: 250px;
+                background: var(--white);
+                top: -80px;
+                right: -80px;
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+                animation: float 8s ease-in-out infinite;
+            }
+
+            .shape-2 {
+                width: 180px;
+                height: 180px;
+                background: var(--white);
+                bottom: 60px;
+                left: -60px;
+                border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+                animation: floatReverse 10s ease-in-out infinite;
+            }
+
+            .shape-3 {
+                width: 120px;
+                height: 120px;
+                background: var(--white);
+                top: 40%;
+                left: 15%;
+                border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
+                animation: float 7s ease-in-out infinite;
+                animation-delay: 1s;
+            }
+
+            .shape-4 {
+                width: 100px;
+                height: 100px;
+                background: var(--white);
+                top: 30%;
+                right: 20%;
+                border-radius: 50%;
+                animation: floatReverse 9s ease-in-out infinite;
+                animation-delay: 2s;
+            }
+
+            .header-content {
+                position: relative;
+                z-index: 1;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            .logo {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 90px;
+                height: 90px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-lg);
+                margin-bottom: 25px;
+                animation: bounceIn 1s ease-out, glow 3s ease-in-out infinite;
+                box-shadow: var(--shadow-xl);
+                border: 3px solid rgba(255, 255, 255, 0.3);
+            }
+
+            .logo-icon {
+                font-size: 45px;
+            }
+
+            .header h1 {
+                color: var(--white);
+                font-size: clamp(28px, 5vw, 48px);
+                font-weight: 700;
+                margin-bottom: 15px;
+                animation: fadeInUp 0.8s ease-out 0.2s both;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .brand-name {
+                background: linear-gradient(
+                    90deg,
+                    var(--white),
+                    var(--primary-light)
+                );
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .header .subtitle {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: clamp(14px, 2.5vw, 18px);
+                animation: fadeInUp 0.8s ease-out 0.4s both;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .header .date {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                color: var(--white);
+                padding: 10px 24px;
+                border-radius: 50px;
+                font-size: 14px;
+                margin-top: 25px;
+                animation: fadeInUp 0.8s ease-out 0.6s both;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* ===== Navigation ===== */
+            .nav-container {
+                position: sticky;
+                top: 0;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                z-index: 100;
+                box-shadow: var(--shadow-md);
+                animation: fadeInUp 0.8s ease-out 0.8s both;
+            }
+
+            .nav {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 15px 20px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .nav::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-list {
+                display: flex;
+                gap: 8px;
+                list-style: none;
+                min-width: max-content;
+            }
+
+            .nav-list a {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 18px;
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+                border-radius: 50px;
+                transition: all 0.3s ease;
+                white-space: nowrap;
+            }
+
+            .nav-list a:hover {
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                color: var(--white);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
+
+            .nav-list a .nav-icon {
+                font-size: 14px;
+            }
+
+            /* ===== Main Content ===== */
+            .main {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 60px 20px 100px;
+            }
+
+            /* ===== Intro Banner ===== */
+            .intro-banner {
+                background: linear-gradient(
+                    135deg,
+                    var(--white) 0%,
+                    var(--gray-50) 100%
+                );
+                border-radius: var(--radius-lg);
+                padding: 35px;
+                margin-bottom: 40px;
+                box-shadow: var(--shadow-lg);
+                border: 2px solid var(--gray-100);
+                animation: scaleIn 0.6s ease-out;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .intro-banner::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(
+                    90deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green)
+                );
+            }
+
+            .intro-banner p {
+                font-size: 16px;
+                color: var(--text-secondary);
+                margin: 0;
+                display: flex;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .intro-banner .intro-icon {
+                font-size: 28px;
+                flex-shrink: 0;
+            }
+
+            /* ===== Section Styling ===== */
+            .section {
+                background: var(--white);
+                border-radius: var(--radius-lg);
+                padding: 40px;
+                margin-bottom: 30px;
+                box-shadow: var(--shadow-lg);
+                opacity: 0;
+                animation: fadeInUp 0.6s ease-out forwards;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .section:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-xl), var(--shadow-glow);
+            }
+
+            .section::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(
+                    90deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green)
+                );
+                border-radius: 5px 5px 0 0;
+            }
+
+            .section:nth-child(1) {
+                animation-delay: 0.1s;
+            }
+            .section:nth-child(2) {
+                animation-delay: 0.15s;
+            }
+            .section:nth-child(3) {
+                animation-delay: 0.2s;
+            }
+            .section:nth-child(4) {
+                animation-delay: 0.25s;
+            }
+            .section:nth-child(5) {
+                animation-delay: 0.3s;
+            }
+            .section:nth-child(6) {
+                animation-delay: 0.35s;
+            }
+            .section:nth-child(7) {
+                animation-delay: 0.4s;
+            }
+            .section:nth-child(8) {
+                animation-delay: 0.45s;
+            }
+            .section:nth-child(9) {
+                animation-delay: 0.5s;
+            }
+            .section:nth-child(10) {
+                animation-delay: 0.55s;
+            }
+            .section:nth-child(11) {
+                animation-delay: 0.6s;
+            }
+
+            .section-number {
+                position: absolute;
+                top: 25px;
+                right: 25px;
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(
+                    135deg,
+                    rgba(0, 150, 136, 0.1),
+                    rgba(0, 188, 212, 0.1)
+                );
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--teal);
+                z-index: 0;
+            }
+
+            .section h2 {
+                color: var(--secondary);
+                font-size: clamp(20px, 3vw, 26px);
+                font-weight: 700;
+                margin-bottom: 20px;
+                margin-top: 10px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .section h2 .icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-md);
+                font-size: 24px;
+                flex-shrink: 0;
+                box-shadow: var(--shadow-md);
+            }
+
+            .section h3 {
+                color: var(--text-primary);
+                font-size: 18px;
+                font-weight: 600;
+                margin: 25px 0 12px;
+                position: relative;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .section h3::before {
+                content: "";
+                width: 4px;
+                height: 20px;
+                background: linear-gradient(180deg, var(--teal), var(--cyan));
+                border-radius: 2px;
+            }
+
+            .section p {
+                color: var(--text-secondary);
+                font-size: 15px;
+                margin-bottom: 15px;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* ===== Conduct List ===== */
+            .conduct-list {
+                list-style: none;
+                margin: 20px 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 12px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .conduct-list li {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 15px;
+                background: linear-gradient(135deg, #ffebee, #ffcdd2);
+                border-radius: var(--radius-sm);
+                transition: all 0.3s ease;
+                border-left: 3px solid var(--danger);
+            }
+
+            .conduct-list li:hover {
+                transform: translateX(5px);
+                box-shadow: var(--shadow-md);
+            }
+
+            .conduct-list .icon-no {
+                width: 28px;
+                height: 28px;
+                background: var(--danger);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: var(--white);
+                font-size: 14px;
+                font-weight: bold;
+            }
+
+            .conduct-list span {
+                color: var(--text-primary);
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            /* ===== Feature List ===== */
+            .feature-list {
+                list-style: none;
+                margin: 20px 0;
+                position: relative;
+                z-index: 1;
+            }
+
+            .feature-list li {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 15px;
+                background: linear-gradient(
+                    135deg,
+                    rgba(0, 150, 136, 0.05),
+                    rgba(0, 188, 212, 0.05)
+                );
+                border-radius: var(--radius-sm);
+                margin-bottom: 10px;
+                transition: all 0.3s ease;
+            }
+
+            .feature-list li:hover {
+                background: linear-gradient(
+                    135deg,
+                    rgba(0, 150, 136, 0.1),
+                    rgba(0, 188, 212, 0.1)
+                );
+                transform: translateX(5px);
+            }
+
+            .feature-list .check {
+                width: 24px;
+                height: 24px;
+                background: linear-gradient(135deg, var(--teal), var(--green));
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: var(--white);
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .feature-list span {
+                color: var(--text-secondary);
+                font-size: 15px;
+            }
+
+            /* ===== Info Box ===== */
+            .info-box {
+                background: linear-gradient(
+                    135deg,
+                    rgba(0, 150, 136, 0.05),
+                    rgba(0, 188, 212, 0.05)
+                );
+                border-radius: var(--radius-md);
+                padding: 25px;
+                margin: 20px 0;
+                position: relative;
+                z-index: 1;
+                display: flex;
+                align-items: flex-start;
+                gap: 15px;
+                border: 1px solid rgba(0, 150, 136, 0.2);
+            }
+
+            .info-box.warning {
+                background: linear-gradient(135deg, #fffbeb, #fef3c7);
+                border: 1px solid #fcd34d;
+            }
+
+            .info-box.success {
+                background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+                border: 1px solid #81c784;
+            }
+
+            .info-box.danger {
+                background: linear-gradient(135deg, #ffebee, #ffcdd2);
+                border: 1px solid #ef9a9a;
+            }
+
+            .info-box.primary {
+                background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+                border: 1px solid #80cbc4;
+            }
+
+            .info-box .info-icon {
+                font-size: 24px;
+                flex-shrink: 0;
+            }
+
+            .info-box-content {
+                flex: 1;
+            }
+
+            .info-box-content strong {
+                display: block;
+                margin-bottom: 5px;
+                color: var(--text-primary);
+            }
+
+            .info-box p {
+                margin: 0;
+                font-size: 14px;
+            }
+
+            /* ===== Requirements Grid ===== */
+            .requirements-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+                margin: 20px 0;
+                position: relative;
+                z-index: 1;
+            }
+
+            .requirement-item {
+                background: linear-gradient(
+                    135deg,
+                    var(--gray-50),
+                    var(--white)
+                );
+                border-radius: var(--radius-md);
+                padding: 25px 20px;
+                text-align: center;
+                transition: all 0.3s ease;
+                border: 2px solid var(--gray-100);
+            }
+
+            .requirement-item:hover {
+                border-color: var(--teal);
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-lg), var(--shadow-glow);
+            }
+
+            .requirement-item .req-icon {
+                font-size: 36px;
+                margin-bottom: 12px;
+                display: block;
+            }
+
+            .requirement-item h4 {
+                font-size: 14px;
+                color: var(--text-primary);
+                margin: 0;
+                font-weight: 600;
+            }
+
+            /* ===== Currency Card ===== */
+            .currency-card {
+                background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+                border-radius: var(--radius-lg);
+                padding: 30px;
+                margin: 25px 0;
+                position: relative;
+                z-index: 1;
+                overflow: hidden;
+                border: 2px solid var(--teal);
+            }
+
+            .currency-card::before {
+                content: "💎";
+                position: absolute;
+                top: -20px;
+                right: -20px;
+                font-size: 100px;
+                opacity: 0.15;
+            }
+
+            .currency-card h4 {
+                color: var(--text-primary);
+                font-size: 18px;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .currency-card p {
+                color: var(--text-secondary);
+                margin: 0;
+                font-size: 14px;
+            }
+
+            /* ===== Contact Card ===== */
+            .contact-card {
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-lg);
+                padding: 35px;
+                text-align: center;
+                margin: 25px 0;
+                position: relative;
+                z-index: 1;
+                overflow: hidden;
+            }
+
+            .contact-card::before {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    transparent 60%
+                );
+                animation: float 8s ease-in-out infinite;
+            }
+
+            .contact-card h4 {
+                color: var(--white);
+                font-size: 20px;
+                margin-bottom: 8px;
+                position: relative;
+            }
+
+            .contact-card p {
+                color: rgba(255, 255, 255, 0.9);
+                margin-bottom: 20px;
+                font-size: 14px;
+                position: relative;
+            }
+
+            .contact-card a {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                background: var(--white);
+                color: var(--teal);
+                padding: 14px 35px;
+                border-radius: 50px;
+                text-decoration: none;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                position: relative;
+            }
+
+            .contact-card a:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            /* ===== Timeline for Terms Changes ===== */
+            .terms-timeline {
+                position: relative;
+                padding-left: 30px;
+                margin: 20px 0;
+                z-index: 1;
+            }
+
+            .terms-timeline::before {
+                content: "";
+                position: absolute;
+                left: 8px;
+                top: 0;
+                bottom: 0;
+                width: 3px;
+                background: linear-gradient(
+                    180deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green)
+                );
+                border-radius: 3px;
+            }
+
+            .timeline-item {
+                position: relative;
+                padding: 20px;
+                background: linear-gradient(
+                    135deg,
+                    rgba(0, 150, 136, 0.05),
+                    rgba(0, 188, 212, 0.05)
+                );
+                border-radius: var(--radius-md);
+                margin-bottom: 15px;
+            }
+
+            .timeline-item::before {
+                content: "";
+                position: absolute;
+                left: -26px;
+                top: 25px;
+                width: 14px;
+                height: 14px;
+                background: var(--teal);
+                border-radius: 50%;
+                border: 3px solid var(--white);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .timeline-item h4 {
+                font-size: 15px;
+                color: var(--text-primary);
+                margin-bottom: 8px;
+            }
+
+            .timeline-item p {
+                font-size: 14px;
+                color: var(--text-secondary);
+                margin: 0;
+            }
+
+            /* ===== Footer ===== */
+            .footer {
+                background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+                color: rgba(255, 255, 255, 0.7);
+                text-align: center;
+                padding: 50px 20px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .footer::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(
+                    90deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green),
+                    var(--teal)
+                );
+                background-size: 200% 100%;
+                animation: shimmer 3s linear infinite;
+            }
+
+            .footer-content {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .footer-logo {
+                font-size: 28px;
+                font-weight: 700;
+                color: var(--white);
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .footer-logo-icon {
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-sm);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+            }
+
+            .footer p {
+                font-size: 14px;
+                margin: 10px 0;
+            }
+
+            .footer a {
+                color: var(--primary-light);
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+
+            .footer a:hover {
+                color: var(--white);
+            }
+
+            .footer-links {
+                display: flex;
+                justify-content: center;
+                gap: 25px;
+                margin: 25px 0;
+                flex-wrap: wrap;
+            }
+
+            .footer-links a {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 16px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50px;
+                font-size: 13px;
+                transition: all 0.3s ease;
+            }
+
+            .footer-links a:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            .footer-date {
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                font-size: 13px;
+                font-style: italic;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            /* ===== Back to Top ===== */
+            .back-to-top {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                color: var(--white);
+                border: none;
+                border-radius: var(--radius-md);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                box-shadow: var(--shadow-lg);
+                transition: all 0.3s ease;
+                opacity: 0;
+                visibility: hidden;
+                z-index: 99;
+            }
+
+            .back-to-top.visible {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .back-to-top:hover {
+                transform: translateY(-5px) rotate(5deg);
+                box-shadow: var(--shadow-xl), var(--shadow-glow);
+            }
+
+            /* ===== Progress Bar ===== */
+            .progress-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 0%;
+                height: 4px;
+                background: linear-gradient(
+                    90deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green)
+                );
+                z-index: 1000;
+                transition: width 0.1s ease;
+            }
+
+            /* ===== Responsive Design ===== */
+
+            /* Tablet (768px - 1024px) */
+            @media (max-width: 1024px) {
+                .header {
+                    padding: 80px 20px 100px;
+                }
+
+                .section {
+                    padding: 30px;
+                }
+
+                .section-number {
+                    width: 45px;
+                    height: 45px;
+                    font-size: 16px;
+                }
+
+                .requirements-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .conduct-list {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* Mobile Large (481px - 767px) */
+            @media (max-width: 767px) {
+                .header {
+                    padding: 60px 15px 80px;
+                }
+
+                .logo {
+                    width: 70px;
+                    height: 70px;
+                }
+
+                .logo-icon {
+                    font-size: 35px;
+                }
+
+                .main {
+                    padding: 40px 15px 80px;
+                }
+
+                .intro-banner {
+                    padding: 25px;
+                }
+
+                .intro-banner p {
+                    flex-direction: column;
+                    text-align: center;
+                }
+
+                .section {
+                    padding: 25px 20px;
+                    margin-bottom: 20px;
+                    border-radius: var(--radius-md);
+                }
+
+                .section-number {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 14px;
+                    top: 20px;
+                    right: 20px;
+                }
+
+                .section h2 {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 15px;
+                }
+
+                .section h2 .icon {
+                    width: 45px;
+                    height: 45px;
+                    font-size: 20px;
+                }
+
+                .nav {
+                    padding: 12px 15px;
+                }
+
+                .nav-list a {
+                    padding: 8px 14px;
+                    font-size: 13px;
+                }
+
+                .nav-list a .nav-icon {
+                    display: none;
+                }
+
+                .requirements-grid {
+                    grid-template-columns: 1fr 1fr;
+                }
+
+                .contact-card {
+                    padding: 25px 20px;
+                }
+
+                .info-box {
+                    padding: 20px;
+                    flex-direction: column;
+                }
+
+                .currency-card {
+                    padding: 25px;
+                }
+
+                .currency-card::before {
+                    font-size: 60px;
+                }
+
+                .footer {
+                    padding: 40px 15px;
+                }
+
+                .footer-links {
+                    gap: 10px;
+                }
+
+                .back-to-top {
+                    width: 45px;
+                    height: 45px;
+                    bottom: 20px;
+                    right: 20px;
+                    font-size: 18px;
+                }
+            }
+
+            /* Mobile Small (max-width: 480px) */
+            @media (max-width: 480px) {
+                .header {
+                    padding: 50px 15px 60px;
+                }
+
+                .header .date {
+                    padding: 8px 18px;
+                    font-size: 12px;
+                }
+
+                .section {
+                    padding: 20px 15px;
+                }
+
+                .section-number {
+                    display: none;
+                }
+
+                .section h2 {
+                    font-size: 18px;
+                }
+
+                .section h3 {
+                    font-size: 16px;
+                }
+
+                .section p,
+                .feature-list span,
+                .conduct-list span {
+                    font-size: 14px;
+                }
+
+                .requirements-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .requirement-item {
+                    padding: 20px 15px;
+                }
+
+                .requirement-item .req-icon {
+                    font-size: 28px;
+                }
+
+                .terms-timeline {
+                    padding-left: 25px;
+                }
+
+                .timeline-item {
+                    padding: 15px;
+                }
+
+                .shape-1,
+                .shape-2,
+                .shape-3,
+                .shape-4 {
+                    display: none;
+                }
+
+                .footer-links a {
+                    padding: 6px 12px;
+                    font-size: 12px;
+                }
+            }
+
+            /* Print Styles */
+            @media print {
+                .nav-container,
+                .back-to-top,
+                .floating-shape,
+                .progress-bar {
+                    display: none;
+                }
+
+                .section {
+                    box-shadow: none;
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+
+                .header {
+                    background: var(--teal);
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+            }
+
+            /* Reduced Motion */
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Progress Bar -->
+        <div class="progress-bar" id="progressBar"></div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+            <div class="floating-shape shape-4"></div>
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">📷</span>
+                </div>
+                <h1>Условия использования</h1>
+                <p class="subtitle">
+                    Добро пожаловать в
+                    <span class="brand-name">GYPSYLIVE</span>. Используя
+                    приложение, вы соглашаетесь с настоящими Условиями использования.
+                </p>
+                <span class="date">📅 Обновлено: 05.07.2020</span>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-container">
+            <div class="nav">
+                <ul class="nav-list">
+                    <li>
+                        <a href="#acceptance"
+                            ><span class="nav-icon">✅</span> Принятие</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#eligibility"
+                            ><span class="nav-icon">🎂</span> Требования</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#account"
+                            ><span class="nav-icon">👤</span> Аккаунт</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#conduct"
+                            ><span class="nav-icon">⚖️</span> Правила</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#content"
+                            ><span class="nav-icon">📝</span> Контент</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#currency"
+                            ><span class="nav-icon">💎</span> Валюта</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#termination"
+                            ><span class="nav-icon">🚪</span> Прекращение</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#disclaimers"
+                            ><span class="nav-icon">⚠️</span> Отказ</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#liability"
+                            ><span class="nav-icon">🛡️</span> Ответственность</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#changes"
+                            ><span class="nav-icon">🔄</span> Изменения</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#contact"
+                            ><span class="nav-icon">📧</span> Контакты</a
+                        >
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Intro Banner -->
+            <div class="intro-banner">
+                <p>
+                    <span class="intro-icon">📋</span>
+                    <span
+                        >Пожалуйста, внимательно прочитайте эти условия перед
+                        использованием сервисов GYPSYLIVE. Получая доступ и
+                        используя приложение, вы подтверждаете, что прочитали,
+                        поняли и согласны соблюдать условия, изложенные ниже.</span
+                    >
+                </p>
+            </div>
+
+            <!-- Section 1: Acceptance of Terms -->
+            <section class="section" id="acceptance">
+                <span class="section-number">01</span>
+                <h2>
+                    <span class="icon">✅</span>
+                    Принятие условий
+                </h2>
+                <p>
+                    Получая доступ и используя GYPSYLIVE, вы принимаете и
+                    соглашаетесь быть связанными настоящими Условиями
+                    использования. Если вы не согласны с этими условиями,
+                    пожалуйста, не используйте наши сервисы.
+                </p>
+
+                <div class="info-box primary">
+                    <span class="info-icon">ℹ️</span>
+                    <div class="info-box-content">
+                        <strong>Важное примечание</strong>
+                        <p>
+                            Эти условия распространяются на всех пользователей
+                            приложения, включая тех, кто вносит контент,
+                            информацию и другие материалы.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Eligibility -->
+            <section class="section" id="eligibility">
+                <span class="section-number">02</span>
+                <h2>
+                    <span class="icon">🎂</span>
+                    Требования к пользователям
+                </h2>
+                <p>
+                    Вам должно быть не менее 18 лет для использования GYPSYLIVE.
+                    Используя наши сервисы, вы заявляете и гарантируете, что:
+                </p>
+
+                <div class="requirements-grid">
+                    <div class="requirement-item">
+                        <span class="req-icon">🔞</span>
+                        <h4>Не менее 18 лет</h4>
+                    </div>
+                    <div class="requirement-item">
+                        <span class="req-icon">📋</span>
+                        <h4>Полная дееспособность</h4>
+                    </div>
+                    <div class="requirement-item">
+                        <span class="req-icon">⚖️</span>
+                        <h4>Не запрещено законом</h4>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Your Account -->
+            <section class="section" id="account">
+                <span class="section-number">03</span>
+                <h2>
+                    <span class="icon">👤</span>
+                    Ваш аккаунт
+                </h2>
+
+                <h3>Ответственность за аккаунт</h3>
+                <p>
+                    Вы несете ответственность за сохранение конфиденциальности
+                    данных для входа и за все действия, происходящие под вашим
+                    аккаунтом.
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <span class="check">✓</span>
+                        <span>Храните свои данные для входа в секрете</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span
+                            >Немедленно уведомите нас о несанкционированном
+                            доступе</span
+                        >
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>Предоставляйте точную и актуальную информацию</span>
+                    </li>
+                </ul>
+
+                <h3>Безопасность аккаунта</h3>
+                <div class="info-box warning">
+                    <span class="info-icon">⚠️</span>
+                    <div class="info-box-content">
+                        <strong>Важно</strong>
+                        <p>
+                            Никогда не делитесь своим паролем или данными для
+                            входа с кем-либо. GYPSYLIVE никогда не будет
+                            запрашивать ваш пароль по электронной почте или в
+                            сообщениях.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4: User Conduct -->
+            <section class="section" id="conduct">
+                <span class="section-number">04</span>
+                <h2>
+                    <span class="icon">⚖️</span>
+                    Правила поведения
+                </h2>
+                <p>Вы соглашаетесь не совершать следующие действия:</p>
+
+                <ul class="conduct-list">
+                    <li>
+                        <span class="icon-no">✕</span>
+                        <span>Использовать сервис в незаконных целях</span>
+                    </li>
+                    <li>
+                        <span class="icon-no">✕</span>
+                        <span
+                            >Преследовать, оскорблять или причинять вред другим
+                            пользователям</span
+                        >
+                    </li>
+                    <li>
+                        <span class="icon-no">✕</span>
+                        <span
+                            >Публиковать ложный, вводящий в заблуждение или
+                            оскорбительный контент</span
+                        >
+                    </li>
+                    <li>
+                        <span class="icon-no">✕</span>
+                        <span>Выдавать себя за любое лицо или организацию</span>
+                    </li>
+                    <li>
+                        <span class="icon-no">✕</span>
+                        <span>Вмешиваться или нарушать работу сервиса</span>
+                    </li>
+                    <li>
+                        <span class="icon-no">✕</span>
+                        <span>Пытаться получить несанкционированный доступ к системе</span>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Section 5: Content -->
+            <section class="section" id="content">
+                <span class="section-number">05</span>
+                <h2>
+                    <span class="icon">📝</span>
+                    Контент
+                </h2>
+                <p>
+                    Вы сохраняете право собственности на контент, который
+                    публикуете в GYPSYLIVE. Публикуя контент, вы предоставляете
+                    нам неисключительную, безвозмездную лицензию на использование,
+                    отображение и распространение вашего контента в связи с
+                    нашими сервисами.
+                </p>
+
+                <div class="info-box success">
+                    <span class="info-icon">✅</span>
+                    <div class="info-box-content">
+                        <strong>Ваши права собственности</strong>
+                        <p>
+                            Вы несете полную ответственность за публикуемый
+                            контент и должны гарантировать, что он не нарушает
+                            никаких законов или прав третьих лиц.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6: Virtual Currency -->
+            <section class="section" id="currency">
+                <span class="section-number">06</span>
+                <h2>
+                    <span class="icon">💎</span>
+                    Виртуальная валюта и транзакции
+                </h2>
+
+                <div class="currency-card">
+                    <h4>💎 Diamonds - Виртуальная валюта GYPSYLIVE</h4>
+                    <p>
+                        GYPSYLIVE может предоставлять виртуальную валюту
+                        (Diamonds) для покупки. Все покупки являются
+                        окончательными и не подлежат возврату, за исключением
+                        случаев, предусмотренных законом.
+                    </p>
+                </div>
+
+                <div class="info-box danger">
+                    <span class="info-icon">🚫</span>
+                    <div class="info-box-content">
+                        <strong>Важное примечание</strong>
+                        <p>
+                            Виртуальная валюта не имеет реальной ценности и не
+                            может быть обменена на реальные деньги или товары за
+                            пределами GYPSYLIVE.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 7: Termination -->
+            <section class="section" id="termination">
+                <span class="section-number">07</span>
+                <h2>
+                    <span class="icon">🚪</span>
+                    Прекращение действия аккаунта
+                </h2>
+                <p>
+                    Мы можем прекратить или приостановить действие вашего
+                    аккаунта в любое время, с указанием причины или без,
+                    с предварительным уведомлением или без такового.
+                </p>
+
+                <div class="terms-timeline">
+                    <div class="timeline-item">
+                        <h4>Прекращение со стороны GYPSYLIVE</h4>
+                        <p>
+                            Мы имеем право прекратить действие аккаунта в случае
+                            нарушения условий или по соображениям безопасности.
+                        </p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>Добровольное удаление аккаунта</h4>
+                        <p>
+                            Вы можете удалить свой аккаунт в любое время через
+                            настройки приложения.
+                        </p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>После прекращения</h4>
+                        <p>
+                            Ваши данные будут обработаны в соответствии с нашей
+                            Политикой конфиденциальности.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 8: Disclaimers -->
+            <section class="section" id="disclaimers">
+                <span class="section-number">08</span>
+                <h2>
+                    <span class="icon">⚠️</span>
+                    Отказ от ответственности
+                </h2>
+                <p>
+                    Сервис предоставляется «как есть» и «по мере доступности»
+                    без каких-либо гарантий, явных или подразумеваемых.
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <span class="check">!</span>
+                        <span
+                            >Мы не гарантируем, что сервис будет работать
+                            бесперебойно или без ошибок</span
+                        >
+                    </li>
+                    <li>
+                        <span class="check">!</span>
+                        <span
+                            >Мы не несем ответственности за контент, созданный
+                            пользователями</span
+                        >
+                    </li>
+                    <li>
+                        <span class="check">!</span>
+                        <span
+                            >Использование сервиса осуществляется на ваш
+                            собственный риск</span
+                        >
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Section 9: Limitation of Liability -->
+            <section class="section" id="liability">
+                <span class="section-number">09</span>
+                <h2>
+                    <span class="icon">🛡️</span>
+                    Ограничение ответственности
+                </h2>
+                <p>
+                    В максимальной степени, допускаемой законом, GYPSYLIVE не
+                    несет ответственности за любые косвенные, случайные,
+                    специальные, последующие или штрафные убытки, возникающие
+                    в результате использования вами наших сервисов.
+                </p>
+
+                <div class="info-box warning">
+                    <span class="info-icon">⚖️</span>
+                    <div class="info-box-content">
+                        <strong>Жалобы</strong>
+                        <p>
+                            Если у вас есть какие-либо жалобы, связанные с
+                            сервисом, пожалуйста, свяжитесь с нами по
+                            электронной почте для получения помощи в решении
+                            вопроса.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Changes to Terms -->
+            <section class="section" id="changes">
+                <span class="section-number">10</span>
+                <h2>
+                    <span class="icon">🔄</span>
+                    Изменения условий
+                </h2>
+                <p>
+                    Мы можем изменять эти условия в любое время. Продолжение
+                    использования сервиса после внесения изменений означает
+                    ваше согласие с новыми условиями.
+                </p>
+
+                <div class="info-box primary">
+                    <span class="info-icon">📢</span>
+                    <div class="info-box-content">
+                        <strong>Уведомление об изменениях</strong>
+                        <p>
+                            Мы уведомим вас о важных изменениях через приложение
+                            или на зарегистрированную электронную почту.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 11: Contact -->
+            <section class="section" id="contact">
+                <span class="section-number">11</span>
+                <h2>
+                    <span class="icon">📧</span>
+                    Свяжитесь с нами
+                </h2>
+                <p>
+                    Если у вас есть вопросы по настоящим Условиям использования,
+                    пожалуйста, свяжитесь с нами.
+                </p>
+
+                <div class="contact-card">
+                    <h4>Нужна помощь?</h4>
+                    <p>
+                        Наша служба поддержки всегда готова помочь вам
+                    </p>
+                    <a href="mailto:support@gypsylive.com">
+                        <span>📧</span>
+                        support@gypsylive.com
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="footer-logo-icon">📷</span>
+                    GYPSYLIVE
+                </div>
+                <p>Спасибо, что пользуетесь нашими сервисами!</p>
+
+                <div class="footer-links">
+                    <a href="gypsylive-privacy-policy.html">
+                        <span>🔒</span>
+                        Политика конфиденциальности
+                    </a>
+                    <a href="mailto:support@gypsylive.com">
+                        <span>📧</span>
+                        Контакты
+                    </a>
+                </div>
+
+                <p class="footer-date">
+                    Эти условия были последний раз обновлены 05.07.2020
+                </p>
+            </div>
+        </footer>
+
+        <!-- Back to Top Button -->
+        <button class="back-to-top" id="backToTop" aria-label="Вернуться наверх">
+            ↑
+        </button>
+
+        <script>
+            // Progress Bar
+            const progressBar = document.getElementById("progressBar");
+
+            window.addEventListener("scroll", () => {
+                const scrollTop = window.scrollY;
+                const docHeight =
+                    document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPercent = (scrollTop / docHeight) * 100;
+                progressBar.style.width = scrollPercent + "%";
+            });
+
+            // Back to Top functionality
+            const backToTop = document.getElementById("backToTop");
+
+            window.addEventListener("scroll", () => {
+                if (window.scrollY > 300) {
+                    backToTop.classList.add("visible");
+                } else {
+                    backToTop.classList.remove("visible");
+                }
+            });
+
+            backToTop.addEventListener("click", () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth",
+                });
+            });
+
+            // Intersection Observer for scroll animations
+            const observerOptions = {
+                root: null,
+                rootMargin: "0px",
+                threshold: 0.1,
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = "1";
+                        entry.target.style.transform = "translateY(0)";
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll(".section").forEach((section) => {
+                observer.observe(section);
+            });
+
+            // Smooth scroll for navigation links
+            document.querySelectorAll(".nav-list a").forEach((link) => {
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute("href");
+                    const targetSection = document.querySelector(targetId);
+                    if (targetSection) {
+                        const navHeight =
+                            document.querySelector(
+                                ".nav-container"
+                            ).offsetHeight;
+                        const targetPosition =
+                            targetSection.offsetTop - navHeight - 20;
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: "smooth",
+                        });
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

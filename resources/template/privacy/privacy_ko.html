@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>개인정보 보호정책 - GYPSYLIVE</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            /* ===== CSS Variables - GYPSYLIVE Theme ===== */
+            :root {
+                --primary: #00bfa5;
+                --primary-dark: #00897b;
+                --primary-light: #64ffda;
+                --secondary: #1a237e;
+                --accent: #00e5ff;
+                --teal: #009688;
+                --cyan: #00bcd4;
+                --green: #4caf50;
+                --light-green: #8bc34a;
+                --bg-gradient-1: #00bfa5;
+                --bg-gradient-2: #00acc1;
+                --bg-gradient-3: #26a69a;
+                --text-primary: #263238;
+                --text-secondary: #546e7a;
+                --text-light: #90a4ae;
+                --white: #ffffff;
+                --gray-50: #eceff1;
+                --gray-100: #cfd8dc;
+                --gray-200: #b0bec5;
+                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                --shadow-glow: 0 0 40px rgba(0, 191, 165, 0.3);
+                --radius-sm: 8px;
+                --radius-md: 12px;
+                --radius-lg: 20px;
+                --radius-xl: 30px;
+            }
+
+            /* ===== Reset & Base ===== */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: "Inter", -apple-system, BlinkMacSystemFont,
+                    "Segoe UI", Roboto, sans-serif;
+                line-height: 1.7;
+                color: var(--text-primary);
+                background: var(--gray-50);
+                overflow-x: hidden;
+            }
+
+            /* ===== Animations ===== */
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes fadeInLeft {
+                from {
+                    opacity: 0;
+                    transform: translateX(-30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes fadeInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes scaleIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-20px);
+                }
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.5;
+                }
+            }
+
+            @keyframes gradientShift {
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes shimmer {
+                0% {
+                    background-position: -200% 0;
+                }
+                100% {
+                    background-position: 200% 0;
+                }
+            }
+
+            @keyframes bounceIn {
+                0% {
+                    opacity: 0;
+                    transform: scale(0.3);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+                70% {
+                    transform: scale(0.9);
+                }
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            @keyframes glow {
+                0%,
+                100% {
+                    box-shadow: 0 0 20px rgba(0, 191, 165, 0.4);
+                }
+                50% {
+                    box-shadow: 0 0 40px rgba(0, 191, 165, 0.6);
+                }
+            }
+
+            @keyframes rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* ===== Header ===== */
+            .header {
+                background: linear-gradient(
+                    135deg,
+                    var(--teal) 0%,
+                    var(--cyan) 50%,
+                    var(--bg-gradient-1) 100%
+                );
+                background-size: 200% 200%;
+                animation: gradientShift 15s ease infinite;
+                padding: 100px 20px 120px;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header::before {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    transparent 70%
+                );
+                animation: float 6s ease-in-out infinite;
+            }
+
+            .header::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 100px;
+                background: linear-gradient(
+                    to top,
+                    var(--gray-50),
+                    transparent
+                );
+            }
+
+            /* Floating shapes */
+            .floating-shape {
+                position: absolute;
+                border-radius: 50%;
+                opacity: 0.1;
+                animation: float 8s ease-in-out infinite;
+            }
+
+            .shape-1 {
+                width: 300px;
+                height: 300px;
+                background: var(--white);
+                top: -100px;
+                right: -100px;
+                animation-delay: 0s;
+            }
+
+            .shape-2 {
+                width: 200px;
+                height: 200px;
+                background: var(--white);
+                bottom: 50px;
+                left: -50px;
+                animation-delay: 2s;
+            }
+
+            .shape-3 {
+                width: 150px;
+                height: 150px;
+                background: var(--white);
+                top: 50%;
+                left: 20%;
+                animation-delay: 4s;
+            }
+
+            .header-content {
+                position: relative;
+                z-index: 1;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            .logo {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 90px;
+                height: 90px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-lg);
+                margin-bottom: 25px;
+                animation: bounceIn 1s ease-out, glow 3s ease-in-out infinite;
+                box-shadow: var(--shadow-xl);
+                border: 3px solid rgba(255, 255, 255, 0.3);
+            }
+
+            .logo-icon {
+                font-size: 45px;
+            }
+
+            .header h1 {
+                color: var(--white);
+                font-size: clamp(28px, 5vw, 48px);
+                font-weight: 700;
+                margin-bottom: 15px;
+                animation: fadeInUp 0.8s ease-out 0.2s both;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .brand-name {
+                background: linear-gradient(
+                    90deg,
+                    var(--white),
+                    var(--primary-light)
+                );
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .header .subtitle {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: clamp(14px, 2.5vw, 18px);
+                animation: fadeInUp 0.8s ease-out 0.4s both;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .header .date {
+                display: inline-block;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                color: var(--white);
+                padding: 8px 20px;
+                border-radius: 50px;
+                font-size: 14px;
+                margin-top: 25px;
+                animation: fadeInUp 0.8s ease-out 0.6s both;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* ===== Navigation ===== */
+            .nav-container {
+                position: sticky;
+                top: 0;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                z-index: 100;
+                box-shadow: var(--shadow-md);
+                animation: fadeInUp 0.8s ease-out 0.8s both;
+            }
+
+            .nav {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 15px 20px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .nav::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-list {
+                display: flex;
+                gap: 8px;
+                list-style: none;
+                min-width: max-content;
+            }
+
+            .nav-list a {
+                display: block;
+                padding: 10px 18px;
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+                border-radius: 50px;
+                transition: all 0.3s ease;
+                white-space: nowrap;
+            }
+
+            .nav-list a:hover {
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                color: var(--white);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
+
+            /* ===== Main Content ===== */
+            .main {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 60px 20px 100px;
+            }
+
+            /* ===== Section Styling ===== */
+            .section {
+                background: var(--white);
+                border-radius: var(--radius-lg);
+                padding: 40px;
+                margin-bottom: 30px;
+                box-shadow: var(--shadow-lg);
+                opacity: 0;
+                animation: fadeInUp 0.6s ease-out forwards;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .section:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-xl), var(--shadow-glow);
+            }
+
+            .section::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 5px;
+                height: 100%;
+                background: linear-gradient(
+                    180deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green)
+                );
+                border-radius: 5px 0 0 5px;
+            }
+
+            .section:nth-child(1) {
+                animation-delay: 0.1s;
+            }
+            .section:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            .section:nth-child(3) {
+                animation-delay: 0.3s;
+            }
+            .section:nth-child(4) {
+                animation-delay: 0.4s;
+            }
+            .section:nth-child(5) {
+                animation-delay: 0.5s;
+            }
+            .section:nth-child(6) {
+                animation-delay: 0.6s;
+            }
+            .section:nth-child(7) {
+                animation-delay: 0.7s;
+            }
+            .section:nth-child(8) {
+                animation-delay: 0.8s;
+            }
+            .section:nth-child(9) {
+                animation-delay: 0.9s;
+            }
+            .section:nth-child(10) {
+                animation-delay: 1s;
+            }
+            .section:nth-child(11) {
+                animation-delay: 1.1s;
+            }
+
+            .section-number {
+                position: absolute;
+                top: 20px;
+                right: 25px;
+                font-size: 60px;
+                font-weight: 700;
+                color: var(--gray-100);
+                line-height: 1;
+                z-index: 0;
+            }
+
+            .section h2 {
+                color: var(--secondary);
+                font-size: clamp(20px, 3vw, 26px);
+                font-weight: 700;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .section h2 .icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 45px;
+                height: 45px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-sm);
+                font-size: 22px;
+                flex-shrink: 0;
+                box-shadow: var(--shadow-md);
+            }
+
+            .section h3 {
+                color: var(--text-primary);
+                font-size: 18px;
+                font-weight: 600;
+                margin: 25px 0 12px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .section p {
+                color: var(--text-secondary);
+                font-size: 15px;
+                margin-bottom: 15px;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* ===== Feature List ===== */
+            .feature-list {
+                list-style: none;
+                margin: 20px 0;
+                position: relative;
+                z-index: 1;
+            }
+
+            .feature-list li {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 12px 0;
+                border-bottom: 1px solid var(--gray-100);
+                transition: all 0.3s ease;
+            }
+
+            .feature-list li:last-child {
+                border-bottom: none;
+            }
+
+            .feature-list li:hover {
+                padding-left: 10px;
+                background: linear-gradient(
+                    90deg,
+                    rgba(0, 150, 136, 0.05),
+                    transparent
+                );
+                margin: 0 -15px;
+                padding-right: 15px;
+                padding-left: 25px;
+                border-radius: var(--radius-sm);
+            }
+
+            .feature-list .check {
+                width: 24px;
+                height: 24px;
+                background: linear-gradient(135deg, var(--teal), var(--green));
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: var(--white);
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .feature-list span {
+                color: var(--text-secondary);
+                font-size: 15px;
+            }
+
+            /* ===== Info Box ===== */
+            .info-box {
+                background: linear-gradient(
+                    135deg,
+                    rgba(0, 150, 136, 0.05),
+                    rgba(0, 188, 212, 0.05)
+                );
+                border-radius: var(--radius-md);
+                padding: 25px;
+                margin: 20px 0;
+                border-left: 4px solid var(--cyan);
+                position: relative;
+                z-index: 1;
+            }
+
+            .info-box.warning {
+                border-left-color: #ffc107;
+                background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            }
+
+            .info-box.success {
+                border-left-color: var(--green);
+                background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            }
+
+            .info-box p {
+                margin: 0;
+                font-size: 14px;
+            }
+
+            /* ===== Contact Card ===== */
+            .contact-card {
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-md);
+                padding: 30px;
+                text-align: center;
+                margin: 25px 0;
+                position: relative;
+                z-index: 1;
+                overflow: hidden;
+            }
+
+            .contact-card::before {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    transparent 60%
+                );
+                animation: float 8s ease-in-out infinite;
+            }
+
+            .contact-card h4 {
+                color: var(--white);
+                font-size: 18px;
+                margin-bottom: 15px;
+                position: relative;
+            }
+
+            .contact-card a {
+                display: inline-block;
+                background: var(--white);
+                color: var(--teal);
+                padding: 12px 30px;
+                border-radius: 50px;
+                text-decoration: none;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                position: relative;
+            }
+
+            .contact-card a:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            /* ===== Rights Grid ===== */
+            .rights-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin: 20px 0;
+                position: relative;
+                z-index: 1;
+            }
+
+            .right-item {
+                background: linear-gradient(
+                    135deg,
+                    var(--gray-50),
+                    var(--white)
+                );
+                border-radius: var(--radius-md);
+                padding: 20px;
+                text-align: center;
+                transition: all 0.3s ease;
+                border: 2px solid transparent;
+            }
+
+            .right-item:hover {
+                border-color: var(--teal);
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .right-item .right-icon {
+                font-size: 30px;
+                margin-bottom: 10px;
+            }
+
+            .right-item h4 {
+                font-size: 14px;
+                color: var(--text-primary);
+                margin: 0;
+            }
+
+            /* ===== Footer ===== */
+            .footer {
+                background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+                color: rgba(255, 255, 255, 0.7);
+                text-align: center;
+                padding: 50px 20px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .footer::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(
+                    90deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green),
+                    var(--teal)
+                );
+                background-size: 200% 100%;
+                animation: shimmer 3s linear infinite;
+            }
+
+            .footer-content {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .footer-logo {
+                font-size: 28px;
+                font-weight: 700;
+                color: var(--white);
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .footer-logo-icon {
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-sm);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+            }
+
+            .footer p {
+                font-size: 14px;
+                margin: 10px 0;
+            }
+
+            .footer a {
+                color: var(--primary-light);
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+
+            .footer a:hover {
+                color: var(--white);
+            }
+
+            .footer-date {
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                font-style: italic;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            /* ===== Back to Top ===== */
+            .back-to-top {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                color: var(--white);
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                box-shadow: var(--shadow-lg);
+                transition: all 0.3s ease;
+                opacity: 0;
+                visibility: hidden;
+                z-index: 99;
+            }
+
+            .back-to-top.visible {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .back-to-top:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-xl), var(--shadow-glow);
+            }
+
+            /* ===== Progress Bar ===== */
+            .progress-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 0%;
+                height: 4px;
+                background: linear-gradient(
+                    90deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green)
+                );
+                z-index: 1000;
+                transition: width 0.1s ease;
+            }
+
+            /* ===== Responsive Design ===== */
+
+            /* Tablet (768px - 1024px) */
+            @media (max-width: 1024px) {
+                .header {
+                    padding: 80px 20px 100px;
+                }
+
+                .section {
+                    padding: 30px;
+                }
+
+                .section-number {
+                    font-size: 50px;
+                }
+
+                .rights-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            /* Mobile Large (481px - 767px) */
+            @media (max-width: 767px) {
+                .header {
+                    padding: 60px 15px 80px;
+                }
+
+                .logo {
+                    width: 70px;
+                    height: 70px;
+                }
+
+                .logo-icon {
+                    font-size: 35px;
+                }
+
+                .main {
+                    padding: 40px 15px 80px;
+                }
+
+                .section {
+                    padding: 25px 20px;
+                    margin-bottom: 20px;
+                    border-radius: var(--radius-md);
+                }
+
+                .section::before {
+                    width: 4px;
+                }
+
+                .section-number {
+                    font-size: 40px;
+                    top: 15px;
+                    right: 15px;
+                }
+
+                .section h2 {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 15px;
+                }
+
+                .section h2 .icon {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 18px;
+                }
+
+                .nav {
+                    padding: 12px 15px;
+                }
+
+                .nav-list a {
+                    padding: 8px 14px;
+                    font-size: 13px;
+                }
+
+                .rights-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .contact-card {
+                    padding: 25px 20px;
+                }
+
+                .info-box {
+                    padding: 20px;
+                }
+
+                .footer {
+                    padding: 40px 15px;
+                }
+
+                .back-to-top {
+                    width: 45px;
+                    height: 45px;
+                    bottom: 20px;
+                    right: 20px;
+                    font-size: 18px;
+                }
+            }
+
+            /* Mobile Small (max-width: 480px) */
+            @media (max-width: 480px) {
+                .header {
+                    padding: 50px 15px 60px;
+                }
+
+                .header .date {
+                    padding: 6px 15px;
+                    font-size: 12px;
+                }
+
+                .section {
+                    padding: 20px 15px;
+                }
+
+                .section-number {
+                    display: none;
+                }
+
+                .section h2 {
+                    font-size: 18px;
+                }
+
+                .section h3 {
+                    font-size: 16px;
+                }
+
+                .section p,
+                .feature-list span {
+                    font-size: 14px;
+                }
+
+                .feature-list li:hover {
+                    padding-left: 15px;
+                    margin: 0 -10px;
+                    padding-right: 10px;
+                }
+
+                .right-item {
+                    padding: 15px;
+                }
+
+                .right-item .right-icon {
+                    font-size: 24px;
+                }
+
+                .shape-1,
+                .shape-2,
+                .shape-3 {
+                    display: none;
+                }
+            }
+
+            /* Print Styles */
+            @media print {
+                .nav-container,
+                .back-to-top,
+                .floating-shape,
+                .progress-bar {
+                    display: none;
+                }
+
+                .section {
+                    box-shadow: none;
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+
+                .header {
+                    background: var(--teal);
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+            }
+
+            /* Reduced Motion */
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Progress Bar -->
+        <div class="progress-bar" id="progressBar"></div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">📷</span>
+                </div>
+                <h1>개인정보 보호정책</h1>
+                <p class="subtitle">
+                    <span class="brand-name">GYPSYLIVE</span>는 귀하의 개인정보
+                    보호와 보안을 위해 최선을 다하고 있습니다.
+                </p>
+                <span class="date">📅 업데이트: 2020년 7월 5일</span>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-container">
+            <div class="nav">
+                <ul class="nav-list">
+                    <li><a href="#intro">소개</a></li>
+                    <li><a href="#about">회사 소개</a></li>
+                    <li><a href="#collection">정보 수집</a></li>
+                    <li><a href="#usage">정보 사용</a></li>
+                    <li><a href="#sharing">정보 공유</a></li>
+                    <li><a href="#marketing">마케팅</a></li>
+                    <li><a href="#protection">정보 보호</a></li>
+                    <li><a href="#storage">저장</a></li>
+                    <li><a href="#rights">귀하의 권리</a></li>
+                    <li><a href="#cookies">쿠키</a></li>
+                    <li><a href="#changes">변경 사항</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Section 1: Introduction -->
+            <section class="section" id="intro">
+                <span class="section-number">01</span>
+                <h2>
+                    <span class="icon">📋</span>
+                    소개
+                </h2>
+                <p>
+                    GYPSYLIVE는 귀하의 개인정보 보호와 보안을 위해 최선을 다하고
+                    있습니다. 본 정책은 당사가 귀하의 개인 데이터를 어떻게, 왜
+                    사용하는지 설명하며, 귀하가 항상 정보를 인지하고 통제할 수
+                    있도록 보장합니다.
+                </p>
+                <p>
+                    귀하는 언제든지 연락 수신을 거부하거나 당사가 귀하에게
+                    연락하는 방식을 변경할 수 있습니다.
+                </p>
+
+                <div class="info-box success">
+                    <p>
+                        <strong>🔒 당사의 약속:</strong> 당사는 절대로 귀하의
+                        개인정보를 판매하지 않으며, 개인정보 보호 및 보안을
+                        보장하면서 필요한 경우에만 파트너 기관과 공유합니다.
+                    </p>
+                </div>
+
+                <div class="contact-card">
+                    <h4>질문이 있으신가요?</h4>
+                    <a href="mailto:support@gypsylive.com"
+                        >📧 support@gypsylive.com</a
+                    >
+                </div>
+            </section>
+
+            <!-- Section 2: About Us -->
+            <section class="section" id="about">
+                <span class="section-number">02</span>
+                <h2>
+                    <span class="icon">🏢</span>
+                    회사 소개
+                </h2>
+                <p>
+                    귀하의 개인 데이터(귀하를 식별하거나 귀하와 관련이 있는
+                    것으로 식별될 수 있는 모든 정보)는 GYPSYLIVE에 의해 수집 및
+                    사용됩니다.
+                </p>
+            </section>
+
+            <!-- Section 3: Information Collection -->
+            <section class="section" id="collection">
+                <span class="section-number">03</span>
+                <h2>
+                    <span class="icon">📊</span>
+                    수집하는 정보
+                </h2>
+
+                <h3>귀하가 제공하는 개인 데이터</h3>
+                <p>
+                    당사는 귀하가 당사에 제공하는 데이터를 수집합니다. 여기에는
+                    계정 생성, 프로필 업데이트 또는 당사에 연락할 때 제공하는
+                    정보가 포함됩니다.
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <span class="check">✓</span>
+                        <span
+                            >등록 시 개인정보(이름, 이메일, 전화번호, 생년월일,
+                            성별)</span
+                        >
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>프로필 정보(사진, 자기소개, 관심사, 설정)</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>서비스 이용 시 위치 데이터</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>구매 시 결제 정보</span>
+                    </li>
+                </ul>
+
+                <h3>민감한 개인 데이터</h3>
+                <div class="info-box warning">
+                    <p>
+                        ⚠️ 일반적으로 당사는 민감한 개인 데이터(건강, 신념 또는
+                        정치적 성향에 관한 정보)를 수집하거나 저장하지 않습니다.
+                        그러나 귀하가 프로필에서 이러한 정보를 공유하기로
+                        선택하는 경우, 당사는 귀하의 개인정보 보호를 위해 특별히
+                        주의를 기울입니다.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 4: How We Use Information -->
+            <section class="section" id="usage">
+                <span class="section-number">04</span>
+                <h2>
+                    <span class="icon">⚙️</span>
+                    정보 사용 방법
+                </h2>
+                <p>
+                    당사는 귀하의 동의하에 또는 다음과 같이 필요한 경우에만
+                    귀하의 개인 데이터를 사용합니다:
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <span class="check">✓</span>
+                        <span>당사 서비스 제공 및 개선</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>다른 사용자와의 매칭</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>거래 처리</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>알림 및 업데이트 전송</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>법적 의무 준수</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>귀하의 중요한 이익 보호</span>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Section 5: Sharing Data -->
+            <section class="section" id="sharing">
+                <span class="section-number">05</span>
+                <h2>
+                    <span class="icon">🤝</span>
+                    데이터 공개 및 공유
+                </h2>
+                <p>
+                    귀하의 프로필 정보는 앱의 다른 사용자에게 표시될 수
+                    있습니다. 당사는 서비스 제공에 필요한 경우에만 귀하의 개인
+                    데이터를 제3자와 공유합니다.
+                </p>
+
+                <div class="info-box success">
+                    <p>
+                        <strong>🛡️ 보장:</strong> 당사는 절대로 귀하의 연락처
+                        정보를 제3자에게 판매하지 않습니다.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 6: Marketing -->
+            <section class="section" id="marketing">
+                <span class="section-number">06</span>
+                <h2>
+                    <span class="icon">📢</span>
+                    마케팅
+                </h2>
+                <p>
+                    GYPSYLIVE는 당사 서비스에 관한 마케팅 정보를 보낼 수
+                    있습니다. 귀하는 계정 설정을 통해 또는 당사에 연락하여
+                    언제든지 이러한 정보 수신을 거부할 수 있습니다.
+                </p>
+            </section>
+
+            <!-- Section 7: Data Protection -->
+            <section class="section" id="protection">
+                <span class="section-number">07</span>
+                <h2>
+                    <span class="icon">🔐</span>
+                    데이터 보호 방법
+                </h2>
+                <p>
+                    당사는 귀하의 데이터를 안전하게 보호하고 귀하의 개인정보에
+                    대한 무단 접근, 사용 또는 공개를 방지하기 위해 다양한 물리적
+                    및 기술적 조치를 사용합니다.
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <span class="check">✓</span>
+                        <span
+                            >전자 데이터 및 데이터베이스는 안전한 컴퓨터
+                            시스템에 저장됩니다</span
+                        >
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>정보 접근 권한 통제</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>데이터 보호에 대한 직원 교육</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>상세한 데이터 보호 절차</span>
+                    </li>
+                </ul>
+
+                <div class="info-box">
+                    <p>
+                        <strong>💳 결제 보안:</strong> 모든 결제 거래는 안전한
+                        결제 제공업체를 통해 처리됩니다. GYPSYLIVE는 결제 카드
+                        산업 데이터 보안 표준을 준수하며 카드 정보를 절대
+                        저장하지 않습니다.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 8: Storage -->
+            <section class="section" id="storage">
+                <span class="section-number">08</span>
+                <h2>
+                    <span class="icon">💾</span>
+                    저장
+                </h2>
+
+                <h3>정보 저장 위치</h3>
+                <p>
+                    GYPSYLIVE는 안전한 서버에 데이터를 저장합니다. 귀하의
+                    데이터는 귀하의 국가 외부 위치로 전송되어 저장될 수
+                    있습니다.
+                </p>
+
+                <h3>정보 저장 기간</h3>
+                <p>
+                    당사는 수집 목적에 필요한 기간 동안만 정보를 사용하고
+                    저장합니다.
+                </p>
+
+                <div class="info-box success">
+                    <p>
+                        🗑️ 귀하가 계정을 삭제하면 당사는
+                        <strong>30일</strong> 이내에 귀하의 개인 데이터를
+                        삭제합니다.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 9: Your Rights -->
+            <section class="section" id="rights">
+                <span class="section-number">09</span>
+                <h2>
+                    <span class="icon">⚖️</span>
+                    귀하의 권리
+                </h2>
+                <p>
+                    당사는 귀하가 항상 귀하의 개인 데이터를 통제할 수 있도록
+                    보장하고자 합니다. 귀하의 권리는 다음과 같습니다:
+                </p>
+
+                <div class="rights-grid">
+                    <div class="right-item">
+                        <div class="right-icon">👁️</div>
+                        <h4>개인 데이터 접근 권리</h4>
+                    </div>
+                    <div class="right-item">
+                        <div class="right-icon">🗑️</div>
+                        <h4>데이터 삭제 권리</h4>
+                    </div>
+                    <div class="right-item">
+                        <div class="right-icon">✏️</div>
+                        <h4>부정확한 데이터 수정 권리</h4>
+                    </div>
+                    <div class="right-item">
+                        <div class="right-icon">🚫</div>
+                        <h4>마케팅 목적 사용 반대 권리</h4>
+                    </div>
+                    <div class="right-item">
+                        <div class="right-icon">📦</div>
+                        <h4>데이터 이동 권리</h4>
+                    </div>
+                </div>
+
+                <h3>불만 제기</h3>
+                <p>
+                    support@gypsylive.com으로 연락하여 GYPSYLIVE에 직접 불만을
+                    제기할 수 있습니다. 당사의 응답에 만족하지 못하시는 경우,
+                    해당 지역의 데이터 보호 기관에 연락하실 수 있습니다.
+                </p>
+            </section>
+
+            <!-- Section 10: Cookies -->
+            <section class="section" id="cookies">
+                <span class="section-number">10</span>
+                <h2>
+                    <span class="icon">🍪</span>
+                    쿠키 및 추적
+                </h2>
+                <p>
+                    당사는 귀하의 경험을 개선하고, 사용을 분석하며, 콘텐츠를
+                    개인화하기 위해 쿠키 및 유사한 기술을 사용합니다. 귀하는
+                    기기 설정을 통해 쿠키를 제어할 수 있습니다.
+                </p>
+            </section>
+
+            <!-- Section 11: Changes -->
+            <section class="section" id="changes">
+                <span class="section-number">11</span>
+                <h2>
+                    <span class="icon">📝</span>
+                    정책 변경
+                </h2>
+                <p>
+                    당사는 수시로 본 개인정보 보호정책을 수정할 수 있습니다.
+                    현재 버전은 항상 앱에서 확인하실 수 있습니다. 중요한 변경
+                    사항에 대해서는 귀하에게 알려드립니다.
+                </p>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="footer-logo-icon">📷</span>
+                    GYPSYLIVE
+                </div>
+                <p>귀하의 개인정보 보호가 당사의 최우선 과제입니다.</p>
+                <p>
+                    연락처:
+                    <a href="mailto:support@gypsylive.com"
+                        >support@gypsylive.com</a
+                    >
+                </p>
+                <p class="footer-date">
+                    본 정책은 2020년 7월 5일에 마지막으로 업데이트되었습니다
+                </p>
+            </div>
+        </footer>
+
+        <!-- Back to Top Button -->
+        <button class="back-to-top" id="backToTop" aria-label="맨 위로">
+            ↑
+        </button>
+
+        <script>
+            // Progress Bar
+            const progressBar = document.getElementById("progressBar");
+
+            window.addEventListener("scroll", () => {
+                const scrollTop = window.scrollY;
+                const docHeight =
+                    document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPercent = (scrollTop / docHeight) * 100;
+                progressBar.style.width = scrollPercent + "%";
+            });
+
+            // Back to Top functionality
+            const backToTop = document.getElementById("backToTop");
+
+            window.addEventListener("scroll", () => {
+                if (window.scrollY > 300) {
+                    backToTop.classList.add("visible");
+                } else {
+                    backToTop.classList.remove("visible");
+                }
+            });
+
+            backToTop.addEventListener("click", () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth",
+                });
+            });
+
+            // Intersection Observer for scroll animations
+            const observerOptions = {
+                root: null,
+                rootMargin: "0px",
+                threshold: 0.1,
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = "1";
+                        entry.target.style.transform = "translateY(0)";
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll(".section").forEach((section) => {
+                observer.observe(section);
+            });
+        </script>
+    </body>
+</html>

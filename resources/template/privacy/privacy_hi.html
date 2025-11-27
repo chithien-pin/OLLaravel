@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="hi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>गोपनीयता नीति - GYPSYLIVE</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            /* ===== CSS Variables - GYPSYLIVE Theme ===== */
+            :root {
+                --primary: #00bfa5;
+                --primary-dark: #00897b;
+                --primary-light: #64ffda;
+                --secondary: #1a237e;
+                --accent: #00e5ff;
+                --teal: #009688;
+                --cyan: #00bcd4;
+                --green: #4caf50;
+                --light-green: #8bc34a;
+                --bg-gradient-1: #00bfa5;
+                --bg-gradient-2: #00acc1;
+                --bg-gradient-3: #26a69a;
+                --text-primary: #263238;
+                --text-secondary: #546e7a;
+                --text-light: #90a4ae;
+                --white: #ffffff;
+                --gray-50: #eceff1;
+                --gray-100: #cfd8dc;
+                --gray-200: #b0bec5;
+                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                --shadow-glow: 0 0 40px rgba(0, 191, 165, 0.3);
+                --radius-sm: 8px;
+                --radius-md: 12px;
+                --radius-lg: 20px;
+                --radius-xl: 30px;
+            }
+
+            /* ===== Reset & Base ===== */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: "Inter", -apple-system, BlinkMacSystemFont,
+                    "Segoe UI", Roboto, sans-serif;
+                line-height: 1.7;
+                color: var(--text-primary);
+                background: var(--gray-50);
+                overflow-x: hidden;
+            }
+
+            /* ===== Animations ===== */
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes fadeInLeft {
+                from {
+                    opacity: 0;
+                    transform: translateX(-30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes fadeInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes scaleIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-20px);
+                }
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.5;
+                }
+            }
+
+            @keyframes gradientShift {
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes shimmer {
+                0% {
+                    background-position: -200% 0;
+                }
+                100% {
+                    background-position: 200% 0;
+                }
+            }
+
+            @keyframes bounceIn {
+                0% {
+                    opacity: 0;
+                    transform: scale(0.3);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+                70% {
+                    transform: scale(0.9);
+                }
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            @keyframes glow {
+                0%,
+                100% {
+                    box-shadow: 0 0 20px rgba(0, 191, 165, 0.4);
+                }
+                50% {
+                    box-shadow: 0 0 40px rgba(0, 191, 165, 0.6);
+                }
+            }
+
+            @keyframes rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* ===== Header ===== */
+            .header {
+                background: linear-gradient(
+                    135deg,
+                    var(--teal) 0%,
+                    var(--cyan) 50%,
+                    var(--bg-gradient-1) 100%
+                );
+                background-size: 200% 200%;
+                animation: gradientShift 15s ease infinite;
+                padding: 100px 20px 120px;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header::before {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    transparent 70%
+                );
+                animation: float 6s ease-in-out infinite;
+            }
+
+            .header::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 100px;
+                background: linear-gradient(
+                    to top,
+                    var(--gray-50),
+                    transparent
+                );
+            }
+
+            /* Floating shapes */
+            .floating-shape {
+                position: absolute;
+                border-radius: 50%;
+                opacity: 0.1;
+                animation: float 8s ease-in-out infinite;
+            }
+
+            .shape-1 {
+                width: 300px;
+                height: 300px;
+                background: var(--white);
+                top: -100px;
+                right: -100px;
+                animation-delay: 0s;
+            }
+
+            .shape-2 {
+                width: 200px;
+                height: 200px;
+                background: var(--white);
+                bottom: 50px;
+                left: -50px;
+                animation-delay: 2s;
+            }
+
+            .shape-3 {
+                width: 150px;
+                height: 150px;
+                background: var(--white);
+                top: 50%;
+                left: 20%;
+                animation-delay: 4s;
+            }
+
+            .header-content {
+                position: relative;
+                z-index: 1;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            .logo {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 90px;
+                height: 90px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-lg);
+                margin-bottom: 25px;
+                animation: bounceIn 1s ease-out, glow 3s ease-in-out infinite;
+                box-shadow: var(--shadow-xl);
+                border: 3px solid rgba(255, 255, 255, 0.3);
+            }
+
+            .logo-icon {
+                font-size: 45px;
+            }
+
+            .header h1 {
+                color: var(--white);
+                font-size: clamp(28px, 5vw, 48px);
+                font-weight: 700;
+                margin-bottom: 15px;
+                animation: fadeInUp 0.8s ease-out 0.2s both;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .brand-name {
+                background: linear-gradient(
+                    90deg,
+                    var(--white),
+                    var(--primary-light)
+                );
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .header .subtitle {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: clamp(14px, 2.5vw, 18px);
+                animation: fadeInUp 0.8s ease-out 0.4s both;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .header .date {
+                display: inline-block;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                color: var(--white);
+                padding: 8px 20px;
+                border-radius: 50px;
+                font-size: 14px;
+                margin-top: 25px;
+                animation: fadeInUp 0.8s ease-out 0.6s both;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* ===== Navigation ===== */
+            .nav-container {
+                position: sticky;
+                top: 0;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                z-index: 100;
+                box-shadow: var(--shadow-md);
+                animation: fadeInUp 0.8s ease-out 0.8s both;
+            }
+
+            .nav {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 15px 20px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .nav::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-list {
+                display: flex;
+                gap: 8px;
+                list-style: none;
+                min-width: max-content;
+            }
+
+            .nav-list a {
+                display: block;
+                padding: 10px 18px;
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+                border-radius: 50px;
+                transition: all 0.3s ease;
+                white-space: nowrap;
+            }
+
+            .nav-list a:hover {
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                color: var(--white);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
+
+            /* ===== Main Content ===== */
+            .main {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 60px 20px 100px;
+            }
+
+            /* ===== Section Styling ===== */
+            .section {
+                background: var(--white);
+                border-radius: var(--radius-lg);
+                padding: 40px;
+                margin-bottom: 30px;
+                box-shadow: var(--shadow-lg);
+                opacity: 0;
+                animation: fadeInUp 0.6s ease-out forwards;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .section:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-xl), var(--shadow-glow);
+            }
+
+            .section::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 5px;
+                height: 100%;
+                background: linear-gradient(
+                    180deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green)
+                );
+                border-radius: 5px 0 0 5px;
+            }
+
+            .section:nth-child(1) {
+                animation-delay: 0.1s;
+            }
+            .section:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            .section:nth-child(3) {
+                animation-delay: 0.3s;
+            }
+            .section:nth-child(4) {
+                animation-delay: 0.4s;
+            }
+            .section:nth-child(5) {
+                animation-delay: 0.5s;
+            }
+            .section:nth-child(6) {
+                animation-delay: 0.6s;
+            }
+            .section:nth-child(7) {
+                animation-delay: 0.7s;
+            }
+            .section:nth-child(8) {
+                animation-delay: 0.8s;
+            }
+            .section:nth-child(9) {
+                animation-delay: 0.9s;
+            }
+            .section:nth-child(10) {
+                animation-delay: 1s;
+            }
+            .section:nth-child(11) {
+                animation-delay: 1.1s;
+            }
+
+            .section-number {
+                position: absolute;
+                top: 20px;
+                right: 25px;
+                font-size: 60px;
+                font-weight: 700;
+                color: var(--gray-100);
+                line-height: 1;
+                z-index: 0;
+            }
+
+            .section h2 {
+                color: var(--secondary);
+                font-size: clamp(20px, 3vw, 26px);
+                font-weight: 700;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .section h2 .icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 45px;
+                height: 45px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-sm);
+                font-size: 22px;
+                flex-shrink: 0;
+                box-shadow: var(--shadow-md);
+            }
+
+            .section h3 {
+                color: var(--text-primary);
+                font-size: 18px;
+                font-weight: 600;
+                margin: 25px 0 12px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .section p {
+                color: var(--text-secondary);
+                font-size: 15px;
+                margin-bottom: 15px;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* ===== Feature List ===== */
+            .feature-list {
+                list-style: none;
+                margin: 20px 0;
+                position: relative;
+                z-index: 1;
+            }
+
+            .feature-list li {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 12px 0;
+                border-bottom: 1px solid var(--gray-100);
+                transition: all 0.3s ease;
+            }
+
+            .feature-list li:last-child {
+                border-bottom: none;
+            }
+
+            .feature-list li:hover {
+                padding-left: 10px;
+                background: linear-gradient(
+                    90deg,
+                    rgba(0, 150, 136, 0.05),
+                    transparent
+                );
+                margin: 0 -15px;
+                padding-right: 15px;
+                padding-left: 25px;
+                border-radius: var(--radius-sm);
+            }
+
+            .feature-list .check {
+                width: 24px;
+                height: 24px;
+                background: linear-gradient(135deg, var(--teal), var(--green));
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: var(--white);
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .feature-list span {
+                color: var(--text-secondary);
+                font-size: 15px;
+            }
+
+            /* ===== Info Box ===== */
+            .info-box {
+                background: linear-gradient(
+                    135deg,
+                    rgba(0, 150, 136, 0.05),
+                    rgba(0, 188, 212, 0.05)
+                );
+                border-radius: var(--radius-md);
+                padding: 25px;
+                margin: 20px 0;
+                border-left: 4px solid var(--cyan);
+                position: relative;
+                z-index: 1;
+            }
+
+            .info-box.warning {
+                border-left-color: #ffc107;
+                background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            }
+
+            .info-box.success {
+                border-left-color: var(--green);
+                background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            }
+
+            .info-box p {
+                margin: 0;
+                font-size: 14px;
+            }
+
+            /* ===== Contact Card ===== */
+            .contact-card {
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-md);
+                padding: 30px;
+                text-align: center;
+                margin: 25px 0;
+                position: relative;
+                z-index: 1;
+                overflow: hidden;
+            }
+
+            .contact-card::before {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    transparent 60%
+                );
+                animation: float 8s ease-in-out infinite;
+            }
+
+            .contact-card h4 {
+                color: var(--white);
+                font-size: 18px;
+                margin-bottom: 15px;
+                position: relative;
+            }
+
+            .contact-card a {
+                display: inline-block;
+                background: var(--white);
+                color: var(--teal);
+                padding: 12px 30px;
+                border-radius: 50px;
+                text-decoration: none;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                position: relative;
+            }
+
+            .contact-card a:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            /* ===== Rights Grid ===== */
+            .rights-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin: 20px 0;
+                position: relative;
+                z-index: 1;
+            }
+
+            .right-item {
+                background: linear-gradient(
+                    135deg,
+                    var(--gray-50),
+                    var(--white)
+                );
+                border-radius: var(--radius-md);
+                padding: 20px;
+                text-align: center;
+                transition: all 0.3s ease;
+                border: 2px solid transparent;
+            }
+
+            .right-item:hover {
+                border-color: var(--teal);
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .right-item .right-icon {
+                font-size: 30px;
+                margin-bottom: 10px;
+            }
+
+            .right-item h4 {
+                font-size: 14px;
+                color: var(--text-primary);
+                margin: 0;
+            }
+
+            /* ===== Footer ===== */
+            .footer {
+                background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+                color: rgba(255, 255, 255, 0.7);
+                text-align: center;
+                padding: 50px 20px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .footer::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(
+                    90deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green),
+                    var(--teal)
+                );
+                background-size: 200% 100%;
+                animation: shimmer 3s linear infinite;
+            }
+
+            .footer-content {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .footer-logo {
+                font-size: 28px;
+                font-weight: 700;
+                color: var(--white);
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .footer-logo-icon {
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                border-radius: var(--radius-sm);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+            }
+
+            .footer p {
+                font-size: 14px;
+                margin: 10px 0;
+            }
+
+            .footer a {
+                color: var(--primary-light);
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+
+            .footer a:hover {
+                color: var(--white);
+            }
+
+            .footer-date {
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                font-style: italic;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            /* ===== Back to Top ===== */
+            .back-to-top {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(135deg, var(--teal), var(--cyan));
+                color: var(--white);
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                box-shadow: var(--shadow-lg);
+                transition: all 0.3s ease;
+                opacity: 0;
+                visibility: hidden;
+                z-index: 99;
+            }
+
+            .back-to-top.visible {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .back-to-top:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-xl), var(--shadow-glow);
+            }
+
+            /* ===== Progress Bar ===== */
+            .progress-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 0%;
+                height: 4px;
+                background: linear-gradient(
+                    90deg,
+                    var(--teal),
+                    var(--cyan),
+                    var(--green)
+                );
+                z-index: 1000;
+                transition: width 0.1s ease;
+            }
+
+            /* ===== Responsive Design ===== */
+
+            /* Tablet (768px - 1024px) */
+            @media (max-width: 1024px) {
+                .header {
+                    padding: 80px 20px 100px;
+                }
+
+                .section {
+                    padding: 30px;
+                }
+
+                .section-number {
+                    font-size: 50px;
+                }
+
+                .rights-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            /* Mobile Large (481px - 767px) */
+            @media (max-width: 767px) {
+                .header {
+                    padding: 60px 15px 80px;
+                }
+
+                .logo {
+                    width: 70px;
+                    height: 70px;
+                }
+
+                .logo-icon {
+                    font-size: 35px;
+                }
+
+                .main {
+                    padding: 40px 15px 80px;
+                }
+
+                .section {
+                    padding: 25px 20px;
+                    margin-bottom: 20px;
+                    border-radius: var(--radius-md);
+                }
+
+                .section::before {
+                    width: 4px;
+                }
+
+                .section-number {
+                    font-size: 40px;
+                    top: 15px;
+                    right: 15px;
+                }
+
+                .section h2 {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 15px;
+                }
+
+                .section h2 .icon {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 18px;
+                }
+
+                .nav {
+                    padding: 12px 15px;
+                }
+
+                .nav-list a {
+                    padding: 8px 14px;
+                    font-size: 13px;
+                }
+
+                .rights-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .contact-card {
+                    padding: 25px 20px;
+                }
+
+                .info-box {
+                    padding: 20px;
+                }
+
+                .footer {
+                    padding: 40px 15px;
+                }
+
+                .back-to-top {
+                    width: 45px;
+                    height: 45px;
+                    bottom: 20px;
+                    right: 20px;
+                    font-size: 18px;
+                }
+            }
+
+            /* Mobile Small (max-width: 480px) */
+            @media (max-width: 480px) {
+                .header {
+                    padding: 50px 15px 60px;
+                }
+
+                .header .date {
+                    padding: 6px 15px;
+                    font-size: 12px;
+                }
+
+                .section {
+                    padding: 20px 15px;
+                }
+
+                .section-number {
+                    display: none;
+                }
+
+                .section h2 {
+                    font-size: 18px;
+                }
+
+                .section h3 {
+                    font-size: 16px;
+                }
+
+                .section p,
+                .feature-list span {
+                    font-size: 14px;
+                }
+
+                .feature-list li:hover {
+                    padding-left: 15px;
+                    margin: 0 -10px;
+                    padding-right: 10px;
+                }
+
+                .right-item {
+                    padding: 15px;
+                }
+
+                .right-item .right-icon {
+                    font-size: 24px;
+                }
+
+                .shape-1,
+                .shape-2,
+                .shape-3 {
+                    display: none;
+                }
+            }
+
+            /* Print Styles */
+            @media print {
+                .nav-container,
+                .back-to-top,
+                .floating-shape,
+                .progress-bar {
+                    display: none;
+                }
+
+                .section {
+                    box-shadow: none;
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+
+                .header {
+                    background: var(--teal);
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+            }
+
+            /* Reduced Motion */
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Progress Bar -->
+        <div class="progress-bar" id="progressBar"></div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">📷</span>
+                </div>
+                <h1>गोपनीयता नीति</h1>
+                <p class="subtitle">
+                    <span class="brand-name">GYPSYLIVE</span> आपकी गोपनीयता और
+                    व्यक्तिगत जानकारी की सुरक्षा के लिए प्रतिबद्ध है।
+                </p>
+                <span class="date">📅 अपडेट: 05/07/2020</span>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-container">
+            <div class="nav">
+                <ul class="nav-list">
+                    <li><a href="#intro">परिचय</a></li>
+                    <li><a href="#about">हमारे बारे में</a></li>
+                    <li><a href="#collection">संग्रह</a></li>
+                    <li><a href="#usage">उपयोग</a></li>
+                    <li><a href="#sharing">साझाकरण</a></li>
+                    <li><a href="#marketing">मार्केटिंग</a></li>
+                    <li><a href="#protection">सुरक्षा</a></li>
+                    <li><a href="#storage">भंडारण</a></li>
+                    <li><a href="#rights">आपके अधिकार</a></li>
+                    <li><a href="#cookies">कुकीज़</a></li>
+                    <li><a href="#changes">परिवर्तन</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Section 1: Introduction -->
+            <section class="section" id="intro">
+                <span class="section-number">01</span>
+                <h2>
+                    <span class="icon">📋</span>
+                    परिचय
+                </h2>
+                <p>
+                    GYPSYLIVE आपकी गोपनीयता और सुरक्षा की रक्षा के लिए प्रतिबद्ध है।
+                    यह नीति बताती है कि हम आपके व्यक्तिगत डेटा का उपयोग कैसे और क्यों
+                    करते हैं, यह सुनिश्चित करते हुए कि आप हमेशा अपनी जानकारी के बारे में
+                    सूचित और नियंत्रण में रहें।
+                </p>
+                <p>
+                    आप किसी भी समय संचार प्राप्त न करने या हमारे संपर्क करने के तरीके को
+                    बदलने का निर्णय ले सकते हैं।
+                </p>
+
+                <div class="info-box success">
+                    <p>
+                        <strong>🔒 हमारी प्रतिबद्धता:</strong> हम कभी भी आपकी व्यक्तिगत
+                        जानकारी नहीं बेचेंगे और केवल गोपनीयता और सुरक्षा की गारंटी के
+                        साथ आवश्यक होने पर ही साझेदार संगठनों के साथ साझा करेंगे।
+                    </p>
+                </div>
+
+                <div class="contact-card">
+                    <h4>कोई प्रश्न हैं?</h4>
+                    <a href="mailto:support@gypsylive.com"
+                        >📧 support@gypsylive.com</a
+                    >
+                </div>
+            </section>
+
+            <!-- Section 2: About Us -->
+            <section class="section" id="about">
+                <span class="section-number">02</span>
+                <h2>
+                    <span class="icon">🏢</span>
+                    हमारे बारे में
+                </h2>
+                <p>
+                    आपका व्यक्तिगत डेटा (कोई भी जानकारी जो आपकी पहचान करती है या आपसे
+                    संबंधित हो सकती है) GYPSYLIVE द्वारा एकत्र और उपयोग किया जाएगा।
+                </p>
+            </section>
+
+            <!-- Section 3: Information Collection -->
+            <section class="section" id="collection">
+                <span class="section-number">03</span>
+                <h2>
+                    <span class="icon">📊</span>
+                    हम कौन सी जानकारी एकत्र करते हैं
+                </h2>
+
+                <h3>आपके द्वारा प्रदान किया गया व्यक्तिगत डेटा</h3>
+                <p>
+                    हम वह डेटा एकत्र करते हैं जो आप हमें प्रदान करते हैं। इसमें वह
+                    जानकारी शामिल है जो आप खाता बनाते समय, प्रोफ़ाइल अपडेट करते समय या
+                    हमसे संपर्क करते समय प्रदान करते हैं।
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <span class="check">✓</span>
+                        <span
+                            >पंजीकरण के समय व्यक्तिगत जानकारी (नाम, ईमेल, फोन नंबर,
+                            जन्म तिथि, लिंग)</span
+                        >
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span
+                            >प्रोफ़ाइल जानकारी (फोटो, बायो, रुचियां, प्राथमिकताएं)</span
+                        >
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>सेवा का उपयोग करते समय स्थान डेटा</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>खरीदारी करते समय भुगतान जानकारी</span>
+                    </li>
+                </ul>
+
+                <h3>संवेदनशील व्यक्तिगत डेटा</h3>
+                <div class="info-box warning">
+                    <p>
+                        ⚠️ आमतौर पर हम संवेदनशील व्यक्तिगत डेटा (जैसे स्वास्थ्य, विश्वास
+                        या राजनीतिक संबद्धता के बारे में जानकारी) एकत्र या संग्रहीत नहीं
+                        करते हैं। हालांकि, यदि आप अपनी प्रोफ़ाइल में ऐसी जानकारी साझा
+                        करना चुनते हैं, तो हम यह सुनिश्चित करने के लिए विशेष ध्यान देंगे
+                        कि आपकी गोपनीयता सुरक्षित है।
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 4: How We Use Information -->
+            <section class="section" id="usage">
+                <span class="section-number">04</span>
+                <h2>
+                    <span class="icon">⚙️</span>
+                    हम जानकारी का उपयोग कैसे करते हैं
+                </h2>
+                <p>
+                    हम आपके व्यक्तिगत डेटा का उपयोग केवल आपकी सहमति से करते हैं, या जब
+                    आवश्यक हो:
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <span class="check">✓</span>
+                        <span>हमारी सेवाएं प्रदान करना और सुधारना</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>आपको अन्य उपयोगकर्ताओं से मिलाना</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>लेनदेन संसाधित करना</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>आपको सूचनाएं और अपडेट भेजना</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>कानूनी दायित्वों का पालन करना</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>आपके महत्वपूर्ण हितों की रक्षा करना</span>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Section 5: Sharing Data -->
+            <section class="section" id="sharing">
+                <span class="section-number">05</span>
+                <h2>
+                    <span class="icon">🤝</span>
+                    डेटा का खुलासा और साझाकरण
+                </h2>
+                <p>
+                    आपकी प्रोफ़ाइल जानकारी ऐप के अन्य उपयोगकर्ताओं को दिखाई दे सकती है।
+                    हम आपके व्यक्तिगत डेटा को तीसरे पक्षों के साथ केवल तभी साझा करते हैं
+                    जब सेवा प्रदान करने के लिए आवश्यक हो।
+                </p>
+
+                <div class="info-box success">
+                    <p>
+                        <strong>🛡️ गारंटी:</strong> हम कभी भी आपकी संपर्क जानकारी तीसरे
+                        पक्षों को नहीं बेचेंगे।
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 6: Marketing -->
+            <section class="section" id="marketing">
+                <span class="section-number">06</span>
+                <h2>
+                    <span class="icon">📢</span>
+                    मार्केटिंग
+                </h2>
+                <p>
+                    GYPSYLIVE आपको हमारी सेवाओं के बारे में मार्केटिंग जानकारी भेज सकता
+                    है। आप खाता सेटिंग्स के माध्यम से या हमसे संपर्क करके किसी भी समय
+                    इस जानकारी को प्राप्त करने से मना कर सकते हैं।
+                </p>
+            </section>
+
+            <!-- Section 7: Data Protection -->
+            <section class="section" id="protection">
+                <span class="section-number">07</span>
+                <h2>
+                    <span class="icon">🔐</span>
+                    हम डेटा की सुरक्षा कैसे करते हैं
+                </h2>
+                <p>
+                    हम आपके डेटा को सुरक्षित रखने और आपकी व्यक्तिगत जानकारी तक अनधिकृत
+                    पहुंच, उपयोग या खुलासे को रोकने के लिए कई भौतिक और तकनीकी उपायों का
+                    उपयोग करते हैं।
+                </p>
+
+                <ul class="feature-list">
+                    <li>
+                        <span class="check">✓</span>
+                        <span
+                            >इलेक्ट्रॉनिक डेटा और डेटाबेस सुरक्षित कंप्यूटर सिस्टम पर
+                            संग्रहीत हैं</span
+                        >
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>जानकारी तक पहुंच नियंत्रण</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>डेटा सुरक्षा में प्रशिक्षित कर्मचारी</span>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <span>विस्तृत डेटा सुरक्षा प्रक्रियाएं</span>
+                    </li>
+                </ul>
+
+                <div class="info-box">
+                    <p>
+                        <strong>💳 भुगतान सुरक्षा:</strong> सभी भुगतान लेनदेन सुरक्षित
+                        भुगतान प्रदाताओं के माध्यम से संसाधित किए जाते हैं। GYPSYLIVE
+                        भुगतान कार्ड उद्योग डेटा सुरक्षा मानकों का पालन करता है और कभी
+                        भी कार्ड विवरण संग्रहीत नहीं करेगा।
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 8: Storage -->
+            <section class="section" id="storage">
+                <span class="section-number">08</span>
+                <h2>
+                    <span class="icon">💾</span>
+                    भंडारण
+                </h2>
+
+                <h3>हम जानकारी कहां संग्रहीत करते हैं</h3>
+                <p>
+                    GYPSYLIVE डेटा को सुरक्षित सर्वर पर संग्रहीत करता है। आपका डेटा
+                    आपके देश के बाहर स्थानों पर स्थानांतरित और संग्रहीत किया जा सकता है।
+                </p>
+
+                <h3>हम जानकारी कब तक संग्रहीत करते हैं</h3>
+                <p>
+                    हम जानकारी का उपयोग और भंडारण केवल उस अवधि के लिए करते हैं जो संग्रह
+                    के उद्देश्य के लिए आवश्यक है।
+                </p>
+
+                <div class="info-box success">
+                    <p>
+                        🗑️ जब आप अपना खाता हटाते हैं, तो हम <strong>30 दिनों</strong>
+                        के भीतर आपका व्यक्तिगत डेटा हटा देंगे।
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 9: Your Rights -->
+            <section class="section" id="rights">
+                <span class="section-number">09</span>
+                <h2>
+                    <span class="icon">⚖️</span>
+                    आपके अधिकार
+                </h2>
+                <p>
+                    हम यह सुनिश्चित करना चाहते हैं कि आप हमेशा अपने व्यक्तिगत डेटा पर
+                    नियंत्रण रखें। आपके अधिकारों में शामिल हैं:
+                </p>
+
+                <div class="rights-grid">
+                    <div class="right-item">
+                        <div class="right-icon">👁️</div>
+                        <h4>व्यक्तिगत डेटा तक पहुंच का अधिकार</h4>
+                    </div>
+                    <div class="right-item">
+                        <div class="right-icon">🗑️</div>
+                        <h4>डेटा हटाने का अधिकार</h4>
+                    </div>
+                    <div class="right-item">
+                        <div class="right-icon">✏️</div>
+                        <h4>गलत डेटा को सही करने का अधिकार</h4>
+                    </div>
+                    <div class="right-item">
+                        <div class="right-icon">🚫</div>
+                        <h4>मार्केटिंग के लिए उपयोग पर आपत्ति का अधिकार</h4>
+                    </div>
+                    <div class="right-item">
+                        <div class="right-icon">📦</div>
+                        <h4>डेटा पोर्टेबिलिटी का अधिकार</h4>
+                    </div>
+                </div>
+
+                <h3>शिकायत</h3>
+                <p>
+                    आप support@gypsylive.com पर संपर्क करके सीधे GYPSYLIVE से शिकायत कर
+                    सकते हैं। यदि आप हमारी प्रतिक्रिया से संतुष्ट नहीं हैं, तो आप अपने
+                    स्थानीय डेटा सुरक्षा प्राधिकरण से संपर्क कर सकते हैं।
+                </p>
+            </section>
+
+            <!-- Section 10: Cookies -->
+            <section class="section" id="cookies">
+                <span class="section-number">10</span>
+                <h2>
+                    <span class="icon">🍪</span>
+                    कुकीज़ और ट्रैकिंग
+                </h2>
+                <p>
+                    हम आपके अनुभव को बेहतर बनाने, उपयोग का विश्लेषण करने और सामग्री को
+                    व्यक्तिगत बनाने के लिए कुकीज़ और समान तकनीकों का उपयोग करते हैं। आप
+                    अपने डिवाइस सेटिंग्स के माध्यम से कुकीज़ को नियंत्रित कर सकते हैं।
+                </p>
+            </section>
+
+            <!-- Section 11: Changes -->
+            <section class="section" id="changes">
+                <span class="section-number">11</span>
+                <h2>
+                    <span class="icon">📝</span>
+                    नीति में परिवर्तन
+                </h2>
+                <p>
+                    हम समय-समय पर इस गोपनीयता नीति को संशोधित कर सकते हैं। वर्तमान
+                    संस्करण हमेशा ऐप में उपलब्ध होगा। हम आपको महत्वपूर्ण परिवर्तनों के
+                    बारे में सूचित करेंगे।
+                </p>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="footer-logo-icon">📷</span>
+                    GYPSYLIVE
+                </div>
+                <p>
+                    आपकी गोपनीयता की रक्षा करना हमारी सर्वोच्च प्राथमिकता है।
+                </p>
+                <p>
+                    संपर्क करें:
+                    <a href="mailto:support@gypsylive.com"
+                        >support@gypsylive.com</a
+                    >
+                </p>
+                <p class="footer-date">
+                    यह नीति अंतिम बार 05/07/2020 को अपडेट की गई थी
+                </p>
+            </div>
+        </footer>
+
+        <!-- Back to Top Button -->
+        <button class="back-to-top" id="backToTop" aria-label="शीर्ष पर जाएं">
+            ↑
+        </button>
+
+        <script>
+            // Progress Bar
+            const progressBar = document.getElementById("progressBar");
+
+            window.addEventListener("scroll", () => {
+                const scrollTop = window.scrollY;
+                const docHeight =
+                    document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPercent = (scrollTop / docHeight) * 100;
+                progressBar.style.width = scrollPercent + "%";
+            });
+
+            // Back to Top functionality
+            const backToTop = document.getElementById("backToTop");
+
+            window.addEventListener("scroll", () => {
+                if (window.scrollY > 300) {
+                    backToTop.classList.add("visible");
+                } else {
+                    backToTop.classList.remove("visible");
+                }
+            });
+
+            backToTop.addEventListener("click", () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth",
+                });
+            });
+
+            // Intersection Observer for scroll animations
+            const observerOptions = {
+                root: null,
+                rootMargin: "0px",
+                threshold: 0.1,
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = "1";
+                        entry.target.style.transform = "translateY(0)";
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll(".section").forEach((section) => {
+                observer.observe(section);
+            });
+        </script>
+    </body>
+</html>
