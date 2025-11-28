@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="uk">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Умови використання - GYPSYLIVE</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <style>
+            :root {
+                --primary: #00bfa5;
+                --primary-dark: #00897b;
+                --primary-light: #64ffda;
+                --secondary: #1a237e;
+                --accent: #00e5ff;
+                --teal: #009688;
+                --cyan: #00bcd4;
+                --green: #4caf50;
+                --light-green: #8bc34a;
+                --bg-gradient-1: #00bfa5;
+                --bg-gradient-2: #00acc1;
+                --bg-gradient-3: #26a69a;
+                --text-primary: #263238;
+                --text-secondary: #546e7a;
+                --text-light: #90a4ae;
+                --white: #ffffff;
+                --gray-50: #eceff1;
+                --gray-100: #cfd8dc;
+                --gray-200: #b0bec5;
+                --success: #4caf50;
+                --warning: #ffc107;
+                --danger: #f44336;
+                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                --shadow-glow: 0 0 40px rgba(0, 191, 165, 0.3);
+                --radius-sm: 8px;
+                --radius-md: 12px;
+                --radius-lg: 20px;
+                --radius-xl: 30px;
+            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            html { scroll-behavior: smooth; }
+            body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.7; color: var(--text-primary); background: var(--gray-50); overflow-x: hidden; }
+            @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+            @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
+            @keyframes floatReverse { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(-5deg); } }
+            @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+            @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+            @keyframes bounceIn { 0% { opacity: 0; transform: scale(0.3); } 50% { transform: scale(1.05); } 70% { transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+            @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(0, 191, 165, 0.4); } 50% { box-shadow: 0 0 40px rgba(0, 191, 165, 0.6); } }
+            @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+            .header { background: linear-gradient(135deg, var(--cyan) 0%, var(--teal) 50%, var(--green) 100%); background-size: 200% 200%; animation: gradientShift 12s ease infinite; padding: 100px 20px 120px; text-align: center; position: relative; overflow: hidden; }
+            .header::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%); animation: float 6s ease-in-out infinite; }
+            .header::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 100px; background: linear-gradient(to top, var(--gray-50), transparent); }
+            .floating-shape { position: absolute; opacity: 0.15; }
+            .shape-1 { width: 250px; height: 250px; background: var(--white); top: -80px; right: -80px; border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; animation: float 8s ease-in-out infinite; }
+            .shape-2 { width: 180px; height: 180px; background: var(--white); bottom: 60px; left: -60px; border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; animation: floatReverse 10s ease-in-out infinite; }
+            .shape-3 { width: 120px; height: 120px; background: var(--white); top: 40%; left: 15%; border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%; animation: float 7s ease-in-out infinite; animation-delay: 1s; }
+            .shape-4 { width: 100px; height: 100px; background: var(--white); top: 30%; right: 20%; border-radius: 50%; animation: floatReverse 9s ease-in-out infinite; animation-delay: 2s; }
+            .header-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+            .logo { display: inline-flex; align-items: center; justify-content: center; width: 90px; height: 90px; background: linear-gradient(135deg, var(--teal), var(--cyan)); border-radius: var(--radius-lg); margin-bottom: 25px; animation: bounceIn 1s ease-out, glow 3s ease-in-out infinite; box-shadow: var(--shadow-xl); border: 3px solid rgba(255, 255, 255, 0.3); }
+            .logo-icon { font-size: 45px; }
+            .header h1 { color: var(--white); font-size: clamp(28px, 5vw, 48px); font-weight: 700; margin-bottom: 15px; animation: fadeInUp 0.8s ease-out 0.2s both; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); }
+            .brand-name { background: linear-gradient(90deg, var(--white), var(--primary-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+            .header .subtitle { color: rgba(255, 255, 255, 0.9); font-size: clamp(14px, 2.5vw, 18px); animation: fadeInUp 0.8s ease-out 0.4s both; max-width: 600px; margin: 0 auto; }
+            .header .date { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); color: var(--white); padding: 10px 24px; border-radius: 50px; font-size: 14px; margin-top: 25px; animation: fadeInUp 0.8s ease-out 0.6s both; border: 1px solid rgba(255, 255, 255, 0.3); }
+            .nav-container { position: sticky; top: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); z-index: 100; box-shadow: var(--shadow-md); animation: fadeInUp 0.8s ease-out 0.8s both; }
+            .nav { max-width: 1200px; margin: 0 auto; padding: 15px 20px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+            .nav::-webkit-scrollbar { display: none; }
+            .nav-list { display: flex; gap: 8px; list-style: none; min-width: max-content; }
+            .nav-list a { display: flex; align-items: center; gap: 6px; padding: 10px 18px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 50px; transition: all 0.3s ease; white-space: nowrap; }
+            .nav-list a:hover { background: linear-gradient(135deg, var(--teal), var(--cyan)); color: var(--white); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+            .nav-list a .nav-icon { font-size: 14px; }
+            .main { max-width: 900px; margin: 0 auto; padding: 60px 20px 100px; }
+            .intro-banner { background: linear-gradient(135deg, var(--white) 0%, var(--gray-50) 100%); border-radius: var(--radius-lg); padding: 35px; margin-bottom: 40px; box-shadow: var(--shadow-lg); border: 2px solid var(--gray-100); animation: scaleIn 0.6s ease-out; position: relative; overflow: hidden; }
+            .intro-banner::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--teal), var(--cyan), var(--green)); }
+            .intro-banner p { font-size: 16px; color: var(--text-secondary); margin: 0; display: flex; align-items: flex-start; gap: 15px; }
+            .intro-banner .intro-icon { font-size: 28px; flex-shrink: 0; }
+            .section { background: var(--white); border-radius: var(--radius-lg); padding: 40px; margin-bottom: 30px; box-shadow: var(--shadow-lg); opacity: 0; animation: fadeInUp 0.6s ease-out forwards; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden; }
+            .section:hover { transform: translateY(-5px); box-shadow: var(--shadow-xl), var(--shadow-glow); }
+            .section::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, var(--teal), var(--cyan), var(--green)); border-radius: 5px 5px 0 0; }
+            .section:nth-child(1) { animation-delay: 0.1s; } .section:nth-child(2) { animation-delay: 0.15s; } .section:nth-child(3) { animation-delay: 0.2s; } .section:nth-child(4) { animation-delay: 0.25s; } .section:nth-child(5) { animation-delay: 0.3s; } .section:nth-child(6) { animation-delay: 0.35s; } .section:nth-child(7) { animation-delay: 0.4s; } .section:nth-child(8) { animation-delay: 0.45s; } .section:nth-child(9) { animation-delay: 0.5s; } .section:nth-child(10) { animation-delay: 0.55s; } .section:nth-child(11) { animation-delay: 0.6s; }
+            .section-number { position: absolute; top: 25px; right: 25px; width: 50px; height: 50px; background: linear-gradient(135deg, rgba(0, 150, 136, 0.1), rgba(0, 188, 212, 0.1)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--teal); z-index: 0; }
+            .section h2 { color: var(--secondary); font-size: clamp(20px, 3vw, 26px); font-weight: 700; margin-bottom: 20px; margin-top: 10px; display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+            .section h2 .icon { display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; background: linear-gradient(135deg, var(--teal), var(--cyan)); border-radius: var(--radius-md); font-size: 24px; flex-shrink: 0; box-shadow: var(--shadow-md); }
+            .section h3 { color: var(--text-primary); font-size: 18px; font-weight: 600; margin: 25px 0 12px; position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+            .section h3::before { content: ""; width: 4px; height: 20px; background: linear-gradient(180deg, var(--teal), var(--cyan)); border-radius: 2px; }
+            .section p { color: var(--text-secondary); font-size: 15px; margin-bottom: 15px; position: relative; z-index: 1; }
+            .conduct-list { list-style: none; margin: 20px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; position: relative; z-index: 1; }
+            .conduct-list li { display: flex; align-items: center; gap: 12px; padding: 15px; background: linear-gradient(135deg, #ffebee, #ffcdd2); border-radius: var(--radius-sm); transition: all 0.3s ease; border-left: 3px solid var(--danger); }
+            .conduct-list li:hover { transform: translateX(5px); box-shadow: var(--shadow-md); }
+            .conduct-list .icon-no { width: 28px; height: 28px; background: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--white); font-size: 14px; font-weight: bold; }
+            .conduct-list span { color: var(--text-primary); font-size: 14px; font-weight: 500; }
+            .feature-list { list-style: none; margin: 20px 0; position: relative; z-index: 1; }
+            .feature-list li { display: flex; align-items: flex-start; gap: 12px; padding: 15px; background: linear-gradient(135deg, rgba(0, 150, 136, 0.05), rgba(0, 188, 212, 0.05)); border-radius: var(--radius-sm); margin-bottom: 10px; transition: all 0.3s ease; }
+            .feature-list li:hover { background: linear-gradient(135deg, rgba(0, 150, 136, 0.1), rgba(0, 188, 212, 0.1)); transform: translateX(5px); }
+            .feature-list .check { width: 24px; height: 24px; background: linear-gradient(135deg, var(--teal), var(--green)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--white); font-size: 12px; font-weight: bold; }
+            .feature-list span { color: var(--text-secondary); font-size: 15px; }
+            .info-box { background: linear-gradient(135deg, rgba(0, 150, 136, 0.05), rgba(0, 188, 212, 0.05)); border-radius: var(--radius-md); padding: 25px; margin: 20px 0; position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 15px; border: 1px solid rgba(0, 150, 136, 0.2); }
+            .info-box.warning { background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 1px solid #fcd34d; }
+            .info-box.success { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border: 1px solid #81c784; }
+            .info-box.danger { background: linear-gradient(135deg, #ffebee, #ffcdd2); border: 1px solid #ef9a9a; }
+            .info-box.primary { background: linear-gradient(135deg, #e0f2f1, #b2dfdb); border: 1px solid #80cbc4; }
+            .info-box .info-icon { font-size: 24px; flex-shrink: 0; }
+            .info-box-content { flex: 1; }
+            .info-box-content strong { display: block; margin-bottom: 5px; color: var(--text-primary); }
+            .info-box p { margin: 0; font-size: 14px; }
+            .requirements-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; position: relative; z-index: 1; }
+            .requirement-item { background: linear-gradient(135deg, var(--gray-50), var(--white)); border-radius: var(--radius-md); padding: 25px 20px; text-align: center; transition: all 0.3s ease; border: 2px solid var(--gray-100); }
+            .requirement-item:hover { border-color: var(--teal); transform: translateY(-5px); box-shadow: var(--shadow-lg), var(--shadow-glow); }
+            .requirement-item .req-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+            .requirement-item h4 { font-size: 14px; color: var(--text-primary); margin: 0; font-weight: 600; }
+            .currency-card { background: linear-gradient(135deg, #e0f2f1, #b2dfdb); border-radius: var(--radius-lg); padding: 30px; margin: 25px 0; position: relative; z-index: 1; overflow: hidden; border: 2px solid var(--teal); }
+            .currency-card::before { content: "💎"; position: absolute; top: -20px; right: -20px; font-size: 100px; opacity: 0.15; }
+            .currency-card h4 { color: var(--text-primary); font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+            .currency-card p { color: var(--text-secondary); margin: 0; font-size: 14px; }
+            .contact-card { background: linear-gradient(135deg, var(--teal), var(--cyan)); border-radius: var(--radius-lg); padding: 35px; text-align: center; margin: 25px 0; position: relative; z-index: 1; overflow: hidden; }
+            .contact-card::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%); animation: float 8s ease-in-out infinite; }
+            .contact-card h4 { color: var(--white); font-size: 20px; margin-bottom: 8px; position: relative; }
+            .contact-card p { color: rgba(255, 255, 255, 0.9); margin-bottom: 20px; font-size: 14px; position: relative; }
+            .contact-card a { display: inline-flex; align-items: center; gap: 10px; background: var(--white); color: var(--teal); padding: 14px 35px; border-radius: 50px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; position: relative; }
+            .contact-card a:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
+            .terms-timeline { position: relative; padding-left: 30px; margin: 20px 0; z-index: 1; }
+            .terms-timeline::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--teal), var(--cyan), var(--green)); border-radius: 3px; }
+            .timeline-item { position: relative; padding: 20px; background: linear-gradient(135deg, rgba(0, 150, 136, 0.05), rgba(0, 188, 212, 0.05)); border-radius: var(--radius-md); margin-bottom: 15px; }
+            .timeline-item::before { content: ""; position: absolute; left: -26px; top: 25px; width: 14px; height: 14px; background: var(--teal); border-radius: 50%; border: 3px solid var(--white); box-shadow: var(--shadow-sm); }
+            .timeline-item h4 { font-size: 15px; color: var(--text-primary); margin-bottom: 8px; }
+            .timeline-item p { font-size: 14px; color: var(--text-secondary); margin: 0; }
+            .footer { background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%); color: rgba(255, 255, 255, 0.7); text-align: center; padding: 50px 20px; position: relative; overflow: hidden; }
+            .footer::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--teal), var(--cyan), var(--green), var(--teal)); background-size: 200% 100%; animation: shimmer 3s linear infinite; }
+            .footer-content { max-width: 600px; margin: 0 auto; }
+            .footer-logo { font-size: 28px; font-weight: 700; color: var(--white); margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+            .footer-logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--teal), var(--cyan)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+            .footer p { font-size: 14px; margin: 10px 0; }
+            .footer a { color: var(--primary-light); text-decoration: none; transition: color 0.3s ease; }
+            .footer a:hover { color: var(--white); }
+            .footer-links { display: flex; justify-content: center; gap: 25px; margin: 25px 0; flex-wrap: wrap; }
+            .footer-links a { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255, 255, 255, 0.1); border-radius: 50px; font-size: 13px; transition: all 0.3s ease; }
+            .footer-links a:hover { background: rgba(255, 255, 255, 0.2); }
+            .footer-date { margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 13px; font-style: italic; color: rgba(255, 255, 255, 0.5); }
+            .back-to-top { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: linear-gradient(135deg, var(--teal), var(--cyan)); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-lg); transition: all 0.3s ease; opacity: 0; visibility: hidden; z-index: 99; }
+            .back-to-top.visible { opacity: 1; visibility: visible; }
+            .back-to-top:hover { transform: translateY(-5px) rotate(5deg); box-shadow: var(--shadow-xl), var(--shadow-glow); }
+            .progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: linear-gradient(90deg, var(--teal), var(--cyan), var(--green)); z-index: 1000; transition: width 0.1s ease; }
+            @media (max-width: 1024px) { .header { padding: 80px 20px 100px; } .section { padding: 30px; } .section-number { width: 45px; height: 45px; font-size: 16px; } .requirements-grid { grid-template-columns: repeat(2, 1fr); } .conduct-list { grid-template-columns: 1fr; } }
+            @media (max-width: 767px) { .header { padding: 60px 15px 80px; } .logo { width: 70px; height: 70px; } .logo-icon { font-size: 35px; } .main { padding: 40px 15px 80px; } .intro-banner { padding: 25px; } .intro-banner p { flex-direction: column; text-align: center; } .section { padding: 25px 20px; margin-bottom: 20px; border-radius: var(--radius-md); } .section-number { width: 40px; height: 40px; font-size: 14px; top: 20px; right: 20px; } .section h2 { flex-direction: column; align-items: flex-start; gap: 15px; } .section h2 .icon { width: 45px; height: 45px; font-size: 20px; } .nav { padding: 12px 15px; } .nav-list a { padding: 8px 14px; font-size: 13px; } .requirements-grid { grid-template-columns: 1fr; } .contact-card { padding: 25px 20px; } .info-box { padding: 20px; flex-direction: column; text-align: center; } .footer { padding: 40px 15px; } .footer-links { flex-direction: column; gap: 10px; } .back-to-top { width: 45px; height: 45px; bottom: 20px; right: 20px; font-size: 18px; } }
+            @media (max-width: 480px) { .header { padding: 50px 15px 60px; } .header .date { padding: 8px 16px; font-size: 12px; } .section { padding: 20px 15px; } .section-number { display: none; } .section h2 { font-size: 18px; } .section h3 { font-size: 16px; } .section p, .feature-list span, .conduct-list span { font-size: 14px; } .shape-1, .shape-2, .shape-3, .shape-4 { display: none; } .currency-card { padding: 20px; } .timeline-item { padding: 15px; } }
+            @media print { .nav-container, .back-to-top, .floating-shape, .progress-bar { display: none; } .section { box-shadow: none; break-inside: avoid; } .header { background: var(--teal); } }
+            @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+        </style>
+    </head>
+    <body>
+        <div class="progress-bar" id="progressBar"></div>
+        <header class="header">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+            <div class="floating-shape shape-4"></div>
+            <div class="header-content">
+                <div class="logo"><span class="logo-icon">📷</span></div>
+                <h1>Умови використання</h1>
+                <p class="subtitle">Ласкаво просимо до <span class="brand-name">GYPSYLIVE</span>. Використовуючи додаток, ви погоджуєтесь з цими умовами використання.</p>
+                <span class="date">📅 Останнє оновлення: 07/05/2020</span>
+            </div>
+        </header>
+        <nav class="nav-container">
+            <div class="nav">
+                <ul class="nav-list">
+                    <li><a href="#acceptance"><span class="nav-icon">✅</span> Прийняття</a></li>
+                    <li><a href="#eligibility"><span class="nav-icon">🎂</span> Право</a></li>
+                    <li><a href="#account"><span class="nav-icon">👤</span> Обліковий запис</a></li>
+                    <li><a href="#conduct"><span class="nav-icon">⚖️</span> Поведінка</a></li>
+                    <li><a href="#content"><span class="nav-icon">📝</span> Контент</a></li>
+                    <li><a href="#currency"><span class="nav-icon">💎</span> Віртуальна валюта</a></li>
+                    <li><a href="#termination"><span class="nav-icon">🚪</span> Припинення</a></li>
+                    <li><a href="#disclaimers"><span class="nav-icon">⚠️</span> Відмова</a></li>
+                    <li><a href="#liability"><span class="nav-icon">🛡️</span> Відповідальність</a></li>
+                    <li><a href="#changes"><span class="nav-icon">🔄</span> Зміни</a></li>
+                    <li><a href="#contact"><span class="nav-icon">📧</span> Контакт</a></li>
+                </ul>
+            </div>
+        </nav>
+        <main class="main">
+            <div class="intro-banner">
+                <p><span class="intro-icon">📋</span><span>Будь ласка, уважно прочитайте ці умови перед використанням сервісу GYPSYLIVE. Отримуючи доступ до додатку та використовуючи його, ви підтверджуєте, що прочитали, зрозуміли та погоджуєтесь дотримуватися наведених нижче умов.</span></p>
+            </div>
+            <section class="section" id="acceptance">
+                <span class="section-number">01</span>
+                <h2><span class="icon">✅</span>Прийняття умов</h2>
+                <p>Отримуючи доступ до GYPSYLIVE та використовуючи його, ви приймаєте та погоджуєтесь бути зобов'язаними цими умовами використання. Якщо ви не погоджуєтесь з цими умовами, будь ласка, не користуйтесь нашими послугами.</p>
+                <div class="info-box primary">
+                    <span class="info-icon">ℹ️</span>
+                    <div class="info-box-content">
+                        <strong>Важлива примітка</strong>
+                        <p>Ці умови застосовуються до всіх користувачів додатку, включаючи тих, хто надає контент, інформацію та інші матеріали.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="section" id="eligibility">
+                <span class="section-number">02</span>
+                <h2><span class="icon">🎂</span>Вимоги щодо права використання</h2>
+                <p>Вам повинно бути щонайменше 18 років, щоб користуватися GYPSYLIVE. Використовуючи наші послуги, ви заявляєте та гарантуєте, що:</p>
+                <div class="requirements-grid">
+                    <div class="requirement-item"><span class="req-icon">🔞</span><h4>Щонайменше 18 років</h4></div>
+                    <div class="requirement-item"><span class="req-icon">📋</span><h4>Юридично дієздатний</h4></div>
+                    <div class="requirement-item"><span class="req-icon">⚖️</span><h4>Не заборонено законом</h4></div>
+                </div>
+            </section>
+            <section class="section" id="account">
+                <span class="section-number">03</span>
+                <h2><span class="icon">👤</span>Ваш обліковий запис</h2>
+                <h3>Відповідальність за обліковий запис</h3>
+                <p>Ви несете відповідальність за збереження конфіденційності облікових даних для входу та за всю діяльність, яка відбувається під вашим обліковим записом.</p>
+                <ul class="feature-list">
+                    <li><span class="check">✓</span><span>Зберігайте конфіденційність ваших облікових даних</span></li>
+                    <li><span class="check">✓</span><span>Негайно повідомляйте нас про несанкціонований доступ</span></li>
+                    <li><span class="check">✓</span><span>Надавайте точну та актуальну інформацію</span></li>
+                </ul>
+                <h3>Безпека облікового запису</h3>
+                <div class="info-box warning">
+                    <span class="info-icon">⚠️</span>
+                    <div class="info-box-content">
+                        <strong>Важливо</strong>
+                        <p>Ніколи не повідомляйте нікому свій пароль або облікові дані. GYPSYLIVE ніколи не буде запитувати ваш пароль електронною поштою або повідомленням.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="section" id="conduct">
+                <span class="section-number">04</span>
+                <h2><span class="icon">⚖️</span>Поведінка користувача</h2>
+                <p>Ви погоджуєтесь не брати участь у наступних діях:</p>
+                <ul class="conduct-list">
+                    <li><span class="icon-no">✕</span><span>Використання сервісу в незаконних цілях</span></li>
+                    <li><span class="icon-no">✕</span><span>Переслідування, образа або заподіяння шкоди іншим користувачам</span></li>
+                    <li><span class="icon-no">✕</span><span>Публікація неправдивого, оманливого або образливого контенту</span></li>
+                    <li><span class="icon-no">✕</span><span>Видавання себе за іншу особу або організацію</span></li>
+                    <li><span class="icon-no">✕</span><span>Порушення або переривання роботи сервісу</span></li>
+                    <li><span class="icon-no">✕</span><span>Спроби несанкціонованого доступу до системи</span></li>
+                </ul>
+            </section>
+            <section class="section" id="content">
+                <span class="section-number">05</span>
+                <h2><span class="icon">📝</span>Контент</h2>
+                <p>Ви зберігаєте право власності на контент, який публікуєте на GYPSYLIVE. Публікуючи контент, ви надаєте нам невиключну, безоплатну ліцензію на використання, відображення та розповсюдження вашого контенту у зв'язку з нашими послугами.</p>
+                <div class="info-box success">
+                    <span class="info-icon">✅</span>
+                    <div class="info-box-content">
+                        <strong>Ваше право власності</strong>
+                        <p>Ви несете виключну відповідальність за контент, який публікуєте, і повинні переконатися, що він не порушує жодних законів або прав третіх осіб.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="section" id="currency">
+                <span class="section-number">06</span>
+                <h2><span class="icon">💎</span>Віртуальна валюта та транзакції</h2>
+                <div class="currency-card">
+                    <h4>💎 Діаманти - віртуальна валюта GYPSYLIVE</h4>
+                    <p>GYPSYLIVE може пропонувати віртуальну валюту (Діаманти) для придбання. Усі покупки є остаточними та не підлягають поверненню, якщо інше не передбачено законом.</p>
+                </div>
+                <div class="info-box danger">
+                    <span class="info-icon">🚫</span>
+                    <div class="info-box-content">
+                        <strong>Важлива примітка</strong>
+                        <p>Віртуальна валюта не має реальної цінності та не може бути обміняна на реальні гроші або товари за межами GYPSYLIVE.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="section" id="termination">
+                <span class="section-number">07</span>
+                <h2><span class="icon">🚪</span>Припинення облікового запису</h2>
+                <p>Ми можемо припинити або призупинити ваш обліковий запис у будь-який час, з причиною або без неї, з попереднім повідомленням або без нього.</p>
+                <div class="terms-timeline">
+                    <div class="timeline-item"><h4>Припинення з боку GYPSYLIVE</h4><p>Ми залишаємо за собою право припиняти облікові записи за порушення умов або з міркувань безпеки.</p></div>
+                    <div class="timeline-item"><h4>Добровільне видалення облікового запису</h4><p>Ви можете видалити свій обліковий запис у будь-який час через налаштування додатку.</p></div>
+                    <div class="timeline-item"><h4>Після припинення</h4><p>Ваші дані будуть оброблені відповідно до нашої політики конфіденційності.</p></div>
+                </div>
+            </section>
+            <section class="section" id="disclaimers">
+                <span class="section-number">08</span>
+                <h2><span class="icon">⚠️</span>Відмова від відповідальності</h2>
+                <p>Сервіс надається "як є" та "за наявності" без будь-яких гарантій, явних або неявних.</p>
+                <ul class="feature-list">
+                    <li><span class="check">!</span><span>Ми не гарантуємо, що сервіс буде безперервним або без помилок</span></li>
+                    <li><span class="check">!</span><span>Ми не несемо відповідальності за контент, створений користувачами</span></li>
+                    <li><span class="check">!</span><span>Використання сервісу здійснюється на ваш власний ризик</span></li>
+                </ul>
+            </section>
+            <section class="section" id="liability">
+                <span class="section-number">09</span>
+                <h2><span class="icon">🛡️</span>Обмеження відповідальності</h2>
+                <p>У максимальному обсязі, дозволеному законом, GYPSYLIVE не несе відповідальності за будь-які непрямі, випадкові, спеціальні, наслідкові або штрафні збитки, що виникають внаслідок використання наших послуг.</p>
+                <div class="info-box warning">
+                    <span class="info-icon">⚖️</span>
+                    <div class="info-box-content">
+                        <strong>Подання скарги</strong>
+                        <p>Якщо у вас є скарги щодо сервісу, будь ласка, зв'яжіться з нами електронною поштою для допомоги у вирішенні.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="section" id="changes">
+                <span class="section-number">10</span>
+                <h2><span class="icon">🔄</span>Зміни до умов</h2>
+                <p>Ми можемо змінювати ці умови в будь-який час. Продовження використання сервісу після змін означає вашу згоду з новими умовами.</p>
+                <div class="info-box primary">
+                    <span class="info-icon">📢</span>
+                    <div class="info-box-content">
+                        <strong>Повідомлення про зміни</strong>
+                        <p>Ми повідомимо вас про суттєві зміни через додаток або на вашу зареєстровану електронну адресу.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="section" id="contact">
+                <span class="section-number">11</span>
+                <h2><span class="icon">📧</span>Зв'язатися з нами</h2>
+                <p>Якщо у вас є питання щодо цих умов використання, будь ласка, зв'яжіться з нами.</p>
+                <div class="contact-card">
+                    <h4>Потрібна допомога?</h4>
+                    <p>Наша команда підтримки завжди готова допомогти</p>
+                    <a href="mailto:support@gypsylive.com"><span>📧</span>support@gypsylive.com</a>
+                </div>
+            </section>
+        </main>
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo"><span class="footer-logo-icon">📷</span>GYPSYLIVE</div>
+                <p>Дякуємо, що користуєтесь нашим сервісом!</p>
+                <div class="footer-links">
+                    <a href="privacy_uk.html"><span>🔒</span>Політика конфіденційності</a>
+                    <a href="mailto:support@gypsylive.com"><span>📧</span>Контакт</a>
+                </div>
+                <p class="footer-date">Ці умови були востаннє оновлені 07/05/2020</p>
+            </div>
+        </footer>
+        <button class="back-to-top" id="backToTop" aria-label="Нагору">↑</button>
+        <script>
+            const progressBar = document.getElementById("progressBar");
+            window.addEventListener("scroll", () => { const scrollTop = window.scrollY; const docHeight = document.documentElement.scrollHeight - window.innerHeight; const scrollPercent = (scrollTop / docHeight) * 100; progressBar.style.width = scrollPercent + "%"; });
+            const backToTop = document.getElementById("backToTop");
+            window.addEventListener("scroll", () => { if (window.scrollY > 300) { backToTop.classList.add("visible"); } else { backToTop.classList.remove("visible"); } });
+            backToTop.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
+            const observerOptions = { root: null, rootMargin: "0px", threshold: 0.1 };
+            const observer = new IntersectionObserver((entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.style.opacity = "1"; entry.target.style.transform = "translateY(0)"; } }); }, observerOptions);
+            document.querySelectorAll(".section").forEach((section) => { observer.observe(section); });
+            document.querySelectorAll(".nav-list a").forEach((link) => { link.addEventListener("click", (e) => { e.preventDefault(); const targetId = link.getAttribute("href"); const targetSection = document.querySelector(targetId); if (targetSection) { const navHeight = document.querySelector(".nav-container").offsetHeight; const targetPosition = targetSection.getBoundingClientRect().top + window.scrollY - navHeight - 20; window.scrollTo({ top: targetPosition, behavior: "smooth" }); } }); });
+        </script>
+    </body>
+</html>
