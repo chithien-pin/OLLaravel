@@ -1897,13 +1897,29 @@ class UsersController extends Controller
 
         if ($req->hasFile('image')) {
             $files = $req->file('image');
-            for ($i = 0; $i < count($files); $i++) {
-                $image = new Images();
-                $image->user_id = $user->id;
-                $path = GlobalFunction::saveFileAndGivePath($files[$i]);
-                $image->image = $path;
-                $image->save();
+
+            // Validate: only 1 profile image allowed
+            if (is_array($files) && count($files) > 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Only 1 profile image is allowed'
+                ], 400);
             }
+
+            // Delete all old images before adding new one
+            $oldImages = Images::where('user_id', $user->id)->get();
+            foreach ($oldImages as $oldImage) {
+                GlobalFunction::deleteFile($oldImage->image);
+                $oldImage->delete();
+            }
+
+            // Save the single new image
+            $file = is_array($files) ? $files[0] : $files;
+            $image = new Images();
+            $image->user_id = $user->id;
+            $path = GlobalFunction::saveFileAndGivePath($file);
+            $image->image = $path;
+            $image->save();
         }
 
         $updatedUser = Users::where('id', $user->id)->with('images')->first();
