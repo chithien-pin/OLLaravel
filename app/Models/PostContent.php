@@ -29,13 +29,6 @@ class PostContent extends Model
         'cloudflare_image_id',
         'cloudflare_image_url',
         'cloudflare_image_variants',
-        // R2 Storage fields
-        'r2_mp4_url',
-        'r2_key',
-        'r2_file_size',
-        'r2_uploaded_at',
-        'use_r2',
-        'r2_status',
     ];
 
     /**
@@ -48,74 +41,19 @@ class PostContent extends Model
     ];
 
     /**
-     * Get the video URL (R2 MP4 > Cloudflare Stream HLS > original)
+     * Get the video URL (Cloudflare Stream HLS > original)
      *
      * @return string
      */
     public function getVideoUrl()
     {
-        // Priority 1: R2 MP4 if available and preferred (FREE bandwidth!)
-        if ($this->shouldUseR2() && $this->r2_mp4_url) {
-            return $this->r2_mp4_url;
-        }
-
-        // Priority 2: Cloudflare Stream HLS
+        // Priority 1: Cloudflare Stream HLS
         if ($this->cloudflare_status === 'ready' && $this->cloudflare_hls_url) {
             return $this->cloudflare_hls_url;
         }
 
-        // Priority 3: Original content path (fallback)
+        // Priority 2: Original content path (fallback)
         return $this->content;
-    }
-
-    /**
-     * Check if should use R2 for this video
-     *
-     * @return bool
-     */
-    public function shouldUseR2()
-    {
-        // If R2 is not ready, don't use it
-        if ($this->r2_status !== 'ready' || empty($this->r2_mp4_url)) {
-            return false;
-        }
-
-        // If use_r2 is explicitly set, use that preference
-        if ($this->use_r2 !== null) {
-            return (bool)$this->use_r2;
-        }
-
-        // Default strategy: Use R2 for videos older than 7 days
-        $videoAge = now()->diffInDays($this->created_at);
-        return $videoAge > 7;
-    }
-
-    /**
-     * Check if R2 is available for this video
-     *
-     * @return bool
-     */
-    public function isR2Available()
-    {
-        return !empty($this->r2_mp4_url) && $this->r2_status === 'ready';
-    }
-
-    /**
-     * Get the preferred video source
-     *
-     * @return string 'r2'|'stream'|'local'
-     */
-    public function getVideoSource()
-    {
-        if ($this->shouldUseR2() && $this->r2_mp4_url) {
-            return 'r2';
-        }
-
-        if ($this->cloudflare_status === 'ready' && $this->cloudflare_hls_url) {
-            return 'stream';
-        }
-
-        return 'local';
     }
 
     /**
@@ -228,10 +166,6 @@ class PostContent extends Model
                 // Frontend should use ConstRes.aImageBaseUrl + thumbnail path
             }
 
-            // Add R2 fields to API response using setAttribute() for proper JSON serialization
-            $this->setAttribute('is_r2_available', $this->isR2Available());
-            $this->setAttribute('video_source', $this->getVideoSource());
-            // r2_mp4_url is already a database column, it will be included automatically
         } elseif ($this->content_type == 0) { // Image type
             // ⚡ CRITICAL FIX: Use ONLY Cloudflare Images when available
             // This ELIMINATES 404 requests to legacy storage paths

@@ -241,30 +241,6 @@ class CloudflareController extends Controller
                             ]);
                         }
 
-                        // 💾 R2 ARCHIVE: Dispatch job to archive video to R2 for free bandwidth
-                        // This downloads MP4 from Stream and saves to R2 bucket
-                        // Result: Video served from R2 (free bandwidth) instead of Stream (paid)
-                        try {
-                            Log::info('💾 [R2_ARCHIVE] Dispatching R2 archive job for video', [
-                                'video_id' => $videoId,
-                                'post_content_id' => $postContent->id,
-                            ]);
-
-                            // Delay by 30 seconds to ensure Stream has fully processed the video
-                            \App\Jobs\ArchiveVideoToR2::dispatch($videoId, $postContent->id)
-                                ->delay(now()->addSeconds(30));
-
-                            Log::info('💾 [R2_ARCHIVE] R2 archive job dispatched successfully', [
-                                'video_id' => $videoId,
-                                'delayed_by' => '30 seconds',
-                            ]);
-                        } catch (\Exception $e) {
-                            // Don't fail webhook if R2 archive dispatch fails
-                            Log::error('💾 [R2_ARCHIVE] Failed to dispatch R2 archive job', [
-                                'video_id' => $videoId,
-                                'error' => $e->getMessage(),
-                            ]);
-                        }
                     } else if (isset($data['status']['state'])) {
                         // Update processing status
                         switch ($data['status']['state']) {
