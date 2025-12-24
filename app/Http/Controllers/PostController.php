@@ -17,6 +17,7 @@ use App\Models\UserNotification;
 use App\Models\Users;
 use App\Services\CloudflareStreamService;
 use App\Services\TranslationService;
+use App\Models\PostMedia;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
@@ -330,8 +331,47 @@ class PostController extends Controller
         }
         $post->save();
 
+        // Check if this is R2 video upload (new self-hosted transcoding)
+        if ($request->has('r2_media_id') && $request->content_type == 1) {
+            // Video uploaded to R2 and queued for transcoding
+            $mediaId = $request->r2_media_id;
+            $postMedia = PostMedia::where('r2_id', $mediaId)->first();
+
+            if ($postMedia) {
+                // Just link post to media - no PostContent needed
+                $postMedia->post_id = $post->id;
+                $postMedia->save();
+
+                Log::info('Post created with R2 video', [
+                    'post_id' => $post->id,
+                    'media_id' => $mediaId,
+                ]);
+            } else {
+                Log::warning('R2 media not found', ['media_id' => $mediaId]);
+            }
+
+        } else if ($request->has('r2_image_ids') && is_array($request->r2_image_ids)) {
+            // Images uploaded to R2
+            $imageIds = $request->r2_image_ids;
+
+            Log::info('Post created with R2 Images', [
+                'post_id' => $post->id,
+                'image_count' => count($imageIds),
+            ]);
+
+            foreach ($imageIds as $index => $mediaId) {
+                $postMedia = PostMedia::where('r2_id', $mediaId)->first();
+
+                if ($postMedia) {
+                    // Just link post to media - no PostContent needed
+                    $postMedia->post_id = $post->id;
+                    $postMedia->sort_order = $index;
+                    $postMedia->save();
+                }
+            }
+
         // Check if this is a Cloudflare Stream video upload
-        if ($request->has('cloudflare_video_id') && $request->content_type == 1) {
+        } else if ($request->has('cloudflare_video_id') && $request->content_type == 1) {
             // This is a video uploaded directly to Cloudflare Stream
             $postContent = new PostContent();
             $postContent->post_id = $post->id;
@@ -479,12 +519,14 @@ class PostController extends Controller
             }
         }
 
-        $post = Post::where('id', $post->id)->with('content', 'user', 'user.images', 'user.stories')->first();
+        $post = Post::where('id', $post->id)->with('content', 'r2Media', 'user', 'user.images', 'user.stories')->first();
 
-        // Transform content URLs for Cloudflare Stream or HLS
-        foreach ($post->content as $content) {
-            $content->transformForResponse();
-        }
+        // Get combined media (R2 or legacy) with transformed URLs
+        $allMedia = $post->getAllMedia();
+
+        // Replace content with combined media for response
+        $post->setRelation('content', $allMedia);
+        unset($post->r2Media); // Hide r2Media from response
 
         return response()->json([
             'status' => true,

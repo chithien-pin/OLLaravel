@@ -152,23 +152,14 @@ class PostContent extends Model
                 $this->setAttribute('is_processing', false);
             }
 
-            // ⚡ CRITICAL FIX: Use ONLY Cloudflare thumbnail when available
-            // This ELIMINATES 404 requests to legacy storage paths
+            // Use Cloudflare thumbnail when available
             if ($this->cloudflare_thumbnail_url) {
-                // Set thumbnail to Cloudflare URL - frontend will use this
                 $this->thumbnail = $this->cloudflare_thumbnail_url;
-
-                // Also expose explicit Cloudflare field for frontend preference logic
                 $this->setAttribute('cloudflare_thumbnail', $this->cloudflare_thumbnail_url);
-            } else {
-                // No Cloudflare thumbnail yet - keep using legacy thumbnail
-                // (happens during processing or for old posts not migrated yet)
-                // Frontend should use ConstRes.aImageBaseUrl + thumbnail path
             }
 
         } elseif ($this->content_type == 0) { // Image type
-            // ⚡ CRITICAL FIX: Use ONLY Cloudflare Images when available
-            // This ELIMINATES 404 requests to legacy storage paths
+            // Cloudflare Images
             if ($this->isCloudflareImage()) {
                 // Use public variant for main content (full resolution)
                 $this->content = $this->cloudflare_image_variants['public'] ?? $this->cloudflare_image_url;
@@ -184,11 +175,8 @@ class PostContent extends Model
                 $this->setAttribute('cloudflare_image_large', $this->cloudflare_image_variants['large'] ?? null);
                 $this->setAttribute('cloudflare_image_public', $this->cloudflare_image_variants['public'] ?? null);
             } else {
-                // Legacy: Local storage images (old posts not migrated yet)
+                // Legacy: Local storage images
                 $this->setAttribute('is_cloudflare_image', false);
-
-                // Keep original content and thumbnail paths
-                // Frontend should use ConstRes.aImageBaseUrl + content/thumbnail path
             }
         }
     }
