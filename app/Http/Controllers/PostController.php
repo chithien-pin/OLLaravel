@@ -9,14 +9,13 @@ use App\Models\GlobalFunction;
 use App\Models\Like;
 use App\Models\Myfunction;
 use App\Models\Post;
-use App\Models\PostContent;
+use App\Models\PostMedia;
 use App\Models\Report;
 use App\Models\Story;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Users;
 use App\Services\TranslationService;
-use App\Models\PostMedia;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
@@ -62,10 +61,13 @@ class PostController extends Controller
         $data = [];
         foreach ($result as $item) {
 
-
-            $postContent = PostContent::where('post_id', $item->id)->get();
-            $contentType = $postContent->count() == 0 ? 2 : $postContent->first()->content_type;
-            $firstContent = $postContent->pluck('content');
+            $postMedia = PostMedia::where('post_id', $item->id)->get();
+            // Transform to get content/thumbnail URLs
+            foreach ($postMedia as $media) {
+                $media->transformForResponse();
+            }
+            $contentType = $postMedia->count() == 0 ? 2 : $postMedia->first()->content_type;
+            $firstContent = $postMedia->pluck('content');
 
             if ($item->description == null) {
                 $item->description = 'Note: Post has no description';
@@ -370,45 +372,20 @@ class PostController extends Controller
             }
 
         } else if ($request->hasFile('content')) {
-            // Traditional file upload (images only)
-            // Videos should use R2 upload path
-
-            if ($request->content_type == 1) {
-                // Reject direct video uploads - must use R2 upload
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Direct video uploads are not supported. Please use R2 upload.',
-                ]);
-            }
-
-            // Process image uploads (content_type = 0)
-            $files = $request->file('content');
-
-            for ($i = 0; $i < count($files); $i++) {
-                $postContent = new PostContent();
-                $postContent->post_id = $post->id;
-                $contentPath = GlobalFunction::saveFileAndGivePath($files[$i]);
-                $postContent->content = $contentPath;
-
-                if ($request->hasFile('thumbnail')) {
-                    $thumbnails = $request->file('thumbnail');
-                    $thumbnailPath = GlobalFunction::saveFileAndGivePath($thumbnails[$i]);
-                    $postContent->thumbnail = $thumbnailPath;
-                }
-
-                $postContent->content_type = $request->content_type;
-                $postContent->save();
-            }
+            // Direct file uploads are no longer supported
+            // All uploads should go through R2 presigned URL flow
+            return response()->json([
+                'status' => false,
+                'message' => 'Direct file uploads are not supported. Please use R2 upload.',
+            ]);
         }
 
-        $post = Post::where('id', $post->id)->with('content', 'r2Media', 'user', 'user.images', 'user.stories')->first();
+        $post = Post::where('id', $post->id)->with('content', 'user', 'user.images', 'user.stories')->first();
 
-        // Get combined media (R2 or legacy) with transformed URLs
-        $allMedia = $post->getAllMedia();
-
-        // Replace content with combined media for response
-        $post->setRelation('content', $allMedia);
-        unset($post->r2Media); // Hide r2Media from response
+        // Transform media for response
+        foreach ($post->content as $content) {
+            $content->transformForResponse();
+        }
 
         return response()->json([
             'status' => true,
@@ -794,12 +771,10 @@ class PostController extends Controller
             $postReport = Report::where('post_id', $request->post_id)->get();
             $postReport->each->delete();
 
-            $postContents = PostContent::where('post_id', $request->post_id)->get();
-            foreach ($postContents as $postContent) {
-                GlobalFunction::deleteFile($postContent->content);
-                GlobalFunction::deleteFile($postContent->thumbnail);
-            }
-            $postContents->each->delete();
+            // Delete post media (R2 files will remain, can be cleaned up later)
+            // Foreign key cascade will handle deletion when post is deleted
+            $postMedia = PostMedia::where('post_id', $request->post_id)->get();
+            $postMedia->each->delete();
 
             $userNotification = UserNotification::where('item_id', $request->post_id)->where('type', 3)->get();
             $userNotification->each->delete();
@@ -974,13 +949,13 @@ class PostController extends Controller
                             ->whereNotIn('user_id', $blockUserIds)
                             ->whereHas('content', function($query) {
                                 // Only show posts where:
-                                // - Images (content_type = 0) are always shown
-                                // - Videos (content_type = 1) are ONLY shown when cloudflare_status = 'ready'
+                                // - Images (media_type = 0) are always shown
+                                // - Videos (media_type = 1) are ONLY shown when r2_status = 'ready'
                                 $query->where(function($q) {
-                                    $q->where('content_type', 0) // Images
+                                    $q->where('media_type', 0) // Images
                                       ->orWhere(function($subQ) {
-                                          $subQ->where('content_type', 1) // Videos
-                                               ->where('cloudflare_status', 'ready'); // Only ready videos
+                                          $subQ->where('media_type', 1) // Videos
+                                               ->where('r2_status', 'ready'); // Only ready videos
                                       });
                                 });
                             })
@@ -991,7 +966,7 @@ class PostController extends Controller
                             ->get();
 
             foreach ($hashtagPosts as $post) {
-                // Transform content URLs for Cloudflare Stream or HLS
+                // Transform content URLs for R2 media
                 foreach ($post->content as $content) {
                     $content->transformForResponse();
                 }
@@ -1070,12 +1045,10 @@ class PostController extends Controller
     {
         $post = Post::where('id', $request->post_id)->first();
         if ($post) {
-            $postContents = PostContent::where('post_id', $request->post_id)->get();
-            foreach ($postContents as $postContent) {
-                GlobalFunction::deleteFile($postContent->content);
-                GlobalFunction::deleteFile($postContent->thumbnail);
-            }
-            $postContents->each->delete();
+            // Delete post media (R2 files will remain, can be cleaned up later)
+            // Foreign key cascade will handle deletion when post is deleted
+            $postMedia = PostMedia::where('post_id', $request->post_id)->get();
+            $postMedia->each->delete();
 
             $postComments = Comment::where('post_id', $request->post_id)->get();
             $postComments->each->delete();
@@ -1132,9 +1105,13 @@ class PostController extends Controller
         $data = [];
         foreach ($result as $item) {
 
-            $postContent = PostContent::where('post_id', $item->id)->get();
-            $contentType = $postContent->count() == 0 ? 2 : $postContent->first()->content_type;
-            $firstContent = $postContent->pluck('content');
+            $postMedia = PostMedia::where('post_id', $item->id)->get();
+            // Transform to get content/thumbnail URLs
+            foreach ($postMedia as $media) {
+                $media->transformForResponse();
+            }
+            $contentType = $postMedia->count() == 0 ? 2 : $postMedia->first()->content_type;
+            $firstContent = $postMedia->pluck('content');
 
             if ($item->description == null) {
                 $item->description = 'Note: Post has no description';
@@ -1184,18 +1161,18 @@ class PostController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        // Try to find any content for this post (image or video)
-        $postContent = PostContent::where('post_id', $request->post_id)->first();
+        // Try to find any media for this post (image or video)
+        $postMedia = PostMedia::where('post_id', $request->post_id)->first();
 
-        if ($postContent) {
-            // Post has content (image or video)
-            $postContent->view_count = ($postContent->view_count ?? 0) + 1;
-            $postContent->save();
+        if ($postMedia) {
+            // Post has media (image or video)
+            $postMedia->view_count = ($postMedia->view_count ?? 0) + 1;
+            $postMedia->save();
 
             return response()->json([
                 'status' => true,
                 'message' => 'Add post view count',
-                'data' => $postContent,
+                'data' => $postMedia,
             ]);
         } else {
             // Text-only post - add view_count to posts table

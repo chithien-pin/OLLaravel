@@ -6,7 +6,7 @@ use App\Models\Comment;
 use App\Models\GlobalFunction;
 use App\Models\Like;
 use App\Models\Post;
-use App\Models\PostContent;
+use App\Models\PostMedia;
 use App\Models\Report;
 use App\Models\UserNotification;
 use App\Models\Users;
@@ -301,12 +301,10 @@ class ReportController extends Controller
         $report = Report::where('id', $request->report_id)->first();
 
         if ($report) {
-            $postContents = PostContent::where('post_id', $report->post_id)->get();
-            foreach ($postContents as $postContent) {
-                GlobalFunction::deleteFile($postContent->content);
-                GlobalFunction::deleteFile($postContent->thumbnail);
-            }
-            $postContents->each->delete();
+            // Delete post media (R2 files will remain, can be cleaned up later)
+            // Foreign key cascade will handle deletion when post is deleted
+            $postMedia = PostMedia::where('post_id', $report->post_id)->get();
+            $postMedia->each->delete();
 
             $postComments = Comment::where('post_id', $report->post_id)->get();
             $postComments->each->delete();
