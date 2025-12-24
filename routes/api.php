@@ -8,7 +8,6 @@ use App\Http\Controllers\LiveApplicationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\CloudflareController;
 use App\Http\Controllers\R2Controller;
 use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
@@ -137,20 +136,6 @@ Route::post('getUserFeed', [PostController::class, 'getUserFeed'])->middleware('
 Route::post('fetchPostsByHashtag', [PostController::class, 'fetchPostsByHashtag'])->middleware('checkHeader');
 Route::post('fetchPostByPostId', [PostController::class, 'fetchPostByPostId'])->middleware('checkHeader');
 Route::post('increasePostViewCount', [PostController::class, 'increasePostViewCount'])->middleware('checkHeader');
-
-// Cloudflare Stream Routes for Direct Creator Upload (Videos)
-Route::post('cloudflare/getUploadUrl', [CloudflareController::class, 'getUploadUrl'])->middleware('checkHeader');
-Route::post('cloudflare/checkVideoStatus', [CloudflareController::class, 'checkVideoStatus'])->middleware('checkHeader');
-Route::post('cloudflare/deleteVideo', [CloudflareController::class, 'deleteVideo'])->middleware('checkHeader');
-Route::post('cloudflare/getDownloadUrl', [CloudflareController::class, 'getDownloadUrl'])->middleware('checkHeader');
-Route::post('cloudflare/webhook', [CloudflareController::class, 'webhook']); // No auth for webhook
-
-// Cloudflare Images Routes for Direct Creator Upload (Images)
-Route::post('cloudflare/getImageUploadUrl', [CloudflareController::class, 'getImageUploadUrl'])->middleware('checkHeader');
-Route::post('cloudflare/deleteImage', [CloudflareController::class, 'deleteImage'])->middleware('checkHeader');
-
-// Cloudflare CDN Warmup Route (called by Cloudflare Worker)
-Route::post('cdn/videos-to-warm', [PostController::class, 'getVideosToWarm']); // No auth - Worker calls this
 
 /*|--------------------------------------------------------------------------|
   | R2 Storage Routes (New Media System)                                     |

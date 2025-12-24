@@ -15,7 +15,6 @@ use App\Models\Story;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Users;
-use App\Services\CloudflareStreamService;
 use App\Services\TranslationService;
 use App\Models\PostMedia;
 use Carbon\Carbon;
@@ -370,132 +369,15 @@ class PostController extends Controller
                 }
             }
 
-        // Check if this is a Cloudflare Stream video upload
-        } else if ($request->has('cloudflare_video_id') && $request->content_type == 1) {
-            // This is a video uploaded directly to Cloudflare Stream
-            $postContent = new PostContent();
-            $postContent->post_id = $post->id;
-            $postContent->cloudflare_video_id = $request->cloudflare_video_id;
-            $postContent->cloudflare_status = 'uploading'; // Initial status
-            $postContent->content_type = 1; // Video type
-            $postContent->content = ''; // Set empty content value to avoid database error
-            $postContent->thumbnail = ''; // Set empty thumbnail value
-
-            // If thumbnail URL provided from client (after successful upload)
-            if ($request->has('cloudflare_thumbnail_url')) {
-                $postContent->cloudflare_thumbnail_url = $request->cloudflare_thumbnail_url;
-            }
-
-            // Store any additional info
-            if ($request->has('cloudflare_upload_id')) {
-                $postContent->cloudflare_upload_id = $request->cloudflare_upload_id;
-            }
-
-            $postContent->save();
-
-            // Get video details from Cloudflare to populate metadata
-            // BUT keep status as 'processing' until webhook confirms ready
-            try {
-                $cloudflareService = new CloudflareStreamService();
-                $videoDetails = $cloudflareService->getVideoDetails($request->cloudflare_video_id);
-
-                if ($videoDetails['success']) {
-                    // Set status to 'processing' regardless of Cloudflare response
-                    // CDN propagation takes 5-30 seconds even after readyToStream=true
-                    // Webhook will update to 'ready' when truly available
-                    $postContent->cloudflare_status = 'processing';
-
-                    // Update metadata but keep processing status
-                    $postContent->cloudflare_duration = $videoDetails['duration'];
-                    $postContent->cloudflare_hls_url = $videoDetails['hls'];
-                    $postContent->cloudflare_dash_url = $videoDetails['dash'];
-                    $postContent->cloudflare_thumbnail_url = $videoDetails['thumbnail'];
-                    $postContent->cloudflare_stream_url = $videoDetails['hls'];
-                    $postContent->save();
-
-                    Log::info('Cloudflare video details fetched, status kept as processing', [
-                        'video_id' => $request->cloudflare_video_id,
-                        'cloudflare_status_from_api' => $videoDetails['status'],
-                        'forced_status' => 'processing'
-                    ]);
-                }
-            } catch (\Exception $e) {
-                Log::error('Failed to get Cloudflare video details', [
-                    'video_id' => $request->cloudflare_video_id,
-                    'error' => $e->getMessage()
-                ]);
-            }
-
-            Log::info('Post created with Cloudflare Stream video', [
-                'post_id' => $post->id,
-                'cloudflare_video_id' => $request->cloudflare_video_id,
-            ]);
-
-        } else if ($request->has('cloudflare_image_ids') && is_array($request->cloudflare_image_ids)) {
-            // This is images uploaded directly to Cloudflare Images
-            $imageIds = $request->cloudflare_image_ids;
-
-            Log::info('Post created with Cloudflare Images', [
-                'post_id' => $post->id,
-                'image_count' => count($imageIds),
-            ]);
-
-            $cloudflareImagesService = new \App\Services\CloudflareImagesService();
-
-            foreach ($imageIds as $index => $imageId) {
-                $postContent = new PostContent();
-                $postContent->post_id = $post->id;
-                $postContent->cloudflare_image_id = $imageId;
-                $postContent->content_type = 0; // Image type
-                $postContent->content = ''; // Empty content for Cloudflare Images
-                $postContent->thumbnail = ''; // Empty thumbnail
-
-                // Get image details and variants from Cloudflare
-                try {
-                    $imageDetails = $cloudflareImagesService->getImageDetails($imageId);
-
-                    if ($imageDetails['success']) {
-                        // Store image URL and all variants
-                        $postContent->cloudflare_image_url = $imageDetails['variants']['public'] ?? '';
-                        $postContent->cloudflare_image_variants = $imageDetails['variants'];
-
-                        Log::info('Cloudflare image details fetched', [
-                            'post_id' => $post->id,
-                            'image_id' => $imageId,
-                            'index' => $index,
-                        ]);
-                    } else {
-                        Log::warning('Failed to get Cloudflare image details', [
-                            'image_id' => $imageId,
-                            'error' => $imageDetails['error'] ?? 'Unknown error',
-                        ]);
-
-                        // Still save the record with just the image_id
-                        // Variants can be reconstructed using CloudflareImagesService::getImageVariants()
-                        $postContent->cloudflare_image_variants = $cloudflareImagesService->getImageVariants($imageId);
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Exception getting Cloudflare image details', [
-                        'image_id' => $imageId,
-                        'error' => $e->getMessage(),
-                    ]);
-
-                    // Fallback: Construct variants URLs directly
-                    $postContent->cloudflare_image_variants = $cloudflareImagesService->getImageVariants($imageId);
-                }
-
-                $postContent->save();
-            }
-
         } else if ($request->hasFile('content')) {
             // Traditional file upload (images only)
-            // Videos MUST use Cloudflare Stream upload path
+            // Videos should use R2 upload path
 
             if ($request->content_type == 1) {
-                // Reject direct video uploads - must use Cloudflare Stream
+                // Reject direct video uploads - must use R2 upload
                 return response()->json([
                     'status' => false,
-                    'message' => 'Direct video uploads are not supported. Please use Cloudflare Stream upload.',
+                    'message' => 'Direct video uploads are not supported. Please use R2 upload.',
                 ]);
             }
 
@@ -1557,84 +1439,5 @@ class PostController extends Controller
         ];
         echo json_encode($json_data);
         exit();
-    }
-
-    /**
-     * Get videos to warm for CDN cache
-     * Called by Cloudflare Worker to get list of videos that need cache warming
-     *
-     * Strategy:
-     * - 30 most recent videos (last 7 days) - for fresh content
-     * - 30 most viewed videos (all time) - for popular content
-     * - Merge and deduplicate
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getVideosToWarm(Request $request)
-    {
-        try {
-            Log::info('🔥 [CDN_WARMUP_API] Request received from Cloudflare Worker');
-
-            // Get 30 most recent videos (last 7 days)
-            $recentVideos = PostContent::where('content_type', 1) // Video only
-                ->where('cloudflare_status', 'ready')
-                ->whereNotNull('cloudflare_video_id')
-                ->whereNotNull('cloudflare_hls_url')
-                ->where('created_at', '>=', now()->subDays(7))
-                ->orderBy('created_at', 'desc')
-                ->limit(30)
-                ->get(['id', 'post_id', 'cloudflare_video_id', 'cloudflare_hls_url', 'cloudflare_thumbnail_url', 'view_count', 'created_at']);
-
-            Log::info('🔥 [CDN_WARMUP_API] Found ' . $recentVideos->count() . ' recent videos');
-
-            // Get 30 most viewed videos (all time)
-            $popularVideos = PostContent::where('content_type', 1)
-                ->where('cloudflare_status', 'ready')
-                ->whereNotNull('cloudflare_video_id')
-                ->whereNotNull('cloudflare_hls_url')
-                ->where('view_count', '>', 0)
-                ->orderBy('view_count', 'desc')
-                ->limit(30)
-                ->get(['id', 'post_id', 'cloudflare_video_id', 'cloudflare_hls_url', 'cloudflare_thumbnail_url', 'view_count', 'created_at']);
-
-            Log::info('🔥 [CDN_WARMUP_API] Found ' . $popularVideos->count() . ' popular videos');
-
-            // Merge and deduplicate by cloudflare_video_id
-            $allVideos = $recentVideos->merge($popularVideos);
-            $uniqueVideos = $allVideos->unique('cloudflare_video_id');
-
-            Log::info('🔥 [CDN_WARMUP_API] Total unique videos after merge: ' . $uniqueVideos->count());
-
-            // Transform to simple array for Worker
-            $videosToWarm = $uniqueVideos->map(function($video) {
-                return [
-                    'video_id' => $video->cloudflare_video_id,
-                    'hls_url' => $video->cloudflare_hls_url,
-                    'thumbnail_url' => $video->cloudflare_thumbnail_url,
-                    'view_count' => $video->view_count ?? 0,
-                    'age_days' => now()->diffInDays($video->created_at),
-                ];
-            })->values(); // Reset array keys
-
-            Log::info('🔥 [CDN_WARMUP_API] Returning ' . $videosToWarm->count() . ' videos to Worker');
-
-            return response()->json([
-                'status' => true,
-                'count' => $videosToWarm->count(),
-                'data' => $videosToWarm,
-                'generated_at' => now()->toIso8601String(),
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('🔥 [CDN_WARMUP_API] Error: ' . $e->getMessage());
-            Log::error('🔥 [CDN_WARMUP_API] Trace: ' . $e->getTraceAsString());
-
-            return response()->json([
-                'status' => false,
-                'message' => 'Failed to get videos for warming',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
     }
 }
