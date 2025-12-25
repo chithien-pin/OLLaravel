@@ -15,7 +15,7 @@ use App\Models\LiveApplications;
 use App\Models\LiveHistory;
 use App\Models\Myfunction;
 use App\Models\Post;
-use App\Models\PostContent;
+use App\Models\PostMedia;
 use App\Models\RedeemRequest;
 use App\Models\Report;
 use App\Models\Story;
@@ -424,13 +424,10 @@ class UsersController extends Controller
 
         $posts = Post::where('user_id', $user->id)->get();
         foreach ($posts as $post) {
-            $postContents = PostContent::where('post_id', $post->id)->get();
-            foreach ($postContents as $postContent) {
-                GlobalFunction::deleteFile($postContent->content);
-                GlobalFunction::deleteFile($postContent->thumbnail);
-                $postContent->delete();
-            }
-            
+            // Delete post media (R2 files will remain, can be cleaned up later)
+            // Foreign key cascade will handle deletion when post is deleted
+            PostMedia::where('post_id', $post->id)->delete();
+
             Comment::where('post_id', $post->id)->delete();
             Like::where('post_id', $post->id)->delete();
             Report::where('post_id', $post->id)->delete();
@@ -2402,15 +2399,11 @@ class UsersController extends Controller
         $fetchPosts = Post::select('posts.id', 'posts.user_id', 'posts.description', 'posts.comments_count', 'posts.likes_count', 'posts.created_at')
                             ->with([
                                 'content' => function($query) {
-                                    // Load all fields including Cloudflare Stream (video) and Cloudflare Images (photo) fields
-                                    $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count',
-                                                   // Cloudflare Stream fields (videos)
-                                                   'cloudflare_video_id', 'cloudflare_stream_url', 'cloudflare_thumbnail_url',
-                                                   'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
-                                                   'cloudflare_duration',
-                                                   // Cloudflare Images fields (photos)
-                                                   'cloudflare_image_id', 'cloudflare_image_url', 'cloudflare_image_variants')
-                                          ->orderBy('id', 'asc');
+                                    // Load R2 media fields
+                                    $query->select('id', 'post_id', 'media_type', 'view_count',
+                                                   'r2_hls_url', 'r2_thumbnail_url', 'r2_status',
+                                                   'r2_image_variants', 'duration', 'sort_order')
+                                          ->orderBy('sort_order', 'asc');
                                 },
                                 'user' => function($query) {
                                     // Only load essential user fields
@@ -2427,13 +2420,13 @@ class UsersController extends Controller
                             ->whereNotIn('user_id', array_merge($blockUserIds))
                             ->whereHas('content', function($query) {
                                 // Only show posts where:
-                                // - Images (content_type = 0) are always shown
-                                // - Videos (content_type = 1) are ONLY shown when cloudflare_status = 'ready'
+                                // - Images (media_type = 0) are always shown
+                                // - Videos (media_type = 1) are ONLY shown when r2_status = 'ready'
                                 $query->where(function($q) {
-                                    $q->where('content_type', 0) // Images
+                                    $q->where('media_type', 0) // Images
                                       ->orWhere(function($subQ) {
-                                          $subQ->where('content_type', 1) // Videos
-                                               ->where('cloudflare_status', 'ready'); // Only ready videos
+                                          $subQ->where('media_type', 1) // Videos
+                                               ->where('r2_status', 'ready'); // Only ready videos
                                       });
                                 });
                             })
@@ -2478,7 +2471,7 @@ class UsersController extends Controller
             // Set like status from batch query
             $fetchPost->is_like = in_array($fetchPost->id, $likedPostIds) ? 1 : 0;
 
-            // Transform content URLs for Cloudflare Stream or HLS
+            // Transform content URLs for R2 media
             foreach ($fetchPost->content as $content) {
                 $content->transformForResponse();
             }
@@ -2559,15 +2552,11 @@ class UsersController extends Controller
                                     'posts.created_at', 'posts.likes_count', 'posts.comments_count')
             ->with([
                 'content' => function($query) {
-                    // Only load video fields (no images)
-                    $query->select('id', 'post_id', 'content', 'thumbnail',
-                                  'content_type', 'view_count',
-                                  // Cloudflare Stream fields
-                                  'cloudflare_video_id', 'cloudflare_hls_url',
-                                  'cloudflare_thumbnail_url', 'cloudflare_status',
-                                  'cloudflare_duration')
-                          ->where('content_type', 1) // Only videos
-                          ->orderBy('id', 'asc');
+                    // Only load video fields (R2 media)
+                    $query->select('id', 'post_id', 'media_type', 'view_count',
+                                  'r2_hls_url', 'r2_thumbnail_url', 'r2_status', 'duration')
+                          ->where('media_type', 1) // Only videos
+                          ->orderBy('sort_order', 'asc');
                 },
                 'user' => function($query) {
                     // Minimal user info (no following status, no package info)
@@ -2583,8 +2572,8 @@ class UsersController extends Controller
             ->whereRelation('user', 'is_block', 0) // Only non-blocked users
             ->whereHas('content', function($query) {
                 // Only ready videos (critical filter)
-                $query->where('content_type', 1) // Videos only
-                      ->where('cloudflare_status', 'ready'); // Only ready
+                $query->where('media_type', 1) // Videos only
+                      ->where('r2_status', 'ready'); // Only ready
             })
             ->orderBy('created_at', 'desc') // Latest first (or add trending algorithm later)
             ->limit($limit)
@@ -2597,7 +2586,7 @@ class UsersController extends Controller
             ]);
         }
 
-        // Transform content URLs (Cloudflare Stream HLS)
+        // Transform content URLs (R2 HLS)
         foreach ($fetchPosts as $fetchPost) {
             foreach ($fetchPost->content as $content) {
                 $content->transformForResponse();
@@ -2683,15 +2672,11 @@ class UsersController extends Controller
         $fetchPosts = Post::select('posts.id', 'posts.user_id', 'posts.description', 'posts.comments_count', 'posts.likes_count', 'posts.created_at')
                             ->with([
                                 'content' => function($query) {
-                                    // Load all fields including Cloudflare Stream (video) and Cloudflare Images (photo) fields
-                                    $query->select('id', 'post_id', 'content', 'thumbnail', 'content_type', 'view_count',
-                                                   // Cloudflare Stream fields (videos)
-                                                   'cloudflare_video_id', 'cloudflare_stream_url', 'cloudflare_thumbnail_url',
-                                                   'cloudflare_hls_url', 'cloudflare_dash_url', 'cloudflare_status',
-                                                   'cloudflare_duration',
-                                                   // Cloudflare Images fields (photos)
-                                                   'cloudflare_image_id', 'cloudflare_image_url', 'cloudflare_image_variants')
-                                          ->orderBy('id', 'asc');
+                                    // Load R2 media fields
+                                    $query->select('id', 'post_id', 'media_type', 'view_count',
+                                                   'r2_hls_url', 'r2_thumbnail_url', 'r2_status',
+                                                   'r2_image_variants', 'duration', 'sort_order')
+                                          ->orderBy('sort_order', 'asc');
                                 },
                                 'user' => function($query) {
                                     // Only load essential user fields
@@ -2709,13 +2694,13 @@ class UsersController extends Controller
                             ->whereIn('user_id', $followingUserIds)
                             ->whereHas('content', function($query) {
                                 // Only show posts where:
-                                // - Images (content_type = 0) are always shown
-                                // - Videos (content_type = 1) are ONLY shown when cloudflare_status = 'ready'
+                                // - Images (media_type = 0) are always shown
+                                // - Videos (media_type = 1) are ONLY shown when r2_status = 'ready'
                                 $query->where(function($q) {
-                                    $q->where('content_type', 0) // Images
+                                    $q->where('media_type', 0) // Images
                                       ->orWhere(function($subQ) {
-                                          $subQ->where('content_type', 1) // Videos
-                                               ->where('cloudflare_status', 'ready'); // Only ready videos
+                                          $subQ->where('media_type', 1) // Videos
+                                               ->where('r2_status', 'ready'); // Only ready videos
                                       });
                                 });
                             })
@@ -2760,7 +2745,7 @@ class UsersController extends Controller
             // Set like status from batch query
             $fetchPost->is_like = in_array($fetchPost->id, $likedPostIds) ? 1 : 0;
 
-            // Transform content URLs for Cloudflare Stream or HLS
+            // Transform content URLs for R2 media
             foreach ($fetchPost->content as $content) {
                 $content->transformForResponse();
             }
@@ -2877,13 +2862,10 @@ class UsersController extends Controller
 
         $posts = Post::where('user_id', $user->id)->get();
         foreach ($posts as $post) {
-            $postContents = PostContent::where('post_id', $post->id)->get();
-            foreach ($postContents as $postContent) {
-                GlobalFunction::deleteFile($postContent->content);
-                GlobalFunction::deleteFile($postContent->thumbnail);
-                $postContent->delete();
-            }
-            
+            // Delete post media (R2 files will remain, can be cleaned up later)
+            // Foreign key cascade will handle deletion when post is deleted
+            PostMedia::where('post_id', $post->id)->delete();
+
             Comment::where('post_id', $post->id)->delete();
             Like::where('post_id', $post->id)->delete();
             Report::where('post_id', $post->id)->delete();

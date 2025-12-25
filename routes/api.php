@@ -8,7 +8,7 @@ use App\Http\Controllers\LiveApplicationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\CloudflareController;
+use App\Http\Controllers\R2Controller;
 use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
@@ -137,19 +137,23 @@ Route::post('fetchPostsByHashtag', [PostController::class, 'fetchPostsByHashtag'
 Route::post('fetchPostByPostId', [PostController::class, 'fetchPostByPostId'])->middleware('checkHeader');
 Route::post('increasePostViewCount', [PostController::class, 'increasePostViewCount'])->middleware('checkHeader');
 
-// Cloudflare Stream Routes for Direct Creator Upload (Videos)
-Route::post('cloudflare/getUploadUrl', [CloudflareController::class, 'getUploadUrl'])->middleware('checkHeader');
-Route::post('cloudflare/checkVideoStatus', [CloudflareController::class, 'checkVideoStatus'])->middleware('checkHeader');
-Route::post('cloudflare/deleteVideo', [CloudflareController::class, 'deleteVideo'])->middleware('checkHeader');
-Route::post('cloudflare/getDownloadUrl', [CloudflareController::class, 'getDownloadUrl'])->middleware('checkHeader');
-Route::post('cloudflare/webhook', [CloudflareController::class, 'webhook']); // No auth for webhook
+/*|--------------------------------------------------------------------------|
+  | R2 Storage Routes (New Media System)                                     |
+  |--------------------------------------------------------------------------|*/
 
-// Cloudflare Images Routes for Direct Creator Upload (Images)
-Route::post('cloudflare/getImageUploadUrl', [CloudflareController::class, 'getImageUploadUrl'])->middleware('checkHeader');
-Route::post('cloudflare/deleteImage', [CloudflareController::class, 'deleteImage'])->middleware('checkHeader');
+// Video upload
+Route::post('r2/video/upload-url', [R2Controller::class, 'getVideoUploadUrl'])->middleware('checkHeader');
+Route::post('r2/video/confirm-upload', [R2Controller::class, 'confirmVideoUpload'])->middleware('checkHeader');
+Route::get('r2/video/status/{id}', [R2Controller::class, 'getVideoStatus'])->middleware('checkHeader');
+Route::post('r2/video/webhook', [R2Controller::class, 'videoWebhook']); // No auth - Transcoding server calls this
 
-// Cloudflare CDN Warmup Route (called by Cloudflare Worker)
-Route::post('cdn/videos-to-warm', [PostController::class, 'getVideosToWarm']); // No auth - Worker calls this
+// Image upload
+Route::post('r2/image/upload-url', [R2Controller::class, 'getImageUploadUrl'])->middleware('checkHeader');
+Route::post('r2/image/confirm-upload', [R2Controller::class, 'confirmImageUpload'])->middleware('checkHeader');
+Route::post('r2/image/webhook', [R2Controller::class, 'imageWebhook']); // No auth - Processing server calls this
+
+// Delete media
+Route::post('r2/delete', [R2Controller::class, 'deleteMedia'])->middleware('checkHeader');
 
 Route::get('test', [UsersController::class, 'test'])->middleware('checkHeader');
 
