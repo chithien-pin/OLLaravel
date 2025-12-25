@@ -24,7 +24,7 @@ return [
         'redis_queue' => env('TRANSCODE_REDIS_QUEUE', 'transcode_jobs'),
         'callback_secret' => env('TRANSCODE_CALLBACK_SECRET'),
         'callback_url' => env('TRANSCODE_CALLBACK_URL', env('APP_URL') . '/api/r2/video/webhook'),
-        'resolutions' => ['240p', '360p', '480p'],
+        'resolutions' => ['240p', '360p', '480p', '720p'],
     ],
 
     /*
