@@ -33,7 +33,6 @@ class PostMedia extends Model
         'sort_order',
         'blurhash',
         'aspect_ratio',
-        'view_count',
         'gallery_path',
     ];
 
