@@ -2399,10 +2399,10 @@ class UsersController extends Controller
         $fetchPosts = Post::select('posts.id', 'posts.user_id', 'posts.description', 'posts.comments_count', 'posts.likes_count', 'posts.created_at')
                             ->with([
                                 'content' => function($query) {
-                                    // Load R2 media fields + gallery_path for local images
-                                    $query->select('id', 'post_id', 'media_type', 'view_count',
+                                    // Load R2 media fields + gallery_path for local images + r2_raw_path for download
+                                    $query->select('id', 'post_id', 'media_type',
                                                    'r2_hls_url', 'r2_thumbnail_url', 'r2_status',
-                                                   'r2_image_variants', 'duration', 'sort_order',
+                                                   'r2_image_variants', 'r2_raw_path', 'duration', 'sort_order',
                                                    'gallery_path')
                                           ->orderBy('sort_order', 'asc');
                                 },
@@ -2673,10 +2673,10 @@ class UsersController extends Controller
         $fetchPosts = Post::select('posts.id', 'posts.user_id', 'posts.description', 'posts.comments_count', 'posts.likes_count', 'posts.created_at')
                             ->with([
                                 'content' => function($query) {
-                                    // Load R2 media fields + gallery_path for local images
-                                    $query->select('id', 'post_id', 'media_type', 'view_count',
+                                    // Load R2 media fields + gallery_path for local images + r2_raw_path for download
+                                    $query->select('id', 'post_id', 'media_type',
                                                    'r2_hls_url', 'r2_thumbnail_url', 'r2_status',
-                                                   'r2_image_variants', 'duration', 'sort_order',
+                                                   'r2_image_variants', 'r2_raw_path', 'duration', 'sort_order',
                                                    'gallery_path')
                                           ->orderBy('sort_order', 'asc');
                                 },

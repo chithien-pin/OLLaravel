@@ -141,6 +141,11 @@ class PostMedia extends Model
                 $this->content = $this->r2_hls_url;
                 $this->thumbnail = $this->r2_thumbnail_url;
                 $this->setAttribute('is_r2_video', true);
+
+                // Add download URL for raw video (preserves original extension case)
+                if ($this->r2_raw_path) {
+                    $this->setAttribute('download_url', config('r2.public_url') . '/' . $this->r2_raw_path);
+                }
             } else {
                 // Still processing - keep null/empty
                 $this->content = null;
