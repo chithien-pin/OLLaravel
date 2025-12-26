@@ -34,6 +34,7 @@ class PostMedia extends Model
         'blurhash',
         'aspect_ratio',
         'view_count',
+        'gallery_path',
     ];
 
     protected $casts = [
@@ -161,18 +162,28 @@ class PostMedia extends Model
         }
         // Image (media_type = 0)
         else {
-            $variants = $this->r2_image_variants ?? [];
+            // Check gallery_path first (local storage)
+            if ($this->gallery_path) {
+                // Local storage image
+                $this->content = url('storage/' . $this->gallery_path);
+                $this->thumbnail = $this->content;
+                $this->content_type = 0;
+                $this->setAttribute('is_local_image', true);
+            } else {
+                // R2 image with variants (legacy/future)
+                $variants = $this->r2_image_variants ?? [];
 
-            // Use large for main content, thumbnail for thumbnail
-            $this->content = $variants['large'] ?? $variants['medium'] ?? null;
-            $this->thumbnail = $variants['thumbnail'] ?? $this->content;
-            $this->content_type = 0;
-            $this->setAttribute('is_r2_image', true);
+                // Use large for main content, thumbnail for thumbnail
+                $this->content = $variants['large'] ?? $variants['medium'] ?? null;
+                $this->thumbnail = $variants['thumbnail'] ?? $this->content;
+                $this->content_type = 0;
+                $this->setAttribute('is_r2_image', true);
 
-            // Expose all variants for frontend optimization
-            $this->setAttribute('r2_image_thumbnail', $variants['thumbnail'] ?? null);
-            $this->setAttribute('r2_image_medium', $variants['medium'] ?? null);
-            $this->setAttribute('r2_image_large', $variants['large'] ?? null);
+                // Expose all variants for frontend optimization
+                $this->setAttribute('r2_image_thumbnail', $variants['thumbnail'] ?? null);
+                $this->setAttribute('r2_image_medium', $variants['medium'] ?? null);
+                $this->setAttribute('r2_image_large', $variants['large'] ?? null);
+            }
         }
     }
 }

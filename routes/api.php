@@ -123,6 +123,7 @@ Route::post('deleteStory', [PostController::class, 'deleteStory'])->middleware('
 Route::post('reportPost', [PostController::class, 'reportPost'])->middleware('checkHeader');
 
 Route::post('addPost', [PostController::class, 'addPost'])->middleware('checkHeader');
+Route::post('uploadPostImage', [PostController::class, 'uploadPostImage'])->middleware('checkHeader');
 // Route::post('fetchPosts', [PostController::class, 'fetchPosts'])->middleware('checkHeader');
 Route::post('addComment', [PostController::class, 'addComment'])->middleware('checkHeader');
 Route::post('fetchComments', [PostController::class, 'fetchComments'])->middleware('checkHeader');

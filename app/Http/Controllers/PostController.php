@@ -22,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -392,7 +393,84 @@ class PostController extends Controller
             'message' => 'Post Uploaded',
             'data' => $post,
         ]);
-        
+
+    }
+
+    /**
+     * Upload a single image for a post
+     * Creates PostMedia record with gallery_path for local storage
+     * POST /api/uploadPostImage
+     */
+    public function uploadPostImage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'image' => 'required|image|max:10240', // 10MB max
+        ]);
+
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+        if ($user == null) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User Not Found',
+            ]);
+        }
+
+        if ($user->is_block == Constants::blocked) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User is Blocked',
+            ]);
+        }
+
+        $file = $request->file('image');
+        $uuid = Str::uuid()->toString();
+        $extension = $file->getClientOriginalExtension();
+        $filename = $uuid . '.' . $extension;
+
+        // Store in storage/app/public/uploads/posts/ (accessible via public/storage symlink)
+        // Using 'public' disk so path will be 'uploads/posts/{uuid}.jpg' (without 'public/' prefix)
+        $path = $file->storeAs('uploads/posts', $filename, 'public');
+
+        // Get image dimensions
+        $imageInfo = getimagesize($file->getRealPath());
+        $width = $imageInfo[0] ?? null;
+        $height = $imageInfo[1] ?? null;
+
+        // Create PostMedia record
+        $media = PostMedia::create([
+            'media_type' => 0, // Image
+            'r2_id' => $uuid,
+            'r2_status' => 'ready',
+            'gallery_path' => $path,
+            'original_filename' => $file->getClientOriginalName(),
+            'mime_type' => $file->getMimeType(),
+            'file_size' => $file->getSize(),
+            'width' => $width,
+            'height' => $height,
+            'aspect_ratio' => ($height > 0) ? round($width / $height, 3) : null,
+        ]);
+
+        Log::info('Image uploaded to local storage', [
+            'media_id' => $media->id,
+            'r2_id' => $uuid,
+            'path' => $path,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Image uploaded',
+            'data' => [
+                'media_id' => $media->id,
+                'r2_id' => $uuid,
+            ],
+        ]);
     }
 
     public function addComment(Request $request)
