@@ -2553,9 +2553,9 @@ class UsersController extends Controller
                                     'posts.created_at', 'posts.likes_count', 'posts.comments_count')
             ->with([
                 'content' => function($query) {
-                    // Only load video fields (R2 media)
-                    $query->select('id', 'post_id', 'media_type', 'view_count',
-                                  'r2_hls_url', 'r2_thumbnail_url', 'r2_status', 'duration')
+                    // Only load video fields (R2 media) - view_count is in posts table now
+                    $query->select('id', 'post_id', 'media_type',
+                                  'r2_hls_url', 'r2_thumbnail_url', 'r2_status', 'r2_raw_path', 'duration')
                           ->where('media_type', 1) // Only videos
                           ->orderBy('sort_order', 'asc');
                 },
