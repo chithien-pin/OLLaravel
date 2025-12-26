@@ -455,6 +455,7 @@ class PostController extends Controller
             'width' => $width,
             'height' => $height,
             'aspect_ratio' => ($height > 0) ? round($width / $height, 3) : null,
+            'has_audio' => false, // Images don't have audio
         ]);
 
         Log::info('Image uploaded to local storage', [
@@ -1243,46 +1244,24 @@ class PostController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        // Try to find any media for this post (image or video)
-        $postMedia = PostMedia::where('post_id', $request->post_id)->first();
+        $post = Post::find($request->post_id);
 
-        if ($postMedia) {
-            // Post has media (image or video)
-            $postMedia->view_count = ($postMedia->view_count ?? 0) + 1;
-            $postMedia->save();
-
+        if (!$post) {
             return response()->json([
-                'status' => true,
-                'message' => 'Add post view count',
-                'data' => $postMedia,
+                'status' => false,
+                'message' => 'Post not found',
             ]);
-        } else {
-            // Text-only post - add view_count to posts table
-            $post = Post::find($request->post_id);
-            if ($post) {
-                // Add view_count field to posts table if doesn't exist
-                if (!Schema::hasColumn('posts', 'view_count')) {
-                    Schema::table('posts', function (Blueprint $table) {
-                        $table->integer('view_count')->default(0);
-                    });
-                }
-
-                $post->view_count = ($post->view_count ?? 0) + 1;
-                $post->save();
-
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Add post view count',
-                    'data' => $post,
-                ]);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Post not found',
-                ]);
-            }
         }
-        
+
+        // Always store view_count in posts table
+        $post->view_count = ($post->view_count ?? 0) + 1;
+        $post->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Add post view count',
+            'data' => ['view_count' => $post->view_count],
+        ]);
     }
 
     // CronJob start
