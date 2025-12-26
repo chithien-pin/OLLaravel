@@ -518,8 +518,12 @@ class PostController extends Controller
                     }
                 }
 
+                // Transform content URLs for response
+                foreach ($post->content as $content) {
+                    $content->transformForResponse();
+                }
                 $comment->post = $post;
-                 
+
                 if ($user->id != $post->user_id) {
                     $type = Constants::notificationTypeComment;
 
