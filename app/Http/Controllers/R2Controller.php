@@ -206,16 +206,35 @@ class R2Controller extends Controller
                 'transcode_progress' => $request->input('progress', 0),
             ]);
         } elseif ($status === 'ready') {
-            $media->update([
+            // Build update array - only update fields that are present
+            $updateData = [
                 'r2_status' => 'ready',
-                'r2_hls_url' => $request->input('hls_url'),
-                'r2_thumbnail_url' => $request->input('thumbnail_url'),
-                'duration' => $request->input('duration') ?? $media->duration,
-                'width' => $request->input('width') ?? $media->width,
-                'height' => $request->input('height') ?? $media->height,
                 'transcode_progress' => 100,
-            ]);
-            Log::info('Video transcoding completed', ['video_id' => $media->r2_id]);
+            ];
+
+            // Only update hls_url if provided (preserve existing for thumbnail-only updates)
+            if ($request->has('hls_url') && $request->input('hls_url')) {
+                $updateData['r2_hls_url'] = $request->input('hls_url');
+            }
+
+            // Always update thumbnail if provided
+            if ($request->has('thumbnail_url') && $request->input('thumbnail_url')) {
+                $updateData['r2_thumbnail_url'] = $request->input('thumbnail_url');
+            }
+
+            // Update dimensions if provided
+            if ($request->input('duration')) {
+                $updateData['duration'] = $request->input('duration');
+            }
+            if ($request->input('width')) {
+                $updateData['width'] = $request->input('width');
+            }
+            if ($request->input('height')) {
+                $updateData['height'] = $request->input('height');
+            }
+
+            $media->update($updateData);
+            Log::info('Video transcoding completed', ['video_id' => $media->r2_id, 'updated' => array_keys($updateData)]);
         } elseif ($status === 'error') {
             $media->update([
                 'r2_status' => 'error',
