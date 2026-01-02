@@ -695,12 +695,8 @@ class UsersController extends Controller
                 $userNotification->type = Constants::notificationTypeLikeProfile;
                 $userNotification->save();
 
-                if ($user->id != $my_user->id && $user->is_notification) {
-                    $title = TranslationService::forUser($user, 'notification.title.app');
-                    $message = TranslationService::forUser($user, 'notification.profile_like', [
-                        'name' => $my_user->fullname
-                    ]);
-                    Myfunction::sendPushToUser($title, $message, $user->device_token);
+                if ($user->id != $my_user->id) {
+                    Myfunction::sendProfileLikeNotification($my_user, $user);
                 }
 
             }

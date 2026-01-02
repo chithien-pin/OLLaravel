@@ -29,6 +29,7 @@ final class Constants
     const eventTypePostComment = 'post_comment';
     const eventTypeGiftReceived = 'gift_received';
     const eventTypeAdminAnnouncement = 'admin_announcement';
+    const eventTypeProfileLike = 'profile_like';
 
     // Push notification actions
     const actionNavigateToProfile = 'navigate_to_profile';
