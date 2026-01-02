@@ -2,7 +2,7 @@
     "notification.follow": ":name has started following you.",
     "notification.comment": ":name commented on your post: :comment",
     "notification.post_like": ":name liked your post.",
-    "notification.profile_like": ":name has liked your profile, you should check their profile!",
+    "notification.profile_like": ":name wants to shake your hand",
 
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "New Follower",

@@ -2,7 +2,7 @@
     "notification.follow": ":name 开始关注你了。",
     "notification.comment": ":name 评论了你的帖子：:comment",
     "notification.post_like": ":name 喜欢了你的帖子。",
-    "notification.profile_like": ":name 喜欢了你的个人资料，你应该看看他们的个人资料！",
+    "notification.profile_like": ":name 想和你握手",
 
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "新关注者",

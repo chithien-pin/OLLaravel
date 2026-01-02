@@ -2,7 +2,7 @@
     "notification.follow": ":name seni takip etmeye başladı.",
     "notification.comment": ":name gönderine yorum yaptı: :comment",
     "notification.post_like": ":name gönderini beğendi.",
-    "notification.profile_like": ":name profilini beğendi, onların profiline bakmalısın!",
+    "notification.profile_like": ":name seninle el sıkışmak istiyor",
 
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "Yeni Takipçi",

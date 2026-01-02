@@ -2,7 +2,7 @@
     "notification.follow": ":name님이 회원님을 팔로우하기 시작했습니다.",
     "notification.comment": ":name님이 회원님의 게시물에 댓글을 남겼습니다: :comment",
     "notification.post_like": ":name님이 회원님의 게시물을 좋아합니다.",
-    "notification.profile_like": ":name님이 회원님의 프로필을 좋아합니다. 그들의 프로필을 확인해보세요!",
+    "notification.profile_like": ":name님이 악수를 원합니다",
 
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "새 팔로워",

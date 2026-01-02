@@ -2,7 +2,7 @@
     "notification.follow": ":nameがあなたをフォローし始めました。",
     "notification.comment": ":nameがあなたの投稿にコメントしました: :comment",
     "notification.post_like": ":nameがあなたの投稿にいいねしました。",
-    "notification.profile_like": ":nameがあなたのプロフィールにいいねしました。彼らのプロフィールをチェックしてみてください！",
+    "notification.profile_like": ":nameがあなたと握手したがっています",
 
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "新しいフォロワー",

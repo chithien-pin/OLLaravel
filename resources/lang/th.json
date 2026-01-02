@@ -2,7 +2,7 @@
     "notification.follow": ":name เริ่มติดตามคุณแล้ว",
     "notification.comment": ":name แสดงความคิดเห็นในโพสต์ของคุณ: :comment",
     "notification.post_like": ":name ถูกใจโพสต์ของคุณ",
-    "notification.profile_like": ":name ถูกใจโปรไฟล์ของคุณ คุณควรดูโปรไฟล์ของพวกเขา!",
+    "notification.profile_like": ":name ต้องการจับมือกับคุณ",
 
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "ผู้ติดตามใหม่",

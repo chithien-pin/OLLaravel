@@ -2,7 +2,7 @@
     "notification.follow": ":name ने आपको फॉलो करना शुरू किया।",
     "notification.comment": ":name ने आपकी पोस्ट पर टिप्पणी की: :comment",
     "notification.post_like": ":name को आपकी पोस्ट पसंद आई।",
-    "notification.profile_like": ":name को आपकी प्रोफाइल पसंद आई, आपको उनकी प्रोफाइल देखनी चाहिए!",
+    "notification.profile_like": ":name आपसे हाथ मिलाना चाहता है",
 
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "नया फॉलोअर",

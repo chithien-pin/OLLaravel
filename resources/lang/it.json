@@ -2,7 +2,7 @@
     "notification.follow": ":name ha iniziato a seguirti.",
     "notification.comment": ":name ha commentato il tuo post: :comment",
     "notification.post_like": "A :name piace il tuo post.",
-    "notification.profile_like": "A :name piace il tuo profilo, dovresti controllare il suo profilo!",
+    "notification.profile_like": ":name vuole stringerti la mano",
 
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "Nuovo follower",
