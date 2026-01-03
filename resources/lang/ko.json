@@ -3,10 +3,10 @@
     "notification.comment": ":name님이 회원님의 게시물에 댓글을 남겼습니다: :comment",
     "notification.post_like": ":name님이 회원님의 게시물을 좋아합니다.",
     "notification.profile_like": ":name님이 악수를 원합니다",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "새 팔로워",
     "notification.title.comment": "새 댓글",
     "notification.title.post_like": "게시물 좋아요",
-    "notification.title.profile_like": "프로필 좋아요"
+    "notification.title.profile_like": "프로필 좋아요",
+    "notification.handshake_accepted": "{name}님이 악수를 수락했습니다"
 }

@@ -3,10 +3,10 @@
     "notification.comment": ":name mengomentari postingan Anda: :comment",
     "notification.post_like": ":name menyukai postingan Anda.",
     "notification.profile_like": ":name ingin berjabat tangan denganmu",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "Pengikut Baru",
     "notification.title.comment": "Komentar Baru",
     "notification.title.post_like": "Postingan Disukai",
-    "notification.title.profile_like": "Profil Disukai"
+    "notification.title.profile_like": "Profil Disukai",
+    "notification.handshake_accepted": "{name} menerima jabat tangan Anda"
 }

@@ -3,10 +3,10 @@
     "notification.comment": ":name heeft gereageerd op je bericht: :comment",
     "notification.post_like": ":name vindt je bericht leuk.",
     "notification.profile_like": ":name wil je de hand schudden",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "Nieuwe volger",
     "notification.title.comment": "Nieuwe reactie",
     "notification.title.post_like": "Bericht geliked",
-    "notification.title.profile_like": "Profiel geliked"
+    "notification.title.profile_like": "Profiel geliked",
+    "notification.handshake_accepted": "{name} heeft je handdruk geaccepteerd"
 }

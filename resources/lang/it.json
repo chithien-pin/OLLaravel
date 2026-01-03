@@ -3,10 +3,10 @@
     "notification.comment": ":name ha commentato il tuo post: :comment",
     "notification.post_like": "A :name piace il tuo post.",
     "notification.profile_like": ":name vuole stringerti la mano",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "Nuovo follower",
     "notification.title.comment": "Nuovo commento",
     "notification.title.post_like": "Post piaciuto",
-    "notification.title.profile_like": "Profilo piaciuto"
+    "notification.title.profile_like": "Profilo piaciuto",
+    "notification.handshake_accepted": "{name} ha accettato la tua stretta di mano"
 }

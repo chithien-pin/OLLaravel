@@ -3,10 +3,10 @@
     "notification.comment": ":name gönderine yorum yaptı: :comment",
     "notification.post_like": ":name gönderini beğendi.",
     "notification.profile_like": ":name seninle el sıkışmak istiyor",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "Yeni Takipçi",
     "notification.title.comment": "Yeni Yorum",
     "notification.title.post_like": "Gönderi Beğenildi",
-    "notification.title.profile_like": "Profil Beğenildi"
+    "notification.title.profile_like": "Profil Beğenildi",
+    "notification.handshake_accepted": "{name} el sıkışmanı kabul etti"
 }

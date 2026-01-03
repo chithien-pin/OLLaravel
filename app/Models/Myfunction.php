@@ -314,6 +314,39 @@ class Myfunction extends Model
     }
 
     /**
+     * Send handshake accepted notification
+     * Called when User B accepts the handshake request from User A
+     */
+    public static function sendHandshakeAcceptedNotification($fromUser, $toUser)
+    {
+        if ($toUser->is_notification != 1) {
+            return;
+        }
+
+        $title = TranslationService::forUser($toUser, 'notification.title.app');
+        $message = TranslationService::forUser($toUser, 'notification.handshake_accepted', [
+            'name' => $fromUser->fullname
+        ]);
+
+        // Generate conversation ID (smaller ID first)
+        $conversationId = min($fromUser->id, $toUser->id) . '_' . max($fromUser->id, $toUser->id);
+
+        $eventData = [
+            'event_type' => Constants::eventTypeHandshakeAccepted,
+            'user_id' => (string) $fromUser->id,
+            'user_name' => $fromUser->fullname,
+            'user_image' => self::getProfileImageUrl($fromUser),
+            'conversation_id' => $conversationId,
+            'timestamp' => (string) time(),
+            'action' => Constants::actionOpenChat,
+            'screen' => Constants::screenChat,
+            'params' => json_encode(['conversationId' => $conversationId, 'userId' => $fromUser->id])
+        ];
+
+        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
+    }
+
+    /**
      * Get profile image URL for user
      */
     private static function getProfileImageUrl($user)

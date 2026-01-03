@@ -3,10 +3,10 @@
     "notification.comment": ":name прокомментировал(а) вашу публикацию: :comment",
     "notification.post_like": ":name понравилась ваша публикация.",
     "notification.profile_like": ":name хочет пожать тебе руку",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "Новый подписчик",
     "notification.title.comment": "Новый комментарий",
     "notification.title.post_like": "Понравилась публикация",
-    "notification.title.profile_like": "Понравился профиль"
+    "notification.title.profile_like": "Понравился профиль",
+    "notification.handshake_accepted": "{name} принял твоё рукопожатие"
 }

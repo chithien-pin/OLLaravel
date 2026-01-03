@@ -710,6 +710,42 @@ class UsersController extends Controller
     }
 
     /**
+     * Accept handshake request from another user
+     * Sends notification to the user who initiated the handshake
+     */
+    public function acceptHandshake(Request $request)
+    {
+        $rules = [
+            'my_user_id' => 'required',
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $my_user = Users::where('id', $request->my_user_id)->first();
+        $user = Users::where('id', $request->user_id)->first();
+
+        if (!$my_user) {
+            return response()->json(['status' => false, 'message' => 'Your user data not found!']);
+        }
+
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not found!']);
+        }
+
+        // Send notification to User A (who initiated the handshake)
+        Myfunction::sendHandshakeAcceptedNotification($my_user, $user);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Handshake accepted successfully!'
+        ]);
+    }
+
+    /**
      * Get user's swipe status for today
      */
     function getSwipeStatus(Request $request)

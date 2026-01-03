@@ -3,10 +3,10 @@
     "notification.comment": ":name 评论了你的帖子：:comment",
     "notification.post_like": ":name 喜欢了你的帖子。",
     "notification.profile_like": ":name 想和你握手",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "新关注者",
     "notification.title.comment": "新评论",
     "notification.title.post_like": "帖子被赞",
-    "notification.title.profile_like": "个人资料被赞"
+    "notification.title.profile_like": "个人资料被赞",
+    "notification.handshake_accepted": "{name}接受了你的握手"
 }

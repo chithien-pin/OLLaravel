@@ -3,10 +3,10 @@
     "notification.comment": ":nameがあなたの投稿にコメントしました: :comment",
     "notification.post_like": ":nameがあなたの投稿にいいねしました。",
     "notification.profile_like": ":nameがあなたと握手したがっています",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "新しいフォロワー",
     "notification.title.comment": "新しいコメント",
     "notification.title.post_like": "投稿にいいね",
-    "notification.title.profile_like": "プロフィールにいいね"
+    "notification.title.profile_like": "プロフィールにいいね",
+    "notification.handshake_accepted": "{name}があなたの握手を受け入れました"
 }

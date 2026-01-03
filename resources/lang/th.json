@@ -3,10 +3,10 @@
     "notification.comment": ":name แสดงความคิดเห็นในโพสต์ของคุณ: :comment",
     "notification.post_like": ":name ถูกใจโพสต์ของคุณ",
     "notification.profile_like": ":name ต้องการจับมือกับคุณ",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "ผู้ติดตามใหม่",
     "notification.title.comment": "ความคิดเห็นใหม่",
     "notification.title.post_like": "ถูกใจโพสต์",
-    "notification.title.profile_like": "ถูกใจโปรไฟล์"
+    "notification.title.profile_like": "ถูกใจโปรไฟล์",
+    "notification.handshake_accepted": "{name} ยอมรับการจับมือของคุณ"
 }

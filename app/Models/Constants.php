@@ -30,6 +30,7 @@ final class Constants
     const eventTypeGiftReceived = 'gift_received';
     const eventTypeAdminAnnouncement = 'admin_announcement';
     const eventTypeProfileLike = 'profile_like';
+    const eventTypeHandshakeAccepted = 'handshake_accepted';
 
     // Push notification actions
     const actionNavigateToProfile = 'navigate_to_profile';

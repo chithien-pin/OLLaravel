@@ -3,10 +3,10 @@
     "notification.comment": ":name علق على منشورك: :comment",
     "notification.post_like": ":name أعجب بمنشورك.",
     "notification.profile_like": ":name يريد مصافحتك",
-
     "notification.title.app": "GYPSYLIVE",
     "notification.title.follow": "متابع جديد",
     "notification.title.comment": "تعليق جديد",
     "notification.title.post_like": "إعجاب بالمنشور",
-    "notification.title.profile_like": "إعجاب بالملف الشخصي"
+    "notification.title.profile_like": "إعجاب بالملف الشخصي",
+    "notification.handshake_accepted": "{name} قبل مصافحتك"
 }
