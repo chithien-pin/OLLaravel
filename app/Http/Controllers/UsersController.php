@@ -1276,6 +1276,31 @@ class UsersController extends Controller
         ]);
     }
 
+    /**
+     * Update swipe tutorial flag when user completes the tutorial
+     */
+    function updateSwipeTutorial(Request $request)
+    {
+        $rules = ['user_id' => 'required'];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $user = Users::where('id', $request->user_id)->first();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not found!']);
+        }
+
+        $user->swipe_tutorial = 1;
+        $user->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Swipe tutorial completed!',
+        ]);
+    }
+
     function fetchAllUsers(Request $request)
     {
 

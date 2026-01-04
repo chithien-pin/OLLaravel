@@ -83,6 +83,7 @@ Route::post('updateLiveStatus', [UsersController::class, 'updateLiveStatus'])->m
 Route::post('onOffShowMeOnMap', [UsersController::class, 'onOffShowMeOnMap'])->middleware('checkHeader');
 Route::post('onOffAnonymous', [UsersController::class, 'onOffAnonymous'])->middleware('checkHeader');
 Route::post('onOffVideoCalls', [UsersController::class, 'onOffVideoCalls'])->middleware('checkHeader');
+Route::post('updateSwipeTutorial', [UsersController::class, 'updateSwipeTutorial'])->middleware('checkHeader');
 
 Route::post('fetchBlockedProfiles', [UsersController::class, 'fetchBlockedProfiles'])->middleware('checkHeader');
 Route::post('getSwipeStatus', [UsersController::class, 'getSwipeStatus'])->middleware(['checkHeader', 'throttle:180,1']);
