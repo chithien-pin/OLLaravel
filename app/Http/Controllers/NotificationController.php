@@ -246,10 +246,11 @@ class NotificationController extends Controller
                         'title' => $title,
                         'body' => $body
                     ],
-                    'data' => array_merge([
-                        'type' => 'livestream_start',
-                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
-                    ], is_array($liveStreamData) ? $liveStreamData : ['data' => $liveStreamData]),
+                    'data' => [
+                        'event_type' => 'live_stream_start',
+                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                        'params' => json_encode(is_array($liveStreamData) ? $liveStreamData : ['data' => $liveStreamData]),
+                    ],
                     'android' => [
                         'priority' => 'high',
                         'notification' => [
