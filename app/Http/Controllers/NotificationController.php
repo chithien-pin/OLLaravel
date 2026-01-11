@@ -512,6 +512,9 @@ class NotificationController extends Controller
      */
     function getAllNotifications(Request $req)
     {
+        Log::info('=== getAllNotifications API Called ===');
+        Log::info('Request params: ' . json_encode($req->all()));
+
         $rules = [
             'user_id' => 'required',
             'start' => 'required',
@@ -522,11 +525,13 @@ class NotificationController extends Controller
         if ($validator->fails()) {
             $messages = $validator->errors()->all();
             $msg = $messages[0];
+            Log::info('Validation failed: ' . $msg);
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
         $start = (int) $req->start;
         $count = (int) $req->count;
+        Log::info("User ID: {$req->user_id}, Start: $start, Count: $count");
 
         // Fetch extra items to ensure we have enough after merging
         // We fetch 2x the requested count from each source to handle edge cases
@@ -584,6 +589,11 @@ class NotificationController extends Controller
 
         // Apply pagination
         $paginatedNotifications = $allNotifications->slice($start, $count)->values();
+
+        Log::info("User notifications found: " . $userNotifications->count());
+        Log::info("Admin notifications found: " . $adminNotifications->count());
+        Log::info("Total merged: " . $allNotifications->count());
+        Log::info("After pagination: " . $paginatedNotifications->count());
 
         return response()->json([
             'status' => true,

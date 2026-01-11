@@ -6,6 +6,7 @@ use App\Models\AppData;
 use App\Models\Comment;
 use App\Models\Constants;
 use App\Models\FollowingList;
+use App\Models\Friend;
 use App\Models\GlobalFunction;
 use App\Models\Images;
 use App\Models\Interest;
@@ -686,6 +687,7 @@ class UsersController extends Controller
             $likedProfile = new LikedProfile();
             $likedProfile->my_user_id = (int) $request->my_user_id;
             $likedProfile->user_id = (int) $request->user_id;
+            $likedProfile->status = 'pending';
             $likedProfile->save();
 
             if (!$notificationExists) {
@@ -711,7 +713,10 @@ class UsersController extends Controller
 
     /**
      * Accept handshake request from another user
-     * Sends notification to the user who initiated the handshake
+     * Creates friendship, updates like_profiles status, sends notification
+     *
+     * @param my_user_id - Current user (User B who is accepting)
+     * @param user_id - User who sent the handshake (User A)
      */
     public function acceptHandshake(Request $request)
     {
@@ -736,12 +741,170 @@ class UsersController extends Controller
             return response()->json(['status' => false, 'message' => 'User not found!']);
         }
 
-        // Send notification to User A (who initiated the handshake)
+        // 1. Update like_profiles status to 'accepted'
+        $likedProfile = LikedProfile::where('my_user_id', $user->id)
+            ->where('user_id', $my_user->id)
+            ->first();
+
+        if ($likedProfile) {
+            $likedProfile->status = 'accepted';
+            $likedProfile->responded_at = now();
+            $likedProfile->save();
+        }
+
+        // 2. Create friendship record
+        Friend::createFriendship($my_user->id, $user->id);
+
+        // 3. Delete the notification from User B's list (so Accept/Decline buttons disappear)
+        UserNotification::where('user_id', $my_user->id)
+            ->where('my_user_id', $user->id)
+            ->where('type', Constants::notificationTypeLikeProfile)
+            ->delete();
+
+        // 4. Send notification to User A (who initiated the handshake)
         Myfunction::sendHandshakeAcceptedNotification($my_user, $user);
 
         return response()->json([
             'status' => true,
-            'message' => 'Handshake accepted successfully!'
+            'message' => 'Handshake accepted successfully!',
+            'data' => [
+                'is_friend' => true,
+                'friend_id' => $user->id
+            ]
+        ]);
+    }
+
+    /**
+     * Decline handshake request from another user
+     * Updates like_profiles status, removes notification (Facebook-style: no notification to sender)
+     *
+     * @param my_user_id - Current user (User B who is declining)
+     * @param user_id - User who sent the handshake (User A)
+     */
+    public function declineHandshake(Request $request)
+    {
+        $rules = [
+            'my_user_id' => 'required',
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $my_user = Users::where('id', $request->my_user_id)->first();
+        $user = Users::where('id', $request->user_id)->first();
+
+        if (!$my_user) {
+            return response()->json(['status' => false, 'message' => 'Your user data not found!']);
+        }
+
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not found!']);
+        }
+
+        // 1. Update like_profiles status to 'declined'
+        $likedProfile = LikedProfile::where('my_user_id', $user->id)
+            ->where('user_id', $my_user->id)
+            ->first();
+
+        if ($likedProfile) {
+            $likedProfile->status = 'declined';
+            $likedProfile->responded_at = now();
+            $likedProfile->save();
+        }
+
+        // 2. Delete the notification from User B's list
+        UserNotification::where('user_id', $my_user->id)
+            ->where('my_user_id', $user->id)
+            ->where('type', Constants::notificationTypeLikeProfile)
+            ->delete();
+
+        // Note: We do NOT send notification to User A (Facebook-style)
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Handshake declined.'
+        ]);
+    }
+
+    /**
+     * Get list of friends for a user
+     */
+    public function getFriends(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $friends = Friend::getFriendsForUser($request->user_id);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Friends fetched successfully!',
+            'data' => $friends,
+            'count' => $friends->count()
+        ]);
+    }
+
+    /**
+     * Check if two users are friends
+     */
+    public function checkFriendship(Request $request)
+    {
+        $rules = [
+            'my_user_id' => 'required',
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $isFriend = Friend::areFriends($request->my_user_id, $request->user_id);
+
+        return response()->json([
+            'status' => true,
+            'is_friend' => $isFriend
+        ]);
+    }
+
+    /**
+     * Remove friendship between two users
+     */
+    public function unfriend(Request $request)
+    {
+        $rules = [
+            'my_user_id' => 'required',
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $removed = Friend::removeFriendship($request->my_user_id, $request->user_id);
+
+        // Also update like_profiles status if exists
+        LikedProfile::where(function ($query) use ($request) {
+            $query->where('my_user_id', $request->my_user_id)
+                ->where('user_id', $request->user_id);
+        })->orWhere(function ($query) use ($request) {
+            $query->where('my_user_id', $request->user_id)
+                ->where('user_id', $request->my_user_id);
+        })->delete();
+
+        return response()->json([
+            'status' => $removed,
+            'message' => $removed ? 'Unfriended successfully!' : 'Friendship not found.'
         ]);
     }
 

@@ -60,6 +60,10 @@ Route::post('getExplorePageProfileList', [UsersController::class, 'getExplorePag
 Route::post('updateSavedProfile', [UsersController::class, 'updateSavedProfile'])->middleware('checkHeader');
 Route::post('updateLikedProfile', [UsersController::class, 'updateLikedProfile'])->middleware(['checkHeader', 'throttle:180,1']);
 Route::post('acceptHandshake', [UsersController::class, 'acceptHandshake'])->middleware('checkHeader');
+Route::post('declineHandshake', [UsersController::class, 'declineHandshake'])->middleware('checkHeader');
+Route::post('getFriends', [UsersController::class, 'getFriends'])->middleware('checkHeader');
+Route::post('checkFriendship', [UsersController::class, 'checkFriendship'])->middleware('checkHeader');
+Route::post('unfriend', [UsersController::class, 'unfriend'])->middleware('checkHeader');
 
 Route::post('fetchSavedProfiles', [UsersController::class, 'fetchSavedProfiles'])->middleware('checkHeader');
 Route::post('fetchLikedProfiles', [UsersController::class, 'fetchLikedProfiles'])->middleware('checkHeader');
