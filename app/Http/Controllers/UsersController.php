@@ -2252,16 +2252,15 @@ class UsersController extends Controller
             $user->followingStatus = 3;
         }
 
-        $fetchUserisLiked = UserNotification::where('my_user_id', $request->my_user_id)
-                                            ->where('user_id', $request->user_id)
-                                            ->where('type', Constants::notificationTypeLikeProfile)
-                                            ->first();
+        // Check if current user (my_user_id) has liked/handshaked this profile (user_id)
+        $fetchUserisLiked = LikedProfile::where('my_user_id', $request->my_user_id)
+                                        ->where('user_id', $request->user_id)
+                                        ->first();
 
-        if ($fetchUserisLiked) {
-            $user->is_like = true;
-        } else {
-            $user->is_like = false;
-        }
+        $user->is_like = $fetchUserisLiked ? true : false;
+
+        // Check if they are friends (mutual handshake accepted)
+        $user->is_friend = Friend::areFriends($request->my_user_id, $request->user_id);
 
         // Add role information to the user data
         $user->role_type = $user->getCurrentRoleType();
