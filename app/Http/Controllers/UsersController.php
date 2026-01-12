@@ -752,8 +752,8 @@ class UsersController extends Controller
             $likedProfile->save();
         }
 
-        // 2. Create mutual like_profiles record (User B → User A)
-        LikedProfile::firstOrCreate(
+        // 2. Create/update mutual like_profiles record (User B → User A)
+        LikedProfile::updateOrCreate(
             ['my_user_id' => $my_user->id, 'user_id' => $user->id],
             ['status' => 'accepted', 'responded_at' => now()]
         );

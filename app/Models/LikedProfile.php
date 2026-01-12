@@ -11,8 +11,10 @@ class LikedProfile extends Model
     public $table = "like_profiles";
     
     protected $fillable = [
-        'my_user_id', 
-        'user_id'
+        'my_user_id',
+        'user_id',
+        'status',
+        'responded_at'
     ];
 
     /**
