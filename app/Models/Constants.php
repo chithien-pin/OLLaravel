@@ -20,6 +20,7 @@ final class Constants
     const notificationTypeLiveStream = 8;
     const notificationTypeGift = 9;
     const notificationTypeAdmin = 10;
+    const notificationTypeHandshakeAccepted = 11;
 
     // Push notification event types
     const eventTypeUserFollow = 'user_follow';

@@ -40,6 +40,7 @@ class UserNotification extends Model
             2 => 'notification.title.comment',
             3 => 'notification.title.post_like',
             4 => 'notification.title.profile_like',
+            11 => 'notification.title.handshake_accepted',
         ];
 
         $key = $titleKeys[$this->type] ?? 'notification.title.app';
@@ -58,6 +59,7 @@ class UserNotification extends Model
             2 => 'notification.comment',
             3 => 'notification.post_like',
             4 => 'notification.profile_like',
+            11 => 'notification.handshake_accepted',
         ];
 
         $key = $messageKeys[$this->type] ?? '';

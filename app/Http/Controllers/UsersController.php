@@ -761,7 +761,14 @@ class UsersController extends Controller
             ->where('type', Constants::notificationTypeLikeProfile)
             ->delete();
 
-        // 4. Send notification to User A (who initiated the handshake)
+        // 4. Create in-app notification for User A (who initiated the handshake)
+        $userNotification = new UserNotification();
+        $userNotification->user_id = (int) $user->id;  // User A receives notification
+        $userNotification->my_user_id = (int) $my_user->id;  // User B accepted
+        $userNotification->type = Constants::notificationTypeHandshakeAccepted;
+        $userNotification->save();
+
+        // 5. Send push notification to User A
         Myfunction::sendHandshakeAcceptedNotification($my_user, $user);
 
         return response()->json([
