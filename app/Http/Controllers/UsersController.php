@@ -228,7 +228,11 @@ class UsersController extends Controller
         $ageMin = $user->age_preferred_min;
         $ageMax = $user->age_preferred_max;
         $blockedUsers = array_merge(explode(',', $user->blocked_users), [$user->id]);
-        $likedUsers = LikedProfile::where('my_user_id', $request->user_id)->pluck('user_id')->toArray();
+        // Only include pending handshakes (not accepted or declined)
+        $likedUsers = LikedProfile::where('my_user_id', $request->user_id)
+            ->where('status', 'pending')
+            ->pluck('user_id')
+            ->toArray();
 
         $profilesQuery = Users::with('images')
                                 ->has('images')
@@ -2259,9 +2263,11 @@ class UsersController extends Controller
             $user->followingStatus = 3;
         }
 
-        // Check if current user (my_user_id) has liked/handshaked this profile (user_id)
+        // Check if current user (my_user_id) has a pending handshake to this profile (user_id)
+        // Only pending handshakes should show as "liked" - not accepted or declined
         $fetchUserisLiked = LikedProfile::where('my_user_id', $request->my_user_id)
                                         ->where('user_id', $request->user_id)
+                                        ->where('status', 'pending')
                                         ->first();
 
         $user->is_like = $fetchUserisLiked ? true : false;
@@ -2440,8 +2446,9 @@ class UsersController extends Controller
         $user = Users::where('id', $request->my_user_id)->first();
         $blockUserIds = explode(',', $user->blocked_users);
 
-        // Get liked users array (same logic as getExplorePageProfileList)
+        // Get liked users array - only pending handshakes (same logic as getExplorePageProfileList)
         $likedUsers = LikedProfile::where('my_user_id', $request->my_user_id)
+            ->where('status', 'pending')
             ->pluck('user_id')
             ->toArray();
 
