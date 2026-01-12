@@ -6,6 +6,7 @@ use App\Models\AppData;
 use App\Models\Comment;
 use App\Models\Constants;
 use App\Models\FollowingList;
+use App\Models\Friend;
 use App\Models\GlobalFunction;
 use App\Models\Images;
 use App\Models\Interest;
@@ -227,7 +228,11 @@ class UsersController extends Controller
         $ageMin = $user->age_preferred_min;
         $ageMax = $user->age_preferred_max;
         $blockedUsers = array_merge(explode(',', $user->blocked_users), [$user->id]);
-        $likedUsers = LikedProfile::where('my_user_id', $request->user_id)->pluck('user_id')->toArray();
+        // Only include pending handshakes (not accepted or declined)
+        $likedUsers = LikedProfile::where('my_user_id', $request->user_id)
+            ->where('status', 'pending')
+            ->pluck('user_id')
+            ->toArray();
 
         $profilesQuery = Users::with('images')
                                 ->has('images')
@@ -686,6 +691,7 @@ class UsersController extends Controller
             $likedProfile = new LikedProfile();
             $likedProfile->my_user_id = (int) $request->my_user_id;
             $likedProfile->user_id = (int) $request->user_id;
+            $likedProfile->status = 'pending';
             $likedProfile->save();
 
             if (!$notificationExists) {
@@ -711,7 +717,10 @@ class UsersController extends Controller
 
     /**
      * Accept handshake request from another user
-     * Sends notification to the user who initiated the handshake
+     * Creates friendship, updates like_profiles status, sends notification
+     *
+     * @param my_user_id - Current user (User B who is accepting)
+     * @param user_id - User who sent the handshake (User A)
      */
     public function acceptHandshake(Request $request)
     {
@@ -736,12 +745,190 @@ class UsersController extends Controller
             return response()->json(['status' => false, 'message' => 'User not found!']);
         }
 
-        // Send notification to User A (who initiated the handshake)
+        // 1. Update like_profiles status to 'accepted' (User A → User B)
+        $likedProfile = LikedProfile::where('my_user_id', $user->id)
+            ->where('user_id', $my_user->id)
+            ->first();
+
+        if ($likedProfile) {
+            $likedProfile->status = 'accepted';
+            $likedProfile->responded_at = now();
+            $likedProfile->save();
+        }
+
+        // 2. Create/update mutual like_profiles record (User B → User A)
+        LikedProfile::updateOrCreate(
+            ['my_user_id' => $my_user->id, 'user_id' => $user->id],
+            ['status' => 'accepted', 'responded_at' => now()]
+        );
+
+        // 3. Create friendship record
+        Friend::createFriendship($my_user->id, $user->id);
+
+        // 4. Delete the notification from User B's list (so Accept/Decline buttons disappear)
+        UserNotification::where('user_id', $my_user->id)
+            ->where('my_user_id', $user->id)
+            ->where('type', Constants::notificationTypeLikeProfile)
+            ->delete();
+
+        // 5. Create in-app notification for User A (who initiated the handshake)
+        $userNotification = new UserNotification();
+        $userNotification->user_id = (int) $user->id;  // User A receives notification
+        $userNotification->my_user_id = (int) $my_user->id;  // User B accepted
+        $userNotification->type = Constants::notificationTypeHandshakeAccepted;
+        $userNotification->save();
+
+        // 6. Create in-app notification for User B (who accepted) - so they know they're now friends
+        $userBNotification = new UserNotification();
+        $userBNotification->user_id = (int) $my_user->id;  // User B receives notification
+        $userBNotification->my_user_id = (int) $user->id;  // About User A
+        $userBNotification->type = Constants::notificationTypeNewFriend;
+        $userBNotification->save();
+
+        // 7. Send push notification to User A
         Myfunction::sendHandshakeAcceptedNotification($my_user, $user);
 
         return response()->json([
             'status' => true,
-            'message' => 'Handshake accepted successfully!'
+            'message' => 'Handshake accepted successfully!',
+            'data' => [
+                'is_friend' => true,
+                'friend_id' => $user->id
+            ]
+        ]);
+    }
+
+    /**
+     * Decline handshake request from another user
+     * Updates like_profiles status, removes notification (Facebook-style: no notification to sender)
+     *
+     * @param my_user_id - Current user (User B who is declining)
+     * @param user_id - User who sent the handshake (User A)
+     */
+    public function declineHandshake(Request $request)
+    {
+        $rules = [
+            'my_user_id' => 'required',
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $my_user = Users::where('id', $request->my_user_id)->first();
+        $user = Users::where('id', $request->user_id)->first();
+
+        if (!$my_user) {
+            return response()->json(['status' => false, 'message' => 'Your user data not found!']);
+        }
+
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not found!']);
+        }
+
+        // 1. Update like_profiles status to 'declined'
+        $likedProfile = LikedProfile::where('my_user_id', $user->id)
+            ->where('user_id', $my_user->id)
+            ->first();
+
+        if ($likedProfile) {
+            $likedProfile->status = 'declined';
+            $likedProfile->responded_at = now();
+            $likedProfile->save();
+        }
+
+        // 2. Delete the notification from User B's list
+        UserNotification::where('user_id', $my_user->id)
+            ->where('my_user_id', $user->id)
+            ->where('type', Constants::notificationTypeLikeProfile)
+            ->delete();
+
+        // Note: We do NOT send notification to User A (Facebook-style)
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Handshake declined.'
+        ]);
+    }
+
+    /**
+     * Get list of friends for a user
+     */
+    public function getFriends(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $friends = Friend::getFriendsForUser($request->user_id);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Friends fetched successfully!',
+            'data' => $friends,
+            'count' => $friends->count()
+        ]);
+    }
+
+    /**
+     * Check if two users are friends
+     */
+    public function checkFriendship(Request $request)
+    {
+        $rules = [
+            'my_user_id' => 'required',
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $isFriend = Friend::areFriends($request->my_user_id, $request->user_id);
+
+        return response()->json([
+            'status' => true,
+            'is_friend' => $isFriend
+        ]);
+    }
+
+    /**
+     * Remove friendship between two users
+     */
+    public function unfriend(Request $request)
+    {
+        $rules = [
+            'my_user_id' => 'required',
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $removed = Friend::removeFriendship($request->my_user_id, $request->user_id);
+
+        // Also update like_profiles status if exists
+        LikedProfile::where(function ($query) use ($request) {
+            $query->where('my_user_id', $request->my_user_id)
+                ->where('user_id', $request->user_id);
+        })->orWhere(function ($query) use ($request) {
+            $query->where('my_user_id', $request->user_id)
+                ->where('user_id', $request->my_user_id);
+        })->delete();
+
+        return response()->json([
+            'status' => $removed,
+            'message' => $removed ? 'Unfriended successfully!' : 'Friendship not found.'
         ]);
     }
 
@@ -2076,16 +2263,17 @@ class UsersController extends Controller
             $user->followingStatus = 3;
         }
 
-        $fetchUserisLiked = UserNotification::where('my_user_id', $request->my_user_id)
-                                            ->where('user_id', $request->user_id)
-                                            ->where('type', Constants::notificationTypeLikeProfile)
-                                            ->first();
+        // Check if current user (my_user_id) has a pending handshake to this profile (user_id)
+        // Only pending handshakes should show as "liked" - not accepted or declined
+        $fetchUserisLiked = LikedProfile::where('my_user_id', $request->my_user_id)
+                                        ->where('user_id', $request->user_id)
+                                        ->where('status', 'pending')
+                                        ->first();
 
-        if ($fetchUserisLiked) {
-            $user->is_like = true;
-        } else {
-            $user->is_like = false;
-        }
+        $user->is_like = $fetchUserisLiked ? true : false;
+
+        // Check if they are friends (mutual handshake accepted)
+        $user->is_friend = Friend::areFriends($request->my_user_id, $request->user_id);
 
         // Add role information to the user data
         $user->role_type = $user->getCurrentRoleType();
@@ -2258,8 +2446,9 @@ class UsersController extends Controller
         $user = Users::where('id', $request->my_user_id)->first();
         $blockUserIds = explode(',', $user->blocked_users);
 
-        // Get liked users array (same logic as getExplorePageProfileList)
+        // Get liked users array - only pending handshakes (same logic as getExplorePageProfileList)
         $likedUsers = LikedProfile::where('my_user_id', $request->my_user_id)
+            ->where('status', 'pending')
             ->pluck('user_id')
             ->toArray();
 

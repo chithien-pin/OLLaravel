@@ -283,6 +283,7 @@ class Myfunction extends Model
 
     /**
      * Send profile like (handshake) notification with event data
+     * Navigates to UserDetailScreen so User B can Accept/Decline from Notification screen
      */
     public static function sendProfileLikeNotification($fromUser, $toUser)
     {
@@ -295,19 +296,15 @@ class Myfunction extends Model
             'name' => $fromUser->fullname
         ]);
 
-        // Generate conversation ID (smaller ID first)
-        $conversationId = min($fromUser->id, $toUser->id) . '_' . max($fromUser->id, $toUser->id);
-
         $eventData = [
             'event_type' => Constants::eventTypeProfileLike,
             'user_id' => (string) $fromUser->id,
             'user_name' => $fromUser->fullname,
             'user_image' => self::getProfileImageUrl($fromUser),
-            'conversation_id' => $conversationId,
             'timestamp' => (string) time(),
-            'action' => Constants::actionOpenChat,
-            'screen' => Constants::screenChat,
-            'params' => json_encode(['conversationId' => $conversationId, 'userId' => $fromUser->id])
+            'action' => Constants::actionNavigateToProfile,
+            'screen' => Constants::screenUserDetail,
+            'params' => json_encode(['userId' => $fromUser->id])
         ];
 
         return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
@@ -316,6 +313,7 @@ class Myfunction extends Model
     /**
      * Send handshake accepted notification
      * Called when User B accepts the handshake request from User A
+     * Navigates to User B's profile (now they are friends!)
      */
     public static function sendHandshakeAcceptedNotification($fromUser, $toUser)
     {
@@ -328,19 +326,15 @@ class Myfunction extends Model
             'name' => $fromUser->fullname
         ]);
 
-        // Generate conversation ID (smaller ID first)
-        $conversationId = min($fromUser->id, $toUser->id) . '_' . max($fromUser->id, $toUser->id);
-
         $eventData = [
             'event_type' => Constants::eventTypeHandshakeAccepted,
             'user_id' => (string) $fromUser->id,
             'user_name' => $fromUser->fullname,
             'user_image' => self::getProfileImageUrl($fromUser),
-            'conversation_id' => $conversationId,
             'timestamp' => (string) time(),
-            'action' => Constants::actionOpenChat,
-            'screen' => Constants::screenChat,
-            'params' => json_encode(['conversationId' => $conversationId, 'userId' => $fromUser->id])
+            'action' => Constants::actionNavigateToProfile,
+            'screen' => Constants::screenUserDetail,
+            'params' => json_encode(['userId' => $fromUser->id, 'isFriend' => true])
         ];
 
         return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
