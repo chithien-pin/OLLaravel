@@ -774,7 +774,14 @@ class UsersController extends Controller
         $userNotification->type = Constants::notificationTypeHandshakeAccepted;
         $userNotification->save();
 
-        // 6. Send push notification to User A
+        // 6. Create in-app notification for User B (who accepted) - so they know they're now friends
+        $userBNotification = new UserNotification();
+        $userBNotification->user_id = (int) $my_user->id;  // User B receives notification
+        $userBNotification->my_user_id = (int) $user->id;  // About User A
+        $userBNotification->type = Constants::notificationTypeNewFriend;
+        $userBNotification->save();
+
+        // 7. Send push notification to User A
         Myfunction::sendHandshakeAcceptedNotification($my_user, $user);
 
         return response()->json([

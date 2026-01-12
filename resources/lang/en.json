@@ -8,6 +8,8 @@
     "notification.title.comment": "New Comment",
     "notification.title.post_like": "Post Liked",
     "notification.title.profile_like": "Profile Liked",
-    "notification.handshake_accepted": ":name accepted your handshake",
-    "notification.title.handshake_accepted": "Handshake Accepted"
+    "notification.handshake_accepted": ":name accepted your handshake. You're now friends!",
+    "notification.title.handshake_accepted": "Handshake Accepted",
+    "notification.new_friend": "You and :name are now friends!",
+    "notification.title.new_friend": "New Friend"
 }

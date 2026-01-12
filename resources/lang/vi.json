@@ -8,6 +8,8 @@
     "notification.title.comment": "Bình luận mới",
     "notification.title.post_like": "Lượt thích bài viết",
     "notification.title.profile_like": "Lượt thích hồ sơ",
-    "notification.handshake_accepted": ":name đã chấp nhận bắt tay của bạn",
-    "notification.title.handshake_accepted": "Bắt tay được chấp nhận"
+    "notification.handshake_accepted": ":name đã chấp nhận bắt tay. Giờ các bạn là bạn bè!",
+    "notification.title.handshake_accepted": "Bắt tay được chấp nhận",
+    "notification.new_friend": "Bạn và :name giờ là bạn bè!",
+    "notification.title.new_friend": "Bạn bè mới"
 }
