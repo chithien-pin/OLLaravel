@@ -741,7 +741,7 @@ class UsersController extends Controller
             return response()->json(['status' => false, 'message' => 'User not found!']);
         }
 
-        // 1. Update like_profiles status to 'accepted'
+        // 1. Update like_profiles status to 'accepted' (User A → User B)
         $likedProfile = LikedProfile::where('my_user_id', $user->id)
             ->where('user_id', $my_user->id)
             ->first();
@@ -752,23 +752,29 @@ class UsersController extends Controller
             $likedProfile->save();
         }
 
-        // 2. Create friendship record
+        // 2. Create mutual like_profiles record (User B → User A)
+        LikedProfile::firstOrCreate(
+            ['my_user_id' => $my_user->id, 'user_id' => $user->id],
+            ['status' => 'accepted', 'responded_at' => now()]
+        );
+
+        // 3. Create friendship record
         Friend::createFriendship($my_user->id, $user->id);
 
-        // 3. Delete the notification from User B's list (so Accept/Decline buttons disappear)
+        // 4. Delete the notification from User B's list (so Accept/Decline buttons disappear)
         UserNotification::where('user_id', $my_user->id)
             ->where('my_user_id', $user->id)
             ->where('type', Constants::notificationTypeLikeProfile)
             ->delete();
 
-        // 4. Create in-app notification for User A (who initiated the handshake)
+        // 5. Create in-app notification for User A (who initiated the handshake)
         $userNotification = new UserNotification();
         $userNotification->user_id = (int) $user->id;  // User A receives notification
         $userNotification->my_user_id = (int) $my_user->id;  // User B accepted
         $userNotification->type = Constants::notificationTypeHandshakeAccepted;
         $userNotification->save();
 
-        // 5. Send push notification to User A
+        // 6. Send push notification to User A
         Myfunction::sendHandshakeAcceptedNotification($my_user, $user);
 
         return response()->json([
