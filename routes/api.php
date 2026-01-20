@@ -81,6 +81,8 @@ Route::post('getAdminNotifications', [NotificationController::class, 'getAdminNo
 Route::post('getAllNotifications', [NotificationController::class, 'getAllNotifications'])->middleware('checkHeader');
 
 Route::post('getDiamondPacks', [DiamondPackController::class, 'getDiamondPacks'])->middleware('checkHeader');
+Route::post('diamond/create-payment-intent', [DiamondPackController::class, 'createDiamondPaymentIntent'])->middleware('checkHeader');
+Route::post('diamond/confirm-payment', [DiamondPackController::class, 'confirmDiamondPayment'])->middleware('checkHeader');
 
 Route::post('onOffNotification', [UsersController::class, 'onOffNotification'])->middleware('checkHeader');
 Route::post('updateLiveStatus', [UsersController::class, 'updateLiveStatus'])->middleware('checkHeader');

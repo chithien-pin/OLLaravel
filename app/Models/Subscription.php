@@ -120,52 +120,25 @@ class Subscription extends Model
         });
     }
 
-    // Static methods
+    // Static methods - Now reads from subscription_packs table
     public static function getSubscriptionPlans()
     {
-        return [
-            'starter' => [
-                'name' => 'VIP Starter',
-                'price_id' => 'price_1RyQ7yG3TUB1R9FgUtZ7YLjV',
-                'amount' => 1.00,
-                'currency' => 'USD',
-                'interval' => 'month',
-                'first_time_only' => true,
-                'type' => 'role' // Uses role assignment
-            ],
-            'monthly' => [
-                'name' => 'VIP Monthly',
-                'price_id' => 'price_1RyQ8FG3TUB1R9FgbIYChZBL',
-                'amount' => 10.00,
-                'currency' => 'USD',
-                'interval' => 'month',
-                'type' => 'role' // Uses role assignment
-            ],
-            'yearly' => [
-                'name' => 'VIP Yearly',
-                'price_id' => 'price_1RyQ8WG3TUB1R9FgfgFVocKm',
-                'amount' => 60.00,
-                'currency' => 'USD',
-                'interval' => 'year',
-                'type' => 'role' // Uses role assignment
-            ],
-            'millionaire' => [
-                'name' => 'Millionaire Package',
-                'price_id' => 'price_1RyQ9nG3TUB1R9Fg1lyw737p',
-                'amount' => 250.00,
-                'currency' => 'USD',
-                'interval' => 'year',
-                'type' => 'package' // Uses package assignment
-            ],
-            'billionaire' => [
-                'name' => 'Billionaire Package',
-                'price_id' => 'price_1RyQABG3TUB1R9FgIU36oS42',
-                'amount' => 500.00,
-                'currency' => 'USD',
-                'interval' => 'year',
-                'type' => 'package' // Uses package assignment
-            ]
-        ];
+        $packs = SubscriptionPacks::getAllPacks();
+        $plans = [];
+
+        foreach ($packs as $pack) {
+            $plans[$pack->plan_type] = [
+                'name' => $pack->getDisplayName(),
+                'price_id' => $pack->android_product_id, // Stripe Price ID stored in android_product_id
+                'amount' => (float) $pack->amount,
+                'currency' => $pack->currency ?? 'USD',
+                'interval' => $pack->interval_type ?? 'month',
+                'first_time_only' => $pack->first_time_only ?? false,
+                'type' => $pack->type ?? 'role'
+            ];
+        }
+
+        return $plans;
     }
 
     // Check if user is eligible for starter plan (first-time subscriber)

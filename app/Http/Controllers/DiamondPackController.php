@@ -3,11 +3,160 @@
 namespace App\Http\Controllers;
 
 use App\Models\DiamondPacks;
+use App\Models\Users;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class DiamondPackController extends Controller
 {
     //
+
+    /**
+     * Create payment intent for Stripe diamond purchase (Android)
+     */
+    public function createDiamondPaymentIntent(Request $request)
+    {
+        Log::info('DIAMOND: createDiamondPaymentIntent called', [
+            'request_data' => $request->all()
+        ]);
+
+        try {
+            $request->validate([
+                'user_id' => 'required|integer|exists:users,id',
+                'amount' => 'required|integer', // Diamond amount (10, 20, 50, etc.)
+            ]);
+
+            // Find diamond pack by amount
+            $pack = DiamondPacks::findByAmount($request->amount);
+            if (!$pack) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Invalid diamond pack amount'
+                ], 400);
+            }
+
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+
+            // Create PaymentIntent
+            $paymentIntent = \Stripe\PaymentIntent::create([
+                'amount' => $pack->price * 100, // Convert to cents
+                'currency' => 'usd',
+                'metadata' => [
+                    'user_id' => $request->user_id,
+                    'diamond_amount' => $pack->amount,
+                    'type' => 'diamond_purchase'
+                ],
+            ]);
+
+            Log::info('DIAMOND: PaymentIntent created', [
+                'payment_intent_id' => $paymentIntent->id,
+                'amount' => $pack->price
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Payment intent created successfully',
+                'data' => [
+                    'client_secret' => $paymentIntent->client_secret,
+                    'payment_intent_id' => $paymentIntent->id,
+                    'diamond_amount' => $pack->amount,
+                    'price' => $pack->price,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('DIAMOND: Create payment intent error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Failed to create payment intent',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Confirm diamond payment and add coins to wallet
+     */
+    public function confirmDiamondPayment(Request $request)
+    {
+        Log::info('DIAMOND: confirmDiamondPayment called', [
+            'request_data' => $request->all()
+        ]);
+
+        try {
+            $request->validate([
+                'user_id' => 'required|integer|exists:users,id',
+                'payment_intent_id' => 'required|string',
+                'diamond_amount' => 'required|integer',
+            ]);
+
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+
+            // Verify payment intent status
+            $paymentIntent = \Stripe\PaymentIntent::retrieve($request->payment_intent_id);
+
+            if ($paymentIntent->status !== 'succeeded') {
+                Log::warning('DIAMOND: Payment not succeeded', [
+                    'payment_intent_id' => $request->payment_intent_id,
+                    'status' => $paymentIntent->status
+                ]);
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Payment not completed'
+                ], 400);
+            }
+
+            // Verify metadata matches
+            if ($paymentIntent->metadata->user_id != $request->user_id ||
+                $paymentIntent->metadata->diamond_amount != $request->diamond_amount) {
+                Log::warning('DIAMOND: Metadata mismatch', [
+                    'expected_user' => $request->user_id,
+                    'actual_user' => $paymentIntent->metadata->user_id
+                ]);
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Payment verification failed'
+                ], 400);
+            }
+
+            // Add coins to user wallet
+            $user = Users::find($request->user_id);
+            if (!$user) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'User not found'
+                ], 404);
+            }
+
+            $user->wallet = ($user->wallet ?? 0) + $request->diamond_amount;
+            $user->total_collected = ($user->total_collected ?? 0) + $request->diamond_amount;
+            $user->save();
+
+            Log::info('DIAMOND: Coins added to wallet', [
+                'user_id' => $user->id,
+                'diamond_amount' => $request->diamond_amount,
+                'new_wallet' => $user->wallet
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Diamond purchase successful',
+                'data' => [
+                    'wallet' => $user->wallet,
+                    'total_collected' => $user->total_collected,
+                    'diamonds_added' => $request->diamond_amount
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('DIAMOND: Confirm payment error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Failed to confirm payment',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     function diamondpacks()
     {
