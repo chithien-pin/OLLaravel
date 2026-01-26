@@ -2272,6 +2272,13 @@ class UsersController extends Controller
 
         $user->is_like = $fetchUserisLiked ? true : false;
 
+        // Check if the other user has sent a pending handshake to current user
+        $fetchUserLikedMe = LikedProfile::where('my_user_id', $request->user_id)
+                                        ->where('user_id', $request->my_user_id)
+                                        ->where('status', 'pending')
+                                        ->first();
+        $user->is_liked_me = $fetchUserLikedMe ? true : false;
+
         // Check if they are friends (mutual handshake accepted)
         $user->is_friend = Friend::areFriends($request->my_user_id, $request->user_id);
 
