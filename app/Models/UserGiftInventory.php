@@ -170,8 +170,12 @@ class UserGiftInventory extends Model
     /**
      * Static method to add gift to inventory
      */
-    public static function addGift($userId, $giftId, $senderId = null, $quantity = 1)
+    public static function addGift($userId, $giftId, $senderId = null, $quantity = 1, $context = 'livestream', $livestreamId = null)
     {
+        // Get gift details for coin_value
+        $gift = Gifts::find($giftId);
+        $coinValue = $gift ? ($gift->coin_price * $quantity) : 0;
+
         // Check if same gift already exists for this user (regardless of sender)
         $existingGift = self::where([
             'user_id' => $userId,
@@ -179,23 +183,25 @@ class UserGiftInventory extends Model
             'is_converted' => false
         ])->first();
 
+        $inventoryItem = null;
+
         if ($existingGift) {
             // Add to existing quantity and update received time
             $existingGift->quantity += $quantity;
             $existingGift->received_at = now(); // Update to latest received time
-            
+
             // Add sender to the list if not already present
             $sendersList = $existingGift->received_from_user_id ?? [];
             if ($senderId && !in_array($senderId, $sendersList)) {
                 $sendersList[] = $senderId;
                 $existingGift->received_from_user_id = $sendersList;
             }
-            
+
             $existingGift->save();
-            return $existingGift;
+            $inventoryItem = $existingGift;
         } else {
             // Create new inventory item with sender as array
-            return self::create([
+            $inventoryItem = self::create([
                 'user_id' => $userId,
                 'gift_id' => $giftId,
                 'quantity' => $quantity,
@@ -203,6 +209,25 @@ class UserGiftInventory extends Model
                 'received_at' => now(),
             ]);
         }
+
+        // Also insert into gift_transactions for analytics (normalized table)
+        if ($senderId) {
+            \DB::table('gift_transactions')->insert([
+                'gift_inventory_id' => $inventoryItem->id,
+                'sender_user_id' => $senderId,
+                'receiver_user_id' => $userId,
+                'gift_id' => $giftId,
+                'quantity' => $quantity,
+                'coin_value' => $coinValue,
+                'context' => $context,
+                'livestream_id' => $livestreamId,
+                'gifted_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return $inventoryItem;
     }
 
     /**
