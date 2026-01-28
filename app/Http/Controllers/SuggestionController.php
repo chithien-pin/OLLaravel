@@ -456,6 +456,9 @@ class SuggestionController extends Controller
             ->pluck('count', 'user_id')
             ->toArray();
 
+        // 9. BATCH: Get latest 4 posts (images/videos) for ALL candidates for gallery preview
+        $recentPostsData = $this->batchGetRecentPosts($candidateIds, 4);
+
         // 6. Pre-fetch context users info (all unique user IDs from mutual friends and followed by)
         $allContextUserIds = collect($mutualFriendsData)->flatten()
             ->merge(collect($followedByFriendsData)->flatten())
@@ -475,7 +478,7 @@ class SuggestionController extends Controller
         $scoredCandidates = $candidates->map(function($candidate) use (
             $user, $likedUsers, $followersOfCurrentUser, $myFollowingIds, $filters,
             $mutualFriendsData, $followedByFriendsData, $recentPostsCounts, $contextUsersInfo,
-            $friendsData, $likedMeData
+            $friendsData, $likedMeData, $recentPostsData
         ) {
             $candidateId = $candidate->id;
 
@@ -513,6 +516,9 @@ class SuggestionController extends Controller
             );
             $candidate->suggestion_context_type = $contextData['type'];
             $candidate->suggestion_context_users = $contextData['users'];
+
+            // Add recent posts for gallery preview (up to 4 posts)
+            $candidate->recent_posts = $recentPostsData[$candidateId] ?? [];
 
             return $candidate;
         });
@@ -640,6 +646,51 @@ class SuggestionController extends Controller
             ->whereIn('my_user_id', $candidateIds)
             ->pluck('my_user_id')
             ->toArray();
+    }
+
+    /**
+     * BATCH: Get recent posts for all candidates in ONE query
+     * Returns array keyed by user_id with up to $limit posts each
+     * Each post contains: id, image/video URL, content_type (image/video)
+     */
+    private function batchGetRecentPosts($candidateIds, $limit = 4)
+    {
+        if (empty($candidateIds)) return [];
+
+        // Get posts with their media, ordered by created_at desc
+        $posts = Post::whereIn('user_id', $candidateIds)
+            ->with('content') // Load PostMedia relationship
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Group by user_id and take only $limit per user
+        $grouped = [];
+        foreach ($posts as $post) {
+            $userId = $post->user_id;
+            if (!isset($grouped[$userId])) {
+                $grouped[$userId] = [];
+            }
+            if (count($grouped[$userId]) < $limit) {
+                // Get first media from the post
+                $media = $post->content->first();
+                if (!$media) continue;
+
+                // Transform media for response
+                $media->transformForResponse();
+
+                $contentType = $media->content_type == 1 ? 'video' : 'image';
+                $mediaUrl = $media->content ?? '';
+                $thumbnail = $media->thumbnail ?? $mediaUrl;
+
+                $grouped[$userId][] = [
+                    'id' => $post->id,
+                    'media_url' => $mediaUrl,
+                    'content_type' => $contentType,
+                    'thumbnail' => $thumbnail,
+                ];
+            }
+        }
+        return $grouped;
     }
 
     /**

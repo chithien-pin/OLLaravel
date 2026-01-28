@@ -2512,39 +2512,136 @@ class UsersController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        $fetchFollowersList = FollowingList::where('user_id', $request->user_id)
-                                            ->whereNotIn('my_user_id', function ($query) use ($request) {
-                                                $query->select('id')
-                                                    ->from('users')
-                                                    ->whereRaw("FIND_IN_SET(?, blocked_users)", [$request->user_id]);
-                                            })
-                                            ->with('followerUser', 'followerUser.images')
-                                            ->offset($request->start)
-                                            ->limit($request->limit)
-                                            ->get()
-                                            ->pluck('followerUser')
-                                            ->map(function($user) {
-                                                // Add role information to each user
-                                                $user->role_type = $user->getCurrentRoleType();
-                                                $user->is_vip = $user->isVip();
-                                                $user->role_expires_at = $user->getRoleExpiryDate();
-                                                $user->role_days_remaining = $user->getDaysRemainingForVip();
-                                                
-                                                // Add package information to user in collection
-                                                $user->package_type = $user->getCurrentPackageType();
-                                                $user->has_package = $user->hasPackage();
-                                                $user->package_expires_at = $user->getPackageExpiryDate();
-                                                $user->package_days_remaining = $user->getDaysRemainingForPackage();
-                                                $user->package_display_name = $user->getPackageDisplayName();
-                                                $user->package_badge_color = $user->getPackageBadgeColor();
-                                                return $user;
-                                            });
+        $userId = $request->user_id;
+        $start = (int)$request->start;
+        $limit = (int)$request->limit;
 
+        // Get total count for pagination
+        $totalCount = FollowingList::where('user_id', $userId)
+            ->whereNotIn('my_user_id', function ($query) use ($userId) {
+                $query->select('id')
+                    ->from('users')
+                    ->whereRaw("FIND_IN_SET(?, blocked_users)", [$userId]);
+            })
+            ->count();
+
+        // Get follower IDs first for batch queries
+        $followerRecords = FollowingList::where('user_id', $userId)
+            ->whereNotIn('my_user_id', function ($query) use ($userId) {
+                $query->select('id')
+                    ->from('users')
+                    ->whereRaw("FIND_IN_SET(?, blocked_users)", [$userId]);
+            })
+            ->orderBy('created_at', 'desc')
+            ->offset($start)
+            ->limit($limit)
+            ->pluck('my_user_id')
+            ->toArray();
+
+        if (empty($followerRecords)) {
             return response()->json([
                 'status' => true,
                 'message' => 'Fetch Followers List',
-                'data' => $fetchFollowersList,
+                'data' => [],
+                'pagination' => [
+                    'total' => $totalCount,
+                    'start' => $start,
+                    'limit' => $limit,
+                    'has_more' => false
+                ]
             ]);
+        }
+
+        // BATCH: Check friendship status for all followers
+        $friendsData = $this->batchCheckFriendsForFollowers($userId, $followerRecords);
+
+        // BATCH: Check if followers have liked current user (is_liked_me)
+        $likedMeData = $this->batchCheckLikedMeForFollowers($userId, $followerRecords);
+
+        // BATCH: Check if current user has liked these followers (is_like)
+        $likedByMeData = LikedProfile::where('my_user_id', $userId)
+            ->whereIn('user_id', $followerRecords)
+            ->where('status', 'pending')
+            ->pluck('user_id')
+            ->toArray();
+
+        // Get users with images
+        $fetchFollowersList = Users::whereIn('id', $followerRecords)
+            ->with('images')
+            ->get()
+            ->sortBy(function($user) use ($followerRecords) {
+                return array_search($user->id, $followerRecords);
+            })
+            ->values()
+            ->map(function($user) use ($friendsData, $likedMeData, $likedByMeData) {
+                // Add role information
+                $user->role_type = $user->getCurrentRoleType();
+                $user->is_vip = $user->isVip();
+                $user->role_expires_at = $user->getRoleExpiryDate();
+                $user->role_days_remaining = $user->getDaysRemainingForVip();
+
+                // Add package information
+                $user->package_type = $user->getCurrentPackageType();
+                $user->has_package = $user->hasPackage();
+                $user->package_expires_at = $user->getPackageExpiryDate();
+                $user->package_days_remaining = $user->getDaysRemainingForPackage();
+                $user->package_display_name = $user->getPackageDisplayName();
+                $user->package_badge_color = $user->getPackageBadgeColor();
+
+                // Add is_friend and is_liked_me for UserDetailScreen optimization (skip API call)
+                $user->is_friend = in_array($user->id, $friendsData);
+                $user->is_liked_me = in_array($user->id, $likedMeData);
+                $user->is_like = in_array($user->id, $likedByMeData);
+
+                return $user;
+            });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Fetch Followers List',
+            'data' => $fetchFollowersList,
+            'pagination' => [
+                'total' => $totalCount,
+                'start' => $start,
+                'limit' => $limit,
+                'has_more' => ($start + count($fetchFollowersList)) < $totalCount
+            ]
+        ]);
+    }
+
+    /**
+     * Batch check friendship status for followers
+     */
+    private function batchCheckFriendsForFollowers($userId, $followerIds)
+    {
+        if (empty($followerIds)) return [];
+
+        $friends = Friend::where(function($query) use ($userId, $followerIds) {
+            $query->where('user_id', $userId)
+                ->whereIn('friend_id', $followerIds);
+        })->orWhere(function($query) use ($userId, $followerIds) {
+            $query->where('friend_id', $userId)
+                ->whereIn('user_id', $followerIds);
+        })->get();
+
+        $friendIds = [];
+        foreach ($friends as $friend) {
+            $friendIds[] = $friend->user_id == $userId ? $friend->friend_id : $friend->user_id;
+        }
+        return $friendIds;
+    }
+
+    /**
+     * Batch check if followers have liked current user
+     */
+    private function batchCheckLikedMeForFollowers($userId, $followerIds)
+    {
+        if (empty($followerIds)) return [];
+
+        return LikedProfile::where('user_id', $userId)
+            ->whereIn('my_user_id', $followerIds)
+            ->pluck('my_user_id')
+            ->toArray();
     }
 
     public function unfollowUser(Request $request)
