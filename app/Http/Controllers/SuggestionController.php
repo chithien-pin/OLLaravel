@@ -12,6 +12,8 @@ use App\Models\Like;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\LiveHistory;
+use App\Models\Friend;
+use App\Models\LikedProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +21,8 @@ use Illuminate\Support\Facades\DB;
 class SuggestionController extends Controller
 {
     /**
-     * Get suggested users for a user with customizable algorithm
+     * Get suggested users for a user with automatic fallback logic
+     * Always returns at least 20 suggestions (or max available)
      */
     public function getSuggestedUsers(Request $request)
     {
@@ -31,7 +34,7 @@ class SuggestionController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => false, 
+                'status' => false,
                 'message' => $validator->errors()->first()
             ]);
         }
@@ -39,42 +42,50 @@ class SuggestionController extends Controller
         $user = Users::find($request->user_id);
         if (!$user) {
             return response()->json([
-                'status' => false, 
+                'status' => false,
                 'message' => 'User not found'
             ]);
         }
 
-        // Get user preferences or create default
-        $preferences = UserSuggestionPreference::where('user_id', $request->user_id)->first();
-        if (!$preferences) {
-            $preferences = UserSuggestionPreference::create(
-                array_merge(['user_id' => $request->user_id], UserSuggestionPreference::getDefaults())
-            );
-        }
+        $start = $request->start;
+        $limit = $request->limit;
+        $minResults = 10; // Minimum results to return
 
         // Get excluded user IDs (dismissed, blocked, already following)
-        $excludeUserIds = $this->getExcludedUserIds($request->user_id, $preferences);
+        $excludeUserIds = $this->getExcludedUserIds($request->user_id, null);
 
-        // Calculate suggestions using the algorithm
-        $suggestions = $this->calculateSuggestions($user, $preferences, $excludeUserIds, $request->start, $request->limit);
+        // Use automatic fallback strategy to get suggestions
+        $suggestions = $this->getSuggestionsWithFallback($user, $excludeUserIds, $start, $limit, $minResults);
 
         // Apply VIP-based visibility restrictions
-        $suggestions = $this->applyVipVisibilityRestrictions($user, $suggestions, $request->start);
+        $suggestions = $this->applyVipVisibilityRestrictions($user, $suggestions, $start);
 
-        // Log view events for analytics
-        foreach ($suggestions as $suggestion) {
-            UserSuggestionFeedback::logAction(
-                $request->user_id, 
-                $suggestion->id, 
-                UserSuggestionFeedback::ACTION_VIEWED,
-                $suggestion->suggestion_reason ?? UserSuggestionFeedback::REASON_ALGORITHM
-            );
+        // Log view events for analytics (only for first page to avoid spam)
+        if ($start == 0) {
+            foreach ($suggestions->take(10) as $suggestion) {
+                UserSuggestionFeedback::logAction(
+                    $request->user_id,
+                    $suggestion->id,
+                    UserSuggestionFeedback::ACTION_VIEWED,
+                    $suggestion->suggestion_reason ?? UserSuggestionFeedback::REASON_ALGORITHM
+                );
+            }
         }
+
+        // Get total count for pagination
+        $totalCount = $this->getTotalSuggestionsCount($user, $excludeUserIds);
 
         return response()->json([
             'status' => true,
             'message' => 'Suggested users fetched successfully',
-            'data' => $suggestions
+            'data' => $suggestions,
+            'pagination' => [
+                'start' => $start,
+                'limit' => $limit,
+                'count' => $suggestions->count(),
+                'total' => $totalCount,
+                'has_more' => ($start + $suggestions->count()) < $totalCount
+            ]
         ]);
     }
 
@@ -319,7 +330,7 @@ class SuggestionController extends Controller
     /**
      * Get list of user IDs to exclude from suggestions
      */
-    private function getExcludedUserIds($userId, $preferences)
+    private function getExcludedUserIds($userId, $preferences = null)
     {
         $excludeIds = [$userId]; // Always exclude self
 
@@ -328,27 +339,601 @@ class SuggestionController extends Controller
             ->active()
             ->pluck('dismissed_user_id')
             ->toArray();
-        
+
         $excludeIds = array_merge($excludeIds, $dismissedIds);
 
         // Get already following user IDs
         $followingIds = FollowingList::where('my_user_id', $userId)
             ->pluck('user_id')
             ->toArray();
-        
+
         $excludeIds = array_merge($excludeIds, $followingIds);
 
-        // Get blocked user IDs if preference is set
-        if ($preferences->exclude_blocked_friends) {
-            $user = Users::find($userId);
-            if ($user && $user->blocked_users) {
-                $blockedIds = explode(',', $user->blocked_users);
-                $blockedIds = array_filter($blockedIds, 'is_numeric');
-                $excludeIds = array_merge($excludeIds, $blockedIds);
-            }
+        // Get blocked user IDs (always exclude)
+        $user = Users::find($userId);
+        if ($user && $user->blocked_users) {
+            $blockedIds = explode(',', $user->blocked_users);
+            $blockedIds = array_filter($blockedIds, 'is_numeric');
+            $excludeIds = array_merge($excludeIds, $blockedIds);
         }
 
         return array_unique($excludeIds);
+    }
+
+    /**
+     * Get suggestions with automatic fallback strategy
+     * Progressively relaxes filters to ensure minimum results
+     */
+    private function getSuggestionsWithFallback($user, $excludeUserIds, $start, $limit, $minResults = 20)
+    {
+        // Get liked users for is_like status
+        $likedUsers = \App\Models\LikedProfile::where('my_user_id', $user->id)
+            ->pluck('user_id')
+            ->toArray();
+
+        // Strategy 1: Try with location filter (nearby users first)
+        $suggestions = $this->querySuggestionsWithFilters($user, $excludeUserIds, $likedUsers, [
+            'use_location' => true,
+            'location_radius' => 100, // 100km first
+        ]);
+
+        // Strategy 2: Expand location radius if not enough
+        if ($suggestions->count() < $minResults) {
+            $suggestions = $this->querySuggestionsWithFilters($user, $excludeUserIds, $likedUsers, [
+                'use_location' => true,
+                'location_radius' => 500, // 500km
+            ]);
+        }
+
+        // Strategy 3: Remove location filter entirely (global)
+        if ($suggestions->count() < $minResults) {
+            $suggestions = $this->querySuggestionsWithFilters($user, $excludeUserIds, $likedUsers, [
+                'use_location' => false,
+            ]);
+        }
+
+        // Apply pagination
+        $paginatedSuggestions = $suggestions->skip($start)->take($limit)->values();
+
+        return $paginatedSuggestions;
+    }
+
+    /**
+     * Query suggestions with specific filters (OPTIMIZED)
+     */
+    private function querySuggestionsWithFilters($user, $excludeUserIds, $likedUsers, $filters = [])
+    {
+        $query = Users::where('is_block', 0)
+            ->whereNotIn('id', $excludeUserIds)
+            ->with(['images', 'activeRole', 'activePackage']);
+
+        // Apply location filter if enabled and user has location
+        if (($filters['use_location'] ?? false) && $user->lattitude && $user->longitude) {
+            $lat = floatval($user->lattitude);
+            $lng = floatval($user->longitude);
+            $radius = $filters['location_radius'] ?? 100;
+
+            $query->whereNotNull('lattitude')
+                ->whereNotNull('longitude')
+                ->whereRaw("
+                    (6371 * acos(cos(radians(?)) * cos(radians(lattitude)) *
+                    cos(radians(longitude) - radians(?)) + sin(radians(?)) *
+                    sin(radians(lattitude)))) <= ?
+                ", [$lat, $lng, $lat, $radius]);
+        }
+
+        // Get candidates
+        $candidates = $query->get();
+        $candidateIds = $candidates->pluck('id')->toArray();
+
+        if (empty($candidateIds)) {
+            return collect([]);
+        }
+
+        // ============ BATCH PRE-FETCH ALL DATA (Optimized) ============
+
+        // 1. Get followers of current user (for "Follow back")
+        $followersOfCurrentUser = FollowingList::where('user_id', $user->id)
+            ->pluck('my_user_id')
+            ->toArray();
+
+        // 2. Get users that current user is following (my friends)
+        $myFollowingIds = FollowingList::where('my_user_id', $user->id)
+            ->pluck('user_id')
+            ->toArray();
+
+        // 3. BATCH: Get mutual friends for ALL candidates (single query)
+        $mutualFriendsData = $this->batchGetMutualFriends($user->id, $candidateIds);
+
+        // 4. BATCH: Get "followed by my friends" for ALL candidates (single query)
+        $followedByFriendsData = $this->batchGetFollowedByFriends($candidateIds, $myFollowingIds);
+
+        // 5. BATCH: Get recent posts count for ALL candidates (single query)
+        $recentPostsCounts = Post::whereIn('user_id', $candidateIds)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('user_id, COUNT(*) as count')
+            ->groupBy('user_id')
+            ->pluck('count', 'user_id')
+            ->toArray();
+
+        // 6. Pre-fetch context users info (all unique user IDs from mutual friends and followed by)
+        $allContextUserIds = collect($mutualFriendsData)->flatten()
+            ->merge(collect($followedByFriendsData)->flatten())
+            ->unique()
+            ->values()
+            ->toArray();
+        $contextUsersInfo = $this->batchGetUsersInfo($allContextUserIds);
+
+        // 7. BATCH: Check friendship status for ALL candidates (for is_friend field)
+        $friendsData = $this->batchCheckFriends($user->id, $candidateIds);
+
+        // 8. BATCH: Check if candidates have liked current user (for is_liked_me field)
+        $likedMeData = $this->batchCheckLikedMe($user->id, $candidateIds);
+
+        // ============ CALCULATE SCORES (No more N+1 queries) ============
+
+        $scoredCandidates = $candidates->map(function($candidate) use (
+            $user, $likedUsers, $followersOfCurrentUser, $myFollowingIds, $filters,
+            $mutualFriendsData, $followedByFriendsData, $recentPostsCounts, $contextUsersInfo,
+            $friendsData, $likedMeData
+        ) {
+            $candidateId = $candidate->id;
+
+            // Get pre-fetched data for this candidate
+            $mutualFriendIds = $mutualFriendsData[$candidateId] ?? [];
+            $followedByIds = $followedByFriendsData[$candidateId] ?? [];
+            $recentPostsCount = $recentPostsCounts[$candidateId] ?? 0;
+
+            // Calculate score using pre-fetched data (no queries)
+            $score = $this->calculateScoreOptimized($user, $candidate, $filters, count($mutualFriendIds), $recentPostsCount);
+            $candidate->suggestion_score = $score['total_score'];
+            $candidate->suggestion_reason = $score['primary_reason'];
+
+            // Add role/package information (already loaded via with())
+            $candidate->current_role_type = $candidate->getCurrentRoleType();
+            $candidate->is_vip_user = $candidate->isVip();
+            $candidate->current_package_type = $candidate->getCurrentPackageType();
+            $candidate->has_package = $candidate->hasPackage();
+            $candidate->is_millionaire = $candidate->isMillionaire();
+            $candidate->is_billionaire = $candidate->isBillionaire();
+            $candidate->is_celebrity = $candidate->isCelebrity();
+            $candidate->package_badge_color = $candidate->getPackageBadgeColor();
+
+            // Add is_like and is_following_me (array lookups, no queries)
+            $candidate->is_like = in_array($candidateId, $likedUsers);
+            $candidate->is_following_me = in_array($candidateId, $followersOfCurrentUser);
+
+            // Add is_friend and is_liked_me for UserDetailScreen optimization (skip API call)
+            $candidate->is_friend = in_array($candidateId, $friendsData);
+            $candidate->is_liked_me = in_array($candidateId, $likedMeData);
+
+            // Build context using pre-fetched data (no queries)
+            $contextData = $this->buildContextFromPrefetched(
+                $mutualFriendIds, $followedByIds, $contextUsersInfo, $candidate->suggestion_reason
+            );
+            $candidate->suggestion_context_type = $contextData['type'];
+            $candidate->suggestion_context_users = $contextData['users'];
+
+            return $candidate;
+        });
+
+        // Sort by score (descending)
+        return $scoredCandidates->sortByDesc('suggestion_score')->values();
+    }
+
+    /**
+     * BATCH: Get mutual friends for all candidates in ONE query
+     */
+    private function batchGetMutualFriends($userId, $candidateIds)
+    {
+        if (empty($candidateIds)) return [];
+
+        $results = DB::table('following_lists as fl1')
+            ->join('following_lists as fl2', 'fl1.user_id', '=', 'fl2.user_id')
+            ->where('fl1.my_user_id', $userId)
+            ->whereIn('fl2.my_user_id', $candidateIds)
+            ->select('fl2.my_user_id as candidate_id', 'fl1.user_id as mutual_friend_id')
+            ->get();
+
+        // Group by candidate_id, limit 3 per candidate
+        $grouped = [];
+        foreach ($results as $row) {
+            $candidateId = $row->candidate_id;
+            if (!isset($grouped[$candidateId])) {
+                $grouped[$candidateId] = [];
+            }
+            if (count($grouped[$candidateId]) < 3) {
+                $grouped[$candidateId][] = $row->mutual_friend_id;
+            }
+        }
+        return $grouped;
+    }
+
+    /**
+     * BATCH: Get "followed by my friends" for all candidates in ONE query
+     */
+    private function batchGetFollowedByFriends($candidateIds, $myFollowingIds)
+    {
+        if (empty($candidateIds) || empty($myFollowingIds)) return [];
+
+        $results = FollowingList::whereIn('user_id', $candidateIds)
+            ->whereIn('my_user_id', $myFollowingIds)
+            ->select('user_id as candidate_id', 'my_user_id as friend_id')
+            ->get();
+
+        // Group by candidate_id, limit 3 per candidate
+        $grouped = [];
+        foreach ($results as $row) {
+            $candidateId = $row->candidate_id;
+            if (!isset($grouped[$candidateId])) {
+                $grouped[$candidateId] = [];
+            }
+            if (count($grouped[$candidateId]) < 3) {
+                $grouped[$candidateId][] = $row->friend_id;
+            }
+        }
+        return $grouped;
+    }
+
+    /**
+     * BATCH: Get user info for all context users in ONE query
+     */
+    private function batchGetUsersInfo($userIds)
+    {
+        if (empty($userIds)) return [];
+
+        $users = Users::whereIn('id', $userIds)
+            ->with('images')
+            ->get();
+
+        $result = [];
+        foreach ($users as $user) {
+            $image = '';
+            if ($user->images && $user->images->count() > 0) {
+                $image = $user->images->first()->image ?? '';
+            }
+            $result[$user->id] = [
+                'id' => $user->id,
+                'fullname' => $user->fullname,
+                'image' => $image
+            ];
+        }
+        return $result;
+    }
+
+    /**
+     * BATCH: Check friendship status for all candidates in ONE query
+     * Returns array of candidate IDs who are friends with the user
+     */
+    private function batchCheckFriends($userId, $candidateIds)
+    {
+        if (empty($candidateIds)) return [];
+
+        // Friends table stores: user_id (smaller) < friend_id (larger)
+        $friends = Friend::where(function($query) use ($userId, $candidateIds) {
+            $query->where('user_id', $userId)
+                ->whereIn('friend_id', $candidateIds);
+        })->orWhere(function($query) use ($userId, $candidateIds) {
+            $query->where('friend_id', $userId)
+                ->whereIn('user_id', $candidateIds);
+        })->get();
+
+        $friendIds = [];
+        foreach ($friends as $friend) {
+            // Get the candidate ID (not current user)
+            $friendIds[] = $friend->user_id == $userId ? $friend->friend_id : $friend->user_id;
+        }
+        return $friendIds;
+    }
+
+    /**
+     * BATCH: Check if candidates have liked current user in ONE query
+     * Returns array of candidate IDs who have sent handshake/like to current user
+     */
+    private function batchCheckLikedMe($userId, $candidateIds)
+    {
+        if (empty($candidateIds)) return [];
+
+        // like_profiles: my_user_id (liker) -> user_id (liked person)
+        // We want to find candidates who liked current user
+        return LikedProfile::where('user_id', $userId)
+            ->whereIn('my_user_id', $candidateIds)
+            ->pluck('my_user_id')
+            ->toArray();
+    }
+
+    /**
+     * Calculate score using pre-fetched data (no queries)
+     */
+    private function calculateScoreOptimized($user, $candidate, $filters, $mutualFriendsCount, $recentPostsCount)
+    {
+        $score = 0;
+        $primaryReason = 'algorithm';
+
+        // 1. Mutual friends bonus (pre-fetched)
+        if ($mutualFriendsCount > 0) {
+            $score += min($mutualFriendsCount * 15, 40);
+            $primaryReason = UserSuggestionFeedback::REASON_MUTUAL_FRIENDS;
+        }
+
+        // 2. Location proximity bonus
+        if (($filters['use_location'] ?? false) && $user->lattitude && $candidate->lattitude) {
+            $distance = $this->calculateDistance(
+                $user->lattitude, $user->longitude,
+                $candidate->lattitude, $candidate->longitude
+            );
+            if ($distance <= 50) {
+                $score += 30;
+                $primaryReason = UserSuggestionFeedback::REASON_NEARBY;
+            } elseif ($distance <= 100) {
+                $score += 20;
+            } elseif ($distance <= 500) {
+                $score += 10;
+            }
+        }
+
+        // 3. Activity bonus (pre-fetched)
+        $score += min($recentPostsCount * 5, 15);
+
+        // 4. VIP/Premium user bonus
+        if ($candidate->isVip()) {
+            $score += 10;
+        }
+
+        // 5. Verified user bonus
+        if ($candidate->is_verified == 2) {
+            $score += 10;
+        }
+
+        // 6. New user bonus
+        $daysSinceJoined = now()->diffInDays($candidate->created_at);
+        if ($daysSinceJoined <= 7) {
+            $score += 15;
+            $primaryReason = UserSuggestionFeedback::REASON_NEW_USER;
+        } elseif ($daysSinceJoined <= 30) {
+            $score += 5;
+        }
+
+        // 7. Common interests bonus
+        if ($user->interests && $candidate->interests) {
+            $userInterests = explode(',', $user->interests);
+            $candidateInterests = explode(',', $candidate->interests);
+            $commonCount = count(array_intersect($userInterests, $candidateInterests));
+            if ($commonCount > 0) {
+                $score += min($commonCount * 10, 20);
+                if ($commonCount >= 3) {
+                    $primaryReason = UserSuggestionFeedback::REASON_COMMON_INTERESTS;
+                }
+            }
+        }
+
+        // 8. Profile completeness bonus
+        if ($candidate->bio && strlen($candidate->bio) > 20) {
+            $score += 5;
+        }
+        if ($candidate->images && $candidate->images->count() >= 3) {
+            $score += 5;
+        }
+
+        return [
+            'total_score' => $score,
+            'primary_reason' => $primaryReason
+        ];
+    }
+
+    /**
+     * Build context from pre-fetched data (no queries)
+     */
+    private function buildContextFromPrefetched($mutualFriendIds, $followedByIds, $contextUsersInfo, $suggestionReason)
+    {
+        // Priority 1: Mutual friends
+        if (!empty($mutualFriendIds)) {
+            $users = [];
+            foreach (array_slice($mutualFriendIds, 0, 3) as $userId) {
+                if (isset($contextUsersInfo[$userId])) {
+                    $users[] = $contextUsersInfo[$userId];
+                }
+            }
+            if (!empty($users)) {
+                return ['type' => 'mutual_friends', 'users' => $users];
+            }
+        }
+
+        // Priority 2: Followed by friends
+        if (!empty($followedByIds)) {
+            $users = [];
+            foreach (array_slice($followedByIds, 0, 3) as $userId) {
+                if (isset($contextUsersInfo[$userId])) {
+                    $users[] = $contextUsersInfo[$userId];
+                }
+            }
+            if (!empty($users)) {
+                return ['type' => 'followed_by', 'users' => $users];
+            }
+        }
+
+        // Priority 3: Use suggestion reason
+        $contextType = 'default';
+        if ($suggestionReason === 'nearby') {
+            $contextType = 'nearby';
+        } elseif ($suggestionReason === 'new_user') {
+            $contextType = 'new_user';
+        } elseif ($suggestionReason === 'common_interests') {
+            $contextType = 'common_interests';
+        }
+
+        return ['type' => $contextType, 'users' => []];
+    }
+
+    /**
+     * Calculate simple score for suggestion ranking
+     */
+    private function calculateSimpleScore($user, $candidate, $filters = [])
+    {
+        $score = 0;
+        $primaryReason = 'algorithm';
+
+        // 1. Mutual friends bonus (high priority)
+        $mutualFriends = DB::table('following_lists as fl1')
+            ->join('following_lists as fl2', 'fl1.user_id', '=', 'fl2.user_id')
+            ->where('fl1.my_user_id', $user->id)
+            ->where('fl2.my_user_id', $candidate->id)
+            ->count();
+
+        if ($mutualFriends > 0) {
+            $score += min($mutualFriends * 15, 40);
+            $primaryReason = UserSuggestionFeedback::REASON_MUTUAL_FRIENDS;
+        }
+
+        // 2. Location proximity bonus
+        if (($filters['use_location'] ?? false) && $user->lattitude && $candidate->lattitude) {
+            $distance = $this->calculateDistance(
+                $user->lattitude, $user->longitude,
+                $candidate->lattitude, $candidate->longitude
+            );
+            if ($distance <= 50) {
+                $score += 30;
+                $primaryReason = UserSuggestionFeedback::REASON_NEARBY;
+            } elseif ($distance <= 100) {
+                $score += 20;
+            } elseif ($distance <= 500) {
+                $score += 10;
+            }
+        }
+
+        // 3. Activity bonus (recent activity)
+        $recentPosts = Post::where('user_id', $candidate->id)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->count();
+        $score += min($recentPosts * 5, 15);
+
+        // 4. VIP/Premium user bonus
+        if ($candidate->isVip()) {
+            $score += 10;
+        }
+
+        // 5. Verified user bonus
+        if ($candidate->is_verified == 2) {
+            $score += 10;
+        }
+
+        // 6. New user bonus
+        $daysSinceJoined = now()->diffInDays($candidate->created_at);
+        if ($daysSinceJoined <= 7) {
+            $score += 15;
+            $primaryReason = UserSuggestionFeedback::REASON_NEW_USER;
+        } elseif ($daysSinceJoined <= 30) {
+            $score += 5;
+        }
+
+        // 7. Common interests bonus
+        if ($user->interests && $candidate->interests) {
+            $userInterests = explode(',', $user->interests);
+            $candidateInterests = explode(',', $candidate->interests);
+            $commonCount = count(array_intersect($userInterests, $candidateInterests));
+            if ($commonCount > 0) {
+                $score += min($commonCount * 10, 20);
+                if ($commonCount >= 3) {
+                    $primaryReason = UserSuggestionFeedback::REASON_COMMON_INTERESTS;
+                }
+            }
+        }
+
+        // 8. Profile completeness bonus
+        if ($candidate->bio && strlen($candidate->bio) > 20) {
+            $score += 5;
+        }
+        if ($candidate->images && $candidate->images->count() >= 3) {
+            $score += 5;
+        }
+
+        return [
+            'total_score' => $score,
+            'primary_reason' => $primaryReason
+        ];
+    }
+
+    /**
+     * Get total count of available suggestions for pagination
+     */
+    private function getTotalSuggestionsCount($user, $excludeUserIds)
+    {
+        return Users::where('is_block', 0)
+            ->whereNotIn('id', $excludeUserIds)
+            ->count();
+    }
+
+    /**
+     * Get suggestion context (mutual friends, followed by, etc.)
+     * Returns context type and relevant users for display
+     */
+    private function getSuggestionContext($userId, $candidateId, $myFollowingIds, $suggestionReason)
+    {
+        $contextType = 'default';
+        $contextUsers = [];
+
+        // Priority 1: Mutual friends (people both user and candidate follow)
+        $mutualFriendIds = DB::table('following_lists as fl1')
+            ->join('following_lists as fl2', 'fl1.user_id', '=', 'fl2.user_id')
+            ->where('fl1.my_user_id', $userId)
+            ->where('fl2.my_user_id', $candidateId)
+            ->limit(3)
+            ->pluck('fl1.user_id')
+            ->toArray();
+
+        if (!empty($mutualFriendIds)) {
+            $contextType = 'mutual_friends';
+            $contextUsers = $this->getUsersContextInfo($mutualFriendIds);
+            return ['type' => $contextType, 'users' => $contextUsers];
+        }
+
+        // Priority 2: Followed by my friends (which of my friends follow this candidate)
+        $friendsWhoFollowCandidate = FollowingList::where('user_id', $candidateId)
+            ->whereIn('my_user_id', $myFollowingIds)
+            ->limit(3)
+            ->pluck('my_user_id')
+            ->toArray();
+
+        if (!empty($friendsWhoFollowCandidate)) {
+            $contextType = 'followed_by';
+            $contextUsers = $this->getUsersContextInfo($friendsWhoFollowCandidate);
+            return ['type' => $contextType, 'users' => $contextUsers];
+        }
+
+        // Priority 3: Use suggestion reason as context type
+        if ($suggestionReason === 'nearby') {
+            $contextType = 'nearby';
+        } elseif ($suggestionReason === 'new_user') {
+            $contextType = 'new_user';
+        } elseif ($suggestionReason === 'common_interests') {
+            $contextType = 'common_interests';
+        }
+
+        return ['type' => $contextType, 'users' => $contextUsers];
+    }
+
+    /**
+     * Get basic user info for context display (id, fullname, image)
+     */
+    private function getUsersContextInfo($userIds)
+    {
+        if (empty($userIds)) return [];
+
+        $users = Users::whereIn('id', $userIds)
+            ->with('images')
+            ->get();
+
+        return $users->map(function($user) {
+            $image = '';
+            if ($user->images && $user->images->count() > 0) {
+                $image = $user->images->first()->image ?? '';
+            }
+            return [
+                'id' => $user->id,
+                'fullname' => $user->fullname,
+                'image' => $image
+            ];
+        })->values()->toArray();
     }
 
     /**
