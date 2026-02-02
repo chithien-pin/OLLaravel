@@ -1936,6 +1936,14 @@ class UsersController extends Controller
             $updateData['country'] = $req->country;
         }
 
+        // device_token: Always update to keep push notifications working
+        if ($req->has('device_token') && $req->device_token != null) {
+            $updateData['device_token'] = $req->device_token;
+        }
+        if ($req->has('device_type') && $req->device_type != null) {
+            $updateData['device_type'] = $req->device_type;
+        }
+
         if (!empty($updateData)) {
             Users::where('id', $req->user_id)->update($updateData);
         }
