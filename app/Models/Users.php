@@ -289,12 +289,8 @@ class Users extends Model
         // Deactivate existing packages
         $this->packages()->update(['is_active' => false]);
 
-        // Calculate expiry date based on package type
+        // All packages (millionaire, billionaire, celebrity) are permanent (no expiry)
         $expiresAt = null;
-        if ($packageType === 'millionaire' || $packageType === 'billionaire') {
-            $expiresAt = now()->addYear(); // 1 year duration
-        }
-        // Celebrity package is permanent (no expiry date)
 
         // Create new package
         return $this->packages()->create([
