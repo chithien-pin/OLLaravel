@@ -45,32 +45,30 @@ class SubscriptionController extends Controller
 
     /**
      * Get iOS subscription plans (IAP)
+     *
+     * NOTE: All plans are returned to comply with Apple App Store Guidelines 2.1
+     * Apple requires all IAP products to be visible during review.
+     * The app UI can still show/hide plans based on eligibility, but API must return all.
      */
     private function getIOSPlans(Request $request)
     {
         $subscriptionPacks = SubscriptionPacks::getAllPacks();
         $plans = [];
-        
+
         foreach ($subscriptionPacks as $pack) {
             $plans[$pack->plan_type] = $pack->toApiArray();
         }
-        
+
         // Check starter plan eligibility if user_id provided
+        // NOTE: We no longer filter plans to comply with App Store Guidelines 2.1
+        // All plans must be accessible during Apple review
         if ($request->has('current_user_id')) {
             $isEligibleForStarter = Subscription::isEligibleForStarterPlan($request->current_user_id);
-            
-            if ($isEligibleForStarter) {
-                // First-time user: Show only Starter + Yearly (remove Monthly)
-                unset($plans['monthly']);
-            } else {
-                // Existing user: Show only Monthly + Yearly (remove Starter)
-                unset($plans['starter']);
-            }
-            
-            // Add eligibility info to response
+
+            // Add eligibility info to response (for UI to use if needed)
             $plans['starter_eligible'] = $isEligibleForStarter;
         }
-        
+
         return response()->json([
             'status' => 200,
             'message' => 'iOS subscription plans retrieved successfully',
@@ -79,16 +77,16 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Get Android subscription plans (Stripe) - unchanged
+     * Get Android subscription plans (Stripe)
      */
     private function getStripePlans(Request $request)
     {
         $plans = Subscription::getSubscriptionPlans();
-        
-        // If user_id is provided, check starter plan eligibility
+
+        // If user_id is provided, check starter plan eligibility and filter plans
         if ($request->has('current_user_id')) {
             $isEligibleForStarter = Subscription::isEligibleForStarterPlan($request->current_user_id);
-            
+
             if ($isEligibleForStarter) {
                 // First-time user: Show only Starter + Yearly (remove Monthly)
                 unset($plans['monthly']);
@@ -96,11 +94,11 @@ class SubscriptionController extends Controller
                 // Existing user: Show only Monthly + Yearly (remove Starter)
                 unset($plans['starter']);
             }
-            
+
             // Add eligibility info to response
             $plans['starter_eligible'] = $isEligibleForStarter;
         }
-        
+
         return response()->json([
             'status' => 200,
             'message' => 'Android subscription plans retrieved successfully',
