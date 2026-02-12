@@ -13,6 +13,7 @@ use App\Http\Controllers\RedeemRequestsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\UserPortalController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -235,3 +236,22 @@ Route::get('viewTerms', [PagesController::class, 'viewTerms'])->middleware(['che
 Route::post('updateTerms', [PagesController::class, 'updateTerms'])->middleware(['checkLogin'])->name('updateTerms');
 Route::get('privacypolicy', [PagesController::class, 'privacypolicy'])->name('privacypolicy');
 Route::get('termsOfUse', [PagesController::class, 'termsOfUse'])->name('termsOfUse');
+
+
+/*|--------------------------------------------------------------------------|
+| User Portal Routes (Creator Redeem Portal)
+|--------------------------------------------------------------------------|*/
+Route::prefix('portal')->group(function () {
+    // Public routes
+    Route::get('/', [UserPortalController::class, 'showLogin'])->name('portal.login');
+    Route::get('/login', [UserPortalController::class, 'showLogin'])->name('portal.login.page');
+    Route::post('/send-magic-link', [UserPortalController::class, 'sendMagicLink'])->name('portal.send-magic-link');
+    Route::get('/verify/{token}', [UserPortalController::class, 'verifyMagicLink'])->name('portal.verify');
+
+    // Authenticated routes
+    Route::get('/dashboard', [UserPortalController::class, 'dashboard'])->name('portal.dashboard');
+    Route::get('/redeem', [UserPortalController::class, 'showRedeemForm'])->name('portal.redeem');
+    Route::post('/redeem', [UserPortalController::class, 'submitRedeem'])->name('portal.submit-redeem');
+    Route::get('/history', [UserPortalController::class, 'redeemHistory'])->name('portal.history');
+    Route::get('/logout', [UserPortalController::class, 'logout'])->name('portal.logout');
+});
