@@ -85,6 +85,7 @@ Route::post('diamond/create-payment-intent', [DiamondPackController::class, 'cre
 Route::post('diamond/confirm-payment', [DiamondPackController::class, 'confirmDiamondPayment'])->middleware('checkHeader');
 
 Route::post('onOffNotification', [UsersController::class, 'onOffNotification'])->middleware('checkHeader');
+Route::post('resetBadgeCount', [UsersController::class, 'resetBadgeCount'])->middleware('checkHeader');
 Route::post('updateLiveStatus', [UsersController::class, 'updateLiveStatus'])->middleware('checkHeader');
 Route::post('onOffShowMeOnMap', [UsersController::class, 'onOffShowMeOnMap'])->middleware('checkHeader');
 Route::post('onOffAnonymous', [UsersController::class, 'onOffAnonymous'])->middleware('checkHeader');

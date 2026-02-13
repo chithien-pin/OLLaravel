@@ -188,7 +188,7 @@ class LiveApplicationController extends Controller
             if ($user->is_notification == 1) {
                 $title = "Hello " . $user->fullname;
                 $message = "Your Livestream application has been approved!";
-                Myfunction::sendPushToUser($title, $message, $user->device_token);
+                Myfunction::sendPushToUser($title, $message, $user->device_token, null, $user->id);
             }
             
             $liveRequest->delete();

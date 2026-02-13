@@ -1463,6 +1463,31 @@ class UsersController extends Controller
         ]);
     }
 
+    function resetBadgeCount(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $user = Users::where('id', $request->user_id)->first();
+        if ($user) {
+            $user->badge_count = 0;
+            $user->save();
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Badge count reset successfully',
+        ]);
+    }
+
     /**
      * Update swipe tutorial flag when user completes the tutorial
      */
@@ -3724,7 +3749,7 @@ class UsersController extends Controller
                     $notificationDesc = TranslationService::forUser($toUser, 'notification.follow', [
                         'name' => $fromUser->fullname
                     ]);
-                    Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token);
+                    Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token, null, $toUser->id);
                 }
 
             } catch (\Exception $e) {

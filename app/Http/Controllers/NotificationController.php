@@ -97,6 +97,16 @@ class NotificationController extends Controller
                 'body' => $message
             ];
 
+            // Increment badge count
+            $badgeCount = 1;
+            try {
+                $user->increment('badge_count');
+                $user->refresh();
+                $badgeCount = $user->badge_count;
+            } catch (\Exception $e) {
+                Log::error('Badge count increment error: ' . $e->getMessage());
+            }
+
             $fields = [
                 'message' => [
                     'token' => $user->device_token,
@@ -115,7 +125,7 @@ class NotificationController extends Controller
                         'payload' => [
                             'aps' => [
                                 'sound' => 'default',
-                                'badge' => 1
+                                'badge' => $badgeCount
                             ]
                         ]
                     ]
@@ -208,7 +218,7 @@ class NotificationController extends Controller
             }
 
             // Send individual notification
-            if ($this->sendSingleLivestreamNotification($followerUser->device_token, $title, $body, $liveStreamData)) {
+            if ($this->sendSingleLivestreamNotification($followerUser->device_token, $title, $body, $liveStreamData, $followerUser->id)) {
                 $successCount++;
             }
         }
@@ -224,9 +234,24 @@ class NotificationController extends Controller
     /**
      * Send single livestream notification to specific device token
      */
-    private function sendSingleLivestreamNotification($deviceToken, $title, $body, $liveStreamData)
+    private function sendSingleLivestreamNotification($deviceToken, $title, $body, $liveStreamData, $userId = null)
     {
         try {
+            // Increment badge count
+            $badgeCount = 1;
+            if ($userId) {
+                try {
+                    $user = Users::find($userId);
+                    if ($user) {
+                        $user->increment('badge_count');
+                        $user->refresh();
+                        $badgeCount = $user->badge_count;
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Badge count increment error: ' . $e->getMessage());
+                }
+            }
+
             $client = new Client();
             $client->setAuthConfig(base_path('googleCredentials.json'));
             $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
@@ -238,7 +263,7 @@ class NotificationController extends Controller
             $json = json_decode($contents, true);
 
             $url = 'https://fcm.googleapis.com/v1/projects/' . $json['project_id'] . '/messages:send';
-            
+
             $fields = [
                 'message' => [
                     'token' => $deviceToken,
@@ -261,7 +286,7 @@ class NotificationController extends Controller
                         'payload' => [
                             'aps' => [
                                 'sound' => 'default',
-                                'badge' => 1
+                                'badge' => $badgeCount
                             ]
                         ]
                     ]

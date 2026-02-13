@@ -36,7 +36,7 @@ class GlobalFunction extends Model
         $url = 'https://fcm.googleapis.com/v1/projects/' . $json['project_id'] . '/messages:send';
         $notificationArray = array('title' => $title, 'body' => $message);
 
-        // Construct message for iOS
+        // Construct message for iOS (badge: 1 for topic broadcast since we can't track per-user)
         $fields_ios = array(
             'message' => [
                 'topic' => env('NOTIFICATION_TOPIC') . '_ios',
@@ -44,7 +44,10 @@ class GlobalFunction extends Model
                 'notification' => $notificationArray,
                 'apns' => [
                     'payload' => [
-                        'aps' => ['sound' => 'default']
+                        'aps' => [
+                            'sound' => 'default',
+                            'badge' => 1
+                        ]
                     ]
                 ]
             ],

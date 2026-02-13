@@ -515,7 +515,7 @@ class PostController extends Controller
                             'name' => $user->fullname,
                             'comment' => substr($request->description, 0, 50)
                         ]);
-                        Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token);
+                        Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token, null, $toUser->id);
                     }
                 }
 
@@ -667,7 +667,7 @@ class PostController extends Controller
                             $notificationDesc = TranslationService::forUser($toUser, 'notification.post_like', [
                                 'name' => $user->fullname
                             ]);
-                            Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token);
+                            Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token, null, $toUser->id);
                         }
                     }
 

@@ -13,7 +13,7 @@ class Myfunction extends Model
 {
     use HasFactory;
 
-    public static function sendPushToUser($title, $message, $token, $eventData = null)
+    public static function sendPushToUser($title, $message, $token, $eventData = null, $userId = null)
     {
 
         $client = new Client();
@@ -33,10 +33,33 @@ class Myfunction extends Model
 
         $device_token = $token;
 
+        // Increment badge count for user
+        $badgeCount = 1;
+        if ($userId) {
+            try {
+                $user = Users::find($userId);
+                if ($user) {
+                    $user->increment('badge_count');
+                    $user->refresh();
+                    $badgeCount = $user->badge_count;
+                }
+            } catch (\Exception $e) {
+                Log::error('Badge count increment error: ' . $e->getMessage());
+            }
+        }
+
         // Build message payload
         $messagePayload = [
             'token'=> $device_token,
             'notification' => $notificationArray,
+            'apns' => [
+                'payload' => [
+                    'aps' => [
+                        'sound' => 'default',
+                        'badge' => $badgeCount
+                    ]
+                ]
+            ],
         ];
 
         // Add event data if provided
@@ -108,7 +131,7 @@ class Myfunction extends Model
             'params' => json_encode(['initialTabIndex' => 1]) // Following tab
         ];
 
-        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
+        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData, $toUser->id);
     }
 
     /**
@@ -136,7 +159,7 @@ class Myfunction extends Model
             'params' => json_encode(['conversationId' => $conversationId])
         ];
 
-        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
+        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData, $toUser->id);
     }
 
     /**
@@ -165,7 +188,7 @@ class Myfunction extends Model
         // Send to all followers
         foreach ($followers as $follower) {
             if ($follower->is_notification == 1 && !empty($follower->device_token)) {
-                self::sendPushToUser($title, $message, $follower->device_token, $eventData);
+                self::sendPushToUser($title, $message, $follower->device_token, $eventData, $follower->id);
             }
         }
     }
@@ -196,7 +219,7 @@ class Myfunction extends Model
             'params' => json_encode(['postId' => $postId])
         ];
 
-        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
+        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData, $toUser->id);
     }
 
     /**
@@ -227,7 +250,7 @@ class Myfunction extends Model
             'params' => json_encode(['postId' => $postId])
         ];
 
-        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
+        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData, $toUser->id);
     }
 
     /**
@@ -255,7 +278,7 @@ class Myfunction extends Model
             'params' => json_encode(['userId' => $fromUser->id])
         ];
 
-        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
+        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData, $toUser->id);
     }
 
     /**
@@ -278,7 +301,7 @@ class Myfunction extends Model
             'params' => json_encode([])
         ];
 
-        return self::sendPushToUser($title, $message, $user->device_token, $eventData);
+        return self::sendPushToUser($title, $message, $user->device_token, $eventData, $user->id);
     }
 
     /**
@@ -307,7 +330,7 @@ class Myfunction extends Model
             'params' => json_encode(['userId' => $fromUser->id])
         ];
 
-        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
+        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData, $toUser->id);
     }
 
     /**
@@ -337,7 +360,7 @@ class Myfunction extends Model
             'params' => json_encode(['userId' => $fromUser->id, 'isFriend' => true])
         ];
 
-        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData);
+        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData, $toUser->id);
     }
 
     /**
