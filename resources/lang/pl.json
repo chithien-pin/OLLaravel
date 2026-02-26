@@ -8,5 +8,7 @@
     "notification.title.comment": "Nowy komentarz",
     "notification.title.post_like": "Post polubiony",
     "notification.title.profile_like": "Profil polubiony",
-    "notification.handshake_accepted": "{name} zaakceptował twój uścisk dłoni"
+    "notification.handshake_accepted": "{name} zaakceptował twój uścisk dłoni",
+    "notification.livestream": ":name jest teraz na żywo!",
+    "notification.title.livestream": "Na żywo"
 }

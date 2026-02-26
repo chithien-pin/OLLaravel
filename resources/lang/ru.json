@@ -8,5 +8,7 @@
     "notification.title.comment": "Новый комментарий",
     "notification.title.post_like": "Понравилась публикация",
     "notification.title.profile_like": "Понравился профиль",
-    "notification.handshake_accepted": "{name} принял твоё рукопожатие"
+    "notification.handshake_accepted": "{name} принял твоё рукопожатие",
+    "notification.livestream": ":name сейчас в эфире!",
+    "notification.title.livestream": "Прямой эфир"
 }

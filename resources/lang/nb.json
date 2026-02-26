@@ -8,5 +8,7 @@
     "notification.title.comment": "Ny kommentar",
     "notification.title.post_like": "Innlegg likt",
     "notification.title.profile_like": "Profil likt",
-    "notification.handshake_accepted": "{name} godtok håndtrykket ditt"
+    "notification.handshake_accepted": "{name} godtok håndtrykket ditt",
+    "notification.livestream": ":name er live nå!",
+    "notification.title.livestream": "Direktesending"
 }

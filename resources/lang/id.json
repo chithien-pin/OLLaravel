@@ -8,5 +8,7 @@
     "notification.title.comment": "Komentar Baru",
     "notification.title.post_like": "Postingan Disukai",
     "notification.title.profile_like": "Profil Disukai",
-    "notification.handshake_accepted": "{name} menerima jabat tangan Anda"
+    "notification.handshake_accepted": "{name} menerima jabat tangan Anda",
+    "notification.livestream": ":name sedang siaran langsung!",
+    "notification.title.livestream": "Siaran Langsung"
 }

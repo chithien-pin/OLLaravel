@@ -765,6 +765,39 @@ class UsersController extends Controller
         // 3. Create friendship record
         Friend::createFriendship($my_user->id, $user->id);
 
+        // 3.5. Auto-follow each other (if not already following)
+        // User B (accepter) follows User A (sender)
+        $alreadyFollowingBA = FollowingList::where('my_user_id', $my_user->id)
+            ->where('user_id', $user->id)
+            ->exists();
+        if (!$alreadyFollowingBA) {
+            $followBA = new FollowingList();
+            $followBA->my_user_id = (int) $my_user->id;
+            $followBA->user_id = (int) $user->id;
+            $followBA->save();
+
+            $my_user->following += 1;
+            $my_user->save();
+            $user->followers += 1;
+            $user->save();
+        }
+
+        // User A (sender) follows User B (accepter)
+        $alreadyFollowingAB = FollowingList::where('my_user_id', $user->id)
+            ->where('user_id', $my_user->id)
+            ->exists();
+        if (!$alreadyFollowingAB) {
+            $followAB = new FollowingList();
+            $followAB->my_user_id = (int) $user->id;
+            $followAB->user_id = (int) $my_user->id;
+            $followAB->save();
+
+            $user->following += 1;
+            $user->save();
+            $my_user->followers += 1;
+            $my_user->save();
+        }
+
         // 4. Delete the notification from User B's list (so Accept/Decline buttons disappear)
         UserNotification::where('user_id', $my_user->id)
             ->where('my_user_id', $user->id)

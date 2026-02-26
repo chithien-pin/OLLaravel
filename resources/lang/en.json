@@ -11,5 +11,7 @@
     "notification.handshake_accepted": ":name accepted your handshake. You're now friends!",
     "notification.title.handshake_accepted": "Handshake Accepted",
     "notification.new_friend": "You and :name are now friends!",
-    "notification.title.new_friend": "New Friend"
+    "notification.title.new_friend": "New Friend",
+    "notification.livestream": ":name is live now!",
+    "notification.title.livestream": "Live Stream"
 }

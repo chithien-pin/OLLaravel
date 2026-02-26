@@ -8,5 +8,7 @@
     "notification.title.comment": "ความคิดเห็นใหม่",
     "notification.title.post_like": "ถูกใจโพสต์",
     "notification.title.profile_like": "ถูกใจโปรไฟล์",
-    "notification.handshake_accepted": "{name} ยอมรับการจับมือของคุณ"
+    "notification.handshake_accepted": "{name} ยอมรับการจับมือของคุณ",
+    "notification.livestream": ":name กำลังถ่ายทอดสด!",
+    "notification.title.livestream": "ถ่ายทอดสด"
 }

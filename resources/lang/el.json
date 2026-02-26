@@ -8,5 +8,7 @@
     "notification.title.comment": "Νέο σχόλιο",
     "notification.title.post_like": "Αρέσει η δημοσίευση",
     "notification.title.profile_like": "Αρέσει το προφίλ",
-    "notification.handshake_accepted": "{name} αποδέχτηκε τη χειραψία σου"
+    "notification.handshake_accepted": "{name} αποδέχτηκε τη χειραψία σου",
+    "notification.livestream": ":name είναι ζωντανά τώρα!",
+    "notification.title.livestream": "Ζωντανή μετάδοση"
 }

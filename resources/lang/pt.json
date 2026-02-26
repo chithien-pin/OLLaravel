@@ -8,5 +8,7 @@
     "notification.title.comment": "Novo comentário",
     "notification.title.post_like": "Publicação curtida",
     "notification.title.profile_like": "Perfil curtido",
-    "notification.handshake_accepted": "{name} aceitou seu aperto de mão"
+    "notification.handshake_accepted": "{name} aceitou seu aperto de mão",
+    "notification.livestream": ":name está ao vivo agora!",
+    "notification.title.livestream": "Ao vivo"
 }

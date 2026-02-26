@@ -8,5 +8,7 @@
     "notification.title.comment": "新しいコメント",
     "notification.title.post_like": "投稿にいいね",
     "notification.title.profile_like": "プロフィールにいいね",
-    "notification.handshake_accepted": "{name}があなたの握手を受け入れました"
+    "notification.handshake_accepted": "{name}があなたの握手を受け入れました",
+    "notification.livestream": ":nameがライブ配信中です！",
+    "notification.title.livestream": "ライブ配信"
 }

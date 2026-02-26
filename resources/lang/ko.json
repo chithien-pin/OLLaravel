@@ -8,5 +8,7 @@
     "notification.title.comment": "새 댓글",
     "notification.title.post_like": "게시물 좋아요",
     "notification.title.profile_like": "프로필 좋아요",
-    "notification.handshake_accepted": "{name}님이 악수를 수락했습니다"
+    "notification.handshake_accepted": "{name}님이 악수를 수락했습니다",
+    "notification.livestream": ":name님이 라이브 중입니다!",
+    "notification.title.livestream": "라이브 방송"
 }

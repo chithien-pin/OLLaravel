@@ -8,5 +8,7 @@
     "notification.title.comment": "Nieuwe reactie",
     "notification.title.post_like": "Bericht geliked",
     "notification.title.profile_like": "Profiel geliked",
-    "notification.handshake_accepted": "{name} heeft je handdruk geaccepteerd"
+    "notification.handshake_accepted": "{name} heeft je handdruk geaccepteerd",
+    "notification.livestream": ":name is nu live!",
+    "notification.title.livestream": "Livestream"
 }

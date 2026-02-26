@@ -8,5 +8,7 @@
     "notification.title.comment": "新评论",
     "notification.title.post_like": "帖子被赞",
     "notification.title.profile_like": "个人资料被赞",
-    "notification.handshake_accepted": "{name}接受了你的握手"
+    "notification.handshake_accepted": "{name}接受了你的握手",
+    "notification.livestream": ":name正在直播！",
+    "notification.title.livestream": "直播"
 }

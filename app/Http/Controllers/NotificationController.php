@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdminNotification;
+use App\Models\Constants;
 use App\Models\GlobalFunction;
 use App\Models\UserNotification;
 use App\Models\FollowingList;
+use App\Models\Friend;
 use App\Models\Users;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -173,7 +175,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Send livestream notification to followers only
+     * Send livestream notification to followers and friends
      */
     public function sendLivestreamNotificationToFollowers(Request $request)
     {
@@ -194,31 +196,63 @@ class NotificationController extends Controller
         $body = $request->body;
         $liveStreamData = $request->live_stream_data;
 
-        // Get all followers of this streamer
-        $followers = FollowingList::where('user_id', $streamerUserId)
-                                 ->with('followerUser') // Get the user who is following
-                                 ->get();
+        // Collect unique user IDs to notify (followers + friends, no duplicates)
+        $userIdsToNotify = collect();
 
-        if ($followers->isEmpty()) {
+        // Get friend IDs first (to exclude from followers)
+        $friendIds = Friend::getFriendIds((int) $streamerUserId);
+
+        // Get followers, excluding those who are already friends
+        $followersQuery = FollowingList::where('user_id', $streamerUserId)
+                                       ->with('followerUser');
+        if (!empty($friendIds)) {
+            $followersQuery->whereNotIn('my_user_id', $friendIds);
+        }
+        $followers = $followersQuery->get();
+
+        foreach ($followers as $follower) {
+            if ($follower->followerUser) {
+                $userIdsToNotify->put($follower->followerUser->id, $follower->followerUser);
+            }
+        }
+
+        // Add friends
+        if (!empty($friendIds)) {
+            $friendUsers = Users::whereIn('id', $friendIds)->get();
+            foreach ($friendUsers as $friendUser) {
+                $userIdsToNotify->put($friendUser->id, $friendUser);
+            }
+        }
+
+        if ($userIdsToNotify->isEmpty()) {
             return response()->json([
-                'status' => true, 
-                'message' => 'No followers found for this streamer',
+                'status' => true,
+                'message' => 'No followers or friends found for this streamer',
                 'sent_count' => 0
             ]);
         }
 
         $successCount = 0;
-        $totalFollowers = $followers->count();
+        $totalRecipients = $userIdsToNotify->count();
 
-        foreach ($followers as $follower) {
-            $followerUser = $follower->followerUser; // The person who follows the streamer
-            
-            if (!$followerUser || !$followerUser->device_token || $followerUser->is_notification != 1) {
-                continue; // Skip if no token or notifications disabled
+        foreach ($userIdsToNotify as $user) {
+            // Save in-app notification for all recipients
+            try {
+                UserNotification::create([
+                    'user_id' => $user->id,
+                    'my_user_id' => $streamerUserId,
+                    'item_id' => 0,
+                    'type' => Constants::notificationTypeLiveStream,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to create livestream in-app notification: ' . $e->getMessage());
             }
 
-            // Send individual notification
-            if ($this->sendSingleLivestreamNotification($followerUser->device_token, $title, $body, $liveStreamData, $followerUser->id)) {
+            if (!$user->device_token || $user->is_notification != 1) {
+                continue;
+            }
+
+            if ($this->sendSingleLivestreamNotification($user->device_token, $title, $body, $liveStreamData, $user->id)) {
                 $successCount++;
             }
         }
@@ -226,7 +260,7 @@ class NotificationController extends Controller
         return response()->json([
             'status' => true,
             'message' => "Livestream notification sent successfully",
-            'total_followers' => $totalFollowers,
+            'total_recipients' => $totalRecipients,
             'sent_count' => $successCount
         ]);
     }

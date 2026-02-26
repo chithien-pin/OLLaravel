@@ -8,5 +8,7 @@
     "notification.title.comment": "Yeni Yorum",
     "notification.title.post_like": "Gönderi Beğenildi",
     "notification.title.profile_like": "Profil Beğenildi",
-    "notification.handshake_accepted": "{name} el sıkışmanı kabul etti"
+    "notification.handshake_accepted": "{name} el sıkışmanı kabul etti",
+    "notification.livestream": ":name şu anda canlı!",
+    "notification.title.livestream": "Canlı Yayın"
 }
