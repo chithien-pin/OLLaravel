@@ -27,6 +27,7 @@ use App\Models\UserRole;
 use App\Models\VerifyRequest;
 use App\Services\TranslationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Artisan;
 
@@ -224,43 +225,146 @@ class UsersController extends Controller
             ]);
         }
 
-        $genderPreference = $user->gender_preferred;
-        $ageMin = $user->age_preferred_min;
-        $ageMax = $user->age_preferred_max;
-        $blockedUsers = array_merge(explode(',', $user->blocked_users), [$user->id]);
+        // Safe defaults for NULL values
+        $genderPreference = $user->gender_preferred ?? 3; // NULL = show all
+        $ageMin = $user->age_preferred_min ?? 18;
+        $ageMax = $user->age_preferred_max ?? 100;
+        $hasAgeFilter = $ageMin > 0 || $ageMax < 100;
+
+        // Handle NULL blocked_users safely
+        $blockedUsers = $user->blocked_users
+            ? array_filter(explode(',', $user->blocked_users), fn($v) => $v !== '')
+            : [];
+        $blockedUsers[] = $user->id;
+
         // Only include pending handshakes (not accepted or declined)
         $likedUsers = LikedProfile::where('my_user_id', $request->user_id)
             ->where('status', 'pending')
             ->pluck('user_id')
             ->toArray();
 
-        $profilesQuery = Users::with('images')
-                                ->has('images')
-                                ->whereNotIn('id', $blockedUsers)
-                                ->where('is_block', 0)
-                                ->when($genderPreference != 3, function ($query) use ($genderPreference) {
-                                    $query->where('gender', $genderPreference == 1 ? 1 : 2);
-                                })
-                                ->whereBetween('age', [$ageMin, $ageMax])
-                                ->inRandomOrder()
-                                ->limit(15);
+        // Track recently shown profiles to reduce close repetition
+        $cacheKey = "explore_shown_{$request->user_id}";
+        $recentlyShown = Cache::get($cacheKey, []);
 
-        $profiles = $profilesQuery->get()->each(function ($profile) use ($likedUsers) {
-            $profile->is_like = in_array($profile->id, $likedUsers);
-            // Add role information to each profile
-            $profile->role_type = $profile->getCurrentRoleType();
-            $profile->is_vip = $profile->isVip();
-            $profile->role_expires_at = $profile->getRoleExpiryDate();
-            $profile->role_days_remaining = $profile->getDaysRemainingForVip();
-            
-            // Add package information to each profile
-            $profile->package_type = $profile->getCurrentPackageType();
-            $profile->has_package = $profile->hasPackage();
-            $profile->package_expires_at = $profile->getPackageExpiryDate();
-            $profile->package_days_remaining = $profile->getDaysRemainingForPackage();
-            $profile->package_display_name = $profile->getPackageDisplayName();
-            $profile->package_badge_color = $profile->getPackageBadgeColor();
-        });
+        // Base query builder (reusable)
+        $baseQuery = function ($excludeRecent = true) use ($blockedUsers, $recentlyShown) {
+            $query = Users::with('images')
+                ->has('images')
+                ->whereNotIn('id', $blockedUsers)
+                ->where('is_block', 0);
+
+            if ($excludeRecent && !empty($recentlyShown)) {
+                $query->whereNotIn('id', $recentlyShown);
+            }
+
+            return $query;
+        };
+
+        // Enrich profiles with role/package info
+        $enrichProfiles = function ($profiles) use ($likedUsers) {
+            return $profiles->each(function ($profile) use ($likedUsers) {
+                $profile->is_like = in_array($profile->id, $likedUsers);
+                $profile->role_type = $profile->getCurrentRoleType();
+                $profile->is_vip = $profile->isVip();
+                $profile->role_expires_at = $profile->getRoleExpiryDate();
+                $profile->role_days_remaining = $profile->getDaysRemainingForVip();
+                $profile->package_type = $profile->getCurrentPackageType();
+                $profile->has_package = $profile->hasPackage();
+                $profile->package_expires_at = $profile->getPackageExpiryDate();
+                $profile->package_days_remaining = $profile->getDaysRemainingForPackage();
+                $profile->package_display_name = $profile->getPackageDisplayName();
+                $profile->package_badge_color = $profile->getPackageBadgeColor();
+            });
+        };
+
+        // Apply preference filters and get profiles
+        $getWithFilters = function ($query) use ($genderPreference, $ageMin, $ageMax) {
+            return $query
+                ->when($genderPreference != 3, function ($q) use ($genderPreference) {
+                    $q->where('gender', $genderPreference);
+                })
+                ->whereBetween('age', [$ageMin, $ageMax])
+                ->inRandomOrder()
+                ->limit(15);
+        };
+
+        $limit = 15;
+
+        // Step 1: Fresh profiles with full filters (gender + age)
+        $profiles = $getWithFilters($baseQuery(true))->get();
+
+        // Step 2: Fresh profiles, relax age
+        if ($profiles->isEmpty() && $genderPreference != 3) {
+            $profiles = $baseQuery(true)
+                ->where('gender', $genderPreference)
+                ->inRandomOrder()->limit($limit)->get();
+        }
+
+        // Step 3: Fresh profiles, relax gender
+        if ($profiles->isEmpty() && ($ageMin > 0 || $ageMax < 100)) {
+            $profiles = $baseQuery(true)
+                ->whereBetween('age', [$ageMin, $ageMax])
+                ->inRandomOrder()->limit($limit)->get();
+        }
+
+        // Step 4: Fresh profiles, no filters
+        if ($profiles->isEmpty()) {
+            $profiles = $baseQuery(true)->inRandomOrder()->limit($limit)->get();
+        }
+
+        // Fill: if fresh profiles < 15, fill with previously shown to always return 15
+        if ($profiles->count() < $limit && $profiles->count() > 0 && !empty($recentlyShown)) {
+            $needed = $limit - $profiles->count();
+            $freshIds = $profiles->pluck('id')->toArray();
+
+            $fillProfiles = $baseQuery(false)
+                ->whereNotIn('id', array_merge($blockedUsers, $freshIds))
+                ->when($genderPreference != 3, function ($q) use ($genderPreference) {
+                    $q->where('gender', $genderPreference);
+                })
+                ->inRandomOrder()
+                ->limit($needed)
+                ->get();
+
+            // If still not enough, relax all filters
+            if ($fillProfiles->count() < $needed) {
+                $alreadyIds = array_merge($freshIds, $fillProfiles->pluck('id')->toArray());
+                $moreNeeded = $needed - $fillProfiles->count();
+                $moreFill = $baseQuery(false)
+                    ->whereNotIn('id', array_merge($blockedUsers, $alreadyIds))
+                    ->inRandomOrder()
+                    ->limit($moreNeeded)
+                    ->get();
+                $fillProfiles = $fillProfiles->merge($moreFill);
+            }
+
+            $profiles = $profiles->merge($fillProfiles);
+        }
+
+        // All fresh exhausted (0 fresh) → reset cache and return from full pool
+        if ($profiles->isEmpty()) {
+            Cache::forget($cacheKey);
+            $recentlyShown = [];
+
+            $profiles = $getWithFilters($baseQuery(false))->get();
+
+            if ($profiles->isEmpty() && $genderPreference != 3) {
+                $profiles = $baseQuery(false)
+                    ->where('gender', $genderPreference)
+                    ->inRandomOrder()->limit($limit)->get();
+            }
+            if ($profiles->isEmpty()) {
+                $profiles = $baseQuery(false)->inRandomOrder()->limit($limit)->get();
+            }
+        }
+
+        // Update cache: accumulate shown IDs, auto-expire after 10 minutes
+        $newShown = array_merge($recentlyShown, $profiles->pluck('id')->toArray());
+        $newShown = array_unique($newShown);
+        Cache::put($cacheKey, array_values($newShown), now()->addMinutes(10));
+
+        $enrichProfiles($profiles);
 
         return response()->json([
             'status' => true,

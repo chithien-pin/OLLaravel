@@ -55,7 +55,7 @@ Route::post('toggleLiveStreamStatus', [UsersController::class, 'toggleLiveStream
 Route::post('getProfile', [UsersController::class, 'getProfile'])->middleware('checkHeader');
 Route::post('getUserDetails', [UsersController::class, 'getUserDetails'])->middleware('checkHeader');
 Route::post('getRandomProfile', [UsersController::class, 'getRandomProfile'])->middleware(['checkHeader', 'throttle:90,1']);
-Route::post('getExplorePageProfileList', [UsersController::class, 'getExplorePageProfileList'])->middleware(['checkHeader', 'throttle:60,1']);
+Route::post('getExplorePageProfileList', [UsersController::class, 'getExplorePageProfileList'])->middleware(['checkHeader', 'throttle:300,1']);
 
 Route::post('updateSavedProfile', [UsersController::class, 'updateSavedProfile'])->middleware('checkHeader');
 Route::post('updateLikedProfile', [UsersController::class, 'updateLikedProfile'])->middleware(['checkHeader', 'throttle:180,1']);
