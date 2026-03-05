@@ -237,6 +237,10 @@ class UsersController extends Controller
             : [];
         $blockedUsers[] = $user->id;
 
+        // Exclude friends from explore results
+        $friendIds = Friend::getFriendIds((int) $user->id);
+        $blockedUsers = array_merge($blockedUsers, $friendIds);
+
         // Only include pending handshakes (not accepted or declined)
         $likedUsers = LikedProfile::where('my_user_id', $request->user_id)
             ->where('status', 'pending')
@@ -774,9 +778,25 @@ class UsersController extends Controller
 
         // Like/pass actions are always allowed - swipe limit is handled separately
 
+        // Check if already friends - don't allow new handshake
+        $alreadyFriends = Friend::where(function ($q) use ($request) {
+            $q->where('user_id', $request->my_user_id)->where('friend_id', $request->user_id);
+        })->orWhere(function ($q) use ($request) {
+            $q->where('user_id', $request->user_id)->where('friend_id', $request->my_user_id);
+        })->exists();
+
+        if ($alreadyFriends) {
+            return response()->json(['status' => true, 'message' => 'Already friends!']);
+        }
+
         $fetchLikedProfile = LikedProfile::where('my_user_id', $request->my_user_id)
                                         ->where('user_id', $request->user_id)
                                         ->first();
+
+        // If handshake was already accepted, don't allow toggle
+        if ($fetchLikedProfile && $fetchLikedProfile->status === 'accepted') {
+            return response()->json(['status' => true, 'message' => 'Already friends!']);
+        }
 
         $notificationExists = UserNotification::where('user_id', $request->user_id)
                                             ->where('my_user_id', $request->my_user_id)
@@ -786,11 +806,21 @@ class UsersController extends Controller
         if ($fetchLikedProfile) {
             $fetchLikedProfile->delete();
             $notificationExists?->delete();
-            
+
             // Swipe count increment is handled by separate API call
 
             return response()->json(['status' => true, 'message' => 'Profile disliked!']);
         } else {
+            // Check reverse direction too - if other user's handshake was accepted
+            $reverseAccepted = LikedProfile::where('my_user_id', $request->user_id)
+                ->where('user_id', $request->my_user_id)
+                ->where('status', 'accepted')
+                ->exists();
+
+            if ($reverseAccepted) {
+                return response()->json(['status' => true, 'message' => 'Already friends!']);
+            }
+
             // Swipe count increment is handled by separate API call
             $likedProfile = new LikedProfile();
             $likedProfile->my_user_id = (int) $request->my_user_id;

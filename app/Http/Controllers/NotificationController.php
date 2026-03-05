@@ -541,6 +541,7 @@ class NotificationController extends Controller
         }
 
         $result =  UserNotification::Where('user_id', $req->user_id)
+                                    ->whereNull('deleted_at')
                                     ->with('user')
                                     ->with('user.images')
                                     ->with('receiverUser')
@@ -563,6 +564,38 @@ class NotificationController extends Controller
             'message' => 'data get successfully',
             'data' => $result
         ]);
+    }
+
+    /**
+     * Soft-delete a user notification
+     */
+    function deleteUserNotification(Request $req)
+    {
+        $rules = [
+            'user_id' => 'required',
+            'notification_id' => 'required',
+        ];
+
+        $validator = Validator::make($req->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $notification = UserNotification::where('id', $req->notification_id)
+            ->where('user_id', $req->user_id)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$notification) {
+            return response()->json(['status' => false, 'message' => 'Notification not found']);
+        }
+
+        $notification->deleted_at = now();
+        $notification->save();
+
+        return response()->json(['status' => true, 'message' => 'Notification deleted']);
     }
 
     /**
@@ -596,8 +629,9 @@ class NotificationController extends Controller
         // We fetch 2x the requested count from each source to handle edge cases
         $fetchLimit = $count * 2;
 
-        // Get user notifications (personal)
+        // Get user notifications (personal) - exclude soft-deleted
         $userNotifications = UserNotification::where('user_id', $req->user_id)
+            ->whereNull('deleted_at')
             ->with('user')
             ->with('user.images')
             ->with('receiverUser')
