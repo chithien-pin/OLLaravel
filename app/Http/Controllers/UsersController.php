@@ -241,6 +241,12 @@ class UsersController extends Controller
         $friendIds = Friend::getFriendIds((int) $user->id);
         $blockedUsers = array_merge($blockedUsers, $friendIds);
 
+        // Exclude IDs sent from frontend (profiles already in user's swipe queue)
+        if ($request->has('exclude_ids') && !empty($request->exclude_ids)) {
+            $excludeIds = array_filter(explode(',', $request->exclude_ids), fn($v) => $v !== '');
+            $blockedUsers = array_merge($blockedUsers, $excludeIds);
+        }
+
         // Only include pending handshakes (not accepted or declined)
         $likedUsers = LikedProfile::where('my_user_id', $request->user_id)
             ->where('status', 'pending')
@@ -366,7 +372,7 @@ class UsersController extends Controller
         // Update cache: accumulate shown IDs, auto-expire after 10 minutes
         $newShown = array_merge($recentlyShown, $profiles->pluck('id')->toArray());
         $newShown = array_unique($newShown);
-        Cache::put($cacheKey, array_values($newShown), now()->addMinutes(10));
+        Cache::put($cacheKey, array_values($newShown), now()->addMinutes(60));
 
         $enrichProfiles($profiles);
 
