@@ -2258,7 +2258,11 @@ class UsersController extends Controller
             $user->fullname = Myfunction::customReplace($req->fullname);
         }
         if ($req->has("username")) {
-            $existingUser = Users::where('username', $req->username)
+            $username = $req->username;
+            if (!str_starts_with($username, '@')) {
+                $username = '@' . $username;
+            }
+            $existingUser = Users::where('username', $username)
                                     ->where('id', '!=', $req->user_id)
                                     ->first();
             if ($existingUser !== null) {
@@ -2267,7 +2271,7 @@ class UsersController extends Controller
                     'message' => 'Username is already taken',
                 ]);
             }
-            $user->username = Myfunction::customReplace($req->username);
+            $user->username = Myfunction::customReplace($username);
         }
         if ($req->has("gender")) {
             $user->gender = $req->gender;
