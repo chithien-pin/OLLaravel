@@ -323,36 +323,8 @@ class UsersController extends Controller
             $profiles = $baseQuery(true)->inRandomOrder()->limit($limit)->get();
         }
 
-        // Fill: if fresh profiles < 15, fill with previously shown to always return 15
-        if ($profiles->count() < $limit && $profiles->count() > 0 && !empty($recentlyShown)) {
-            $needed = $limit - $profiles->count();
-            $freshIds = $profiles->pluck('id')->toArray();
-
-            $fillProfiles = $baseQuery(false)
-                ->whereNotIn('id', array_merge($blockedUsers, $freshIds))
-                ->when($genderPreference != 3, function ($q) use ($genderPreference) {
-                    $q->where('gender', $genderPreference);
-                })
-                ->inRandomOrder()
-                ->limit($needed)
-                ->get();
-
-            // If still not enough, relax all filters
-            if ($fillProfiles->count() < $needed) {
-                $alreadyIds = array_merge($freshIds, $fillProfiles->pluck('id')->toArray());
-                $moreNeeded = $needed - $fillProfiles->count();
-                $moreFill = $baseQuery(false)
-                    ->whereNotIn('id', array_merge($blockedUsers, $alreadyIds))
-                    ->inRandomOrder()
-                    ->limit($moreNeeded)
-                    ->get();
-                $fillProfiles = $fillProfiles->merge($moreFill);
-            }
-
-            $profiles = $profiles->merge($fillProfiles);
-        }
-
-        // All fresh exhausted (0 fresh) → reset cache and return from full pool
+        // No fill - never return previously shown profiles
+        // Only reset cycle when all fresh profiles are exhausted
         if ($profiles->isEmpty()) {
             Cache::forget($cacheKey);
             $recentlyShown = [];
