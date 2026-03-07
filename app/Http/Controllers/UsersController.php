@@ -2652,6 +2652,8 @@ class UsersController extends Controller
                                             ->limit($request->limit)
                                             ->get()
                                             ->pluck('user')
+                                            ->filter()
+                                            ->values()
                                             ->map(function($user) use ($likedUsers) {
                                                 // Add role information to each user
                                                 $user->role_type = $user->getCurrentRoleType();
