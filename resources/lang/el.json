@@ -1,5 +1,5 @@
 {
-    "notification.follow": "Ο/Η :name άρχισε να σε ακολουθεί.",
+    "notification.follow": ":name σε ακολουθεί.",
     "notification.comment": "Ο/Η :name σχολίασε τη δημοσίευσή σου: :comment",
     "notification.post_like": "Στον/Στην :name άρεσε η δημοσίευσή σου.",
     "notification.profile_like": ":name θέλει να σου δώσει το χέρι",

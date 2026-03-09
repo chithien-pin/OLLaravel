@@ -1,5 +1,5 @@
 {
-    "notification.follow": ":name เริ่มติดตามคุณแล้ว",
+    "notification.follow": ":name ติดตามคุณ",
     "notification.comment": ":name แสดงความคิดเห็นในโพสต์ของคุณ: :comment",
     "notification.post_like": ":name ถูกใจโพสต์ของคุณ",
     "notification.profile_like": ":name ต้องการจับมือกับคุณ",

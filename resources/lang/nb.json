@@ -1,5 +1,5 @@
 {
-    "notification.follow": ":name har begynt å følge deg.",
+    "notification.follow": ":name følger deg.",
     "notification.comment": ":name kommenterte innlegget ditt: :comment",
     "notification.post_like": ":name likte innlegget ditt.",
     "notification.profile_like": ":name vil gjerne håndhilse på deg",

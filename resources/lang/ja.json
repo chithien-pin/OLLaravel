@@ -1,5 +1,5 @@
 {
-    "notification.follow": ":nameがあなたをフォローし始めました。",
+    "notification.follow": ":nameがあなたをフォローしています。",
     "notification.comment": ":nameがあなたの投稿にコメントしました: :comment",
     "notification.post_like": ":nameがあなたの投稿にいいねしました。",
     "notification.profile_like": ":nameがあなたと握手したがっています",

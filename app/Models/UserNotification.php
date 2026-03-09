@@ -36,7 +36,7 @@ class UserNotification extends Model
         $receiver = $this->receiverUser;
 
         $titleKeys = [
-            1 => 'notification.title.follow',
+            1 => 'notification.title.app',
             2 => 'notification.title.comment',
             3 => 'notification.title.post_like',
             4 => 'notification.title.profile_like',

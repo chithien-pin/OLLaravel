@@ -1,5 +1,5 @@
 {
-    "notification.follow": ":name بدأ بمتابعتك.",
+    "notification.follow": ":name يتابعك.",
     "notification.comment": ":name علق على منشورك: :comment",
     "notification.post_like": ":name أعجب بمنشورك.",
     "notification.profile_like": ":name يريد مصافحتك",

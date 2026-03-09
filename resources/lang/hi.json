@@ -1,5 +1,5 @@
 {
-    "notification.follow": ":name ने आपको फॉलो करना शुरू किया।",
+    "notification.follow": ":name आपको फॉलो कर रहा है।",
     "notification.comment": ":name ने आपकी पोस्ट पर टिप्पणी की: :comment",
     "notification.post_like": ":name को आपकी पोस्ट पसंद आई।",
     "notification.profile_like": ":name आपसे हाथ मिलाना चाहता है",

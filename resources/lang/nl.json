@@ -1,5 +1,5 @@
 {
-    "notification.follow": ":name is je gaan volgen.",
+    "notification.follow": ":name volgt je.",
     "notification.comment": ":name heeft gereageerd op je bericht: :comment",
     "notification.post_like": ":name vindt je bericht leuk.",
     "notification.profile_like": ":name wil je de hand schudden",

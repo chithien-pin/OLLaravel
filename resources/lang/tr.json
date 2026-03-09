@@ -1,5 +1,5 @@
 {
-    "notification.follow": ":name seni takip etmeye başladı.",
+    "notification.follow": ":name seni takip ediyor.",
     "notification.comment": ":name gönderine yorum yaptı: :comment",
     "notification.post_like": ":name gönderini beğendi.",
     "notification.profile_like": ":name seninle el sıkışmak istiyor",

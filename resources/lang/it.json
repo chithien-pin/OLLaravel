@@ -1,5 +1,5 @@
 {
-    "notification.follow": ":name ha iniziato a seguirti.",
+    "notification.follow": ":name ti segue.",
     "notification.comment": ":name ha commentato il tuo post: :comment",
     "notification.post_like": "A :name piace il tuo post.",
     "notification.profile_like": ":name vuole stringerti la mano",
