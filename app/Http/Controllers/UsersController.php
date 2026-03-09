@@ -2591,22 +2591,26 @@ class UsersController extends Controller
                     $followersCount->followers += 1;
                     $followersCount->save();
  
-                    // Send follow notification with event data
-                    Myfunction::sendFollowNotification($fromUser, $toUser);
-
                     $updatedUser = Users::where('id', $request->user_id)->first();
 
                     $updatedUser->images;
 
                     $following->user = $updatedUser;
 
-                    $type = Constants::notificationTypeFollow;
+                    // Anti-spam: only send notification if not recently followed (5 min cooldown)
+                    $cooldownKey = "follow_cooldown_{$request->my_user_id}_{$request->user_id}";
+                    if (!Cache::has($cooldownKey)) {
+                        Cache::put($cooldownKey, true, now()->addMinutes(2));
 
-                    $userNotification = new UserNotification();
-                    $userNotification->my_user_id = (int) $request->my_user_id;
-                    $userNotification->user_id = (int) $request->user_id;
-                    $userNotification->type = $type;
-                    $userNotification->save();
+                        Myfunction::sendFollowNotification($fromUser, $toUser);
+
+                        $type = Constants::notificationTypeFollow;
+                        $userNotification = new UserNotification();
+                        $userNotification->my_user_id = (int) $request->my_user_id;
+                        $userNotification->user_id = (int) $request->user_id;
+                        $userNotification->type = $type;
+                        $userNotification->save();
+                    }
 
                     // Check mutual follow → auto-create friendship
                     $isMutualFollow = FollowingList::where('my_user_id', $request->user_id)
