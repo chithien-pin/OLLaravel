@@ -253,6 +253,11 @@ class UsersController extends Controller
             ->pluck('user_id')
             ->toArray();
 
+        // Get IDs of users I'm following (for followingStatus)
+        $myFollowingIds = FollowingList::where('my_user_id', $request->user_id)
+            ->pluck('user_id')
+            ->toArray();
+
         // Track recently shown profiles to reduce close repetition
         $cacheKey = "explore_shown_{$request->user_id}";
         $recentlyShown = Cache::get($cacheKey, []);
@@ -272,9 +277,10 @@ class UsersController extends Controller
         };
 
         // Enrich profiles with role/package info
-        $enrichProfiles = function ($profiles) use ($likedUsers) {
-            return $profiles->each(function ($profile) use ($likedUsers) {
+        $enrichProfiles = function ($profiles) use ($likedUsers, $myFollowingIds) {
+            return $profiles->each(function ($profile) use ($likedUsers, $myFollowingIds) {
                 $profile->is_like = in_array($profile->id, $likedUsers);
+                $profile->followingStatus = in_array($profile->id, $myFollowingIds) ? 2 : 0;
                 $profile->role_type = $profile->getCurrentRoleType();
                 $profile->is_vip = $profile->isVip();
                 $profile->role_expires_at = $profile->getRoleExpiryDate();
@@ -2587,13 +2593,13 @@ class UsersController extends Controller
  
                     // Send follow notification with event data
                     Myfunction::sendFollowNotification($fromUser, $toUser);
-                    
+
                     $updatedUser = Users::where('id', $request->user_id)->first();
-                    
+
                     $updatedUser->images;
-                    
+
                     $following->user = $updatedUser;
-                    
+
                     $type = Constants::notificationTypeFollow;
 
                     $userNotification = new UserNotification();
@@ -2602,10 +2608,30 @@ class UsersController extends Controller
                     $userNotification->type = $type;
                     $userNotification->save();
 
+                    // Check mutual follow → auto-create friendship
+                    $isMutualFollow = FollowingList::where('my_user_id', $request->user_id)
+                        ->where('user_id', $request->my_user_id)
+                        ->exists();
+
+                    $becameFriends = false;
+                    if ($isMutualFollow) {
+                        $alreadyFriends = Friend::where(function ($q) use ($request) {
+                            $q->where('user_id', $request->my_user_id)->where('friend_id', $request->user_id);
+                        })->orWhere(function ($q) use ($request) {
+                            $q->where('user_id', $request->user_id)->where('friend_id', $request->my_user_id);
+                        })->exists();
+
+                        if (!$alreadyFriends) {
+                            Friend::createFriendship((int) $request->my_user_id, (int) $request->user_id);
+                            $becameFriends = true;
+                        }
+                    }
+
                     return response()->json([
                         'status' => true,
-                        'message' => 'User Added in Following List',
-                        'data' => $following, 
+                        'message' => $becameFriends ? 'Became friends!' : 'User Added in Following List',
+                        'data' => $following,
+                        'is_friend' => $becameFriends,
                     ]);
                 
             }
@@ -2872,6 +2898,9 @@ class UsersController extends Controller
                     $userNotification->each->delete();
 
                     $followingList->delete();
+
+                    // Remove friendship if exists (unfollow breaks mutual follow)
+                    Friend::removeFriendship((int) $request->my_user_id, (int) $request->user_id);
 
                     return response()->json([
                         'status' => true,
