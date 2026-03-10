@@ -10,5 +10,7 @@
     "notification.title.profile_like": "Profil Disukai",
     "notification.handshake_accepted": "{name} menerima jabat tangan Anda",
     "notification.livestream": ":name sedang siaran langsung!",
-    "notification.title.livestream": "Siaran Langsung"
+    "notification.title.livestream": "Siaran Langsung",
+    "notification.mutual_follow_friends": ":name mengikuti Anda kembali. Kalian sekarang berteman!",
+    "notification.title.mutual_follow_friends": "Teman Baru"
 }

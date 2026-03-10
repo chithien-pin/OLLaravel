@@ -10,5 +10,7 @@
     "notification.title.profile_like": "Понравился профиль",
     "notification.handshake_accepted": "{name} принял твоё рукопожатие",
     "notification.livestream": ":name сейчас в эфире!",
-    "notification.title.livestream": "Прямой эфир"
+    "notification.title.livestream": "Прямой эфир",
+    "notification.mutual_follow_friends": ":name подписался в ответ. Теперь вы друзья!",
+    "notification.title.mutual_follow_friends": "Новый друг"
 }

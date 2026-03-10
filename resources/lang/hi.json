@@ -10,5 +10,7 @@
     "notification.title.profile_like": "प्रोफाइल पसंद",
     "notification.handshake_accepted": "{name} ने आपका हाथ मिलाना स्वीकार किया",
     "notification.livestream": ":name अभी लाइव है!",
-    "notification.title.livestream": "लाइव स्ट्रीम"
+    "notification.title.livestream": "लाइव स्ट्रीम",
+    "notification.mutual_follow_friends": ":name ने आपको वापस फॉलो किया। अब आप दोस्त हैं!",
+    "notification.title.mutual_follow_friends": "नया दोस्त"
 }

@@ -10,5 +10,7 @@
     "notification.title.profile_like": "ถูกใจโปรไฟล์",
     "notification.handshake_accepted": "{name} ยอมรับการจับมือของคุณ",
     "notification.livestream": ":name กำลังถ่ายทอดสด!",
-    "notification.title.livestream": "ถ่ายทอดสด"
+    "notification.title.livestream": "ถ่ายทอดสด",
+    "notification.mutual_follow_friends": ":name ติดตามคุณกลับ เป็นเพื่อนกันแล้ว!",
+    "notification.title.mutual_follow_friends": "เพื่อนใหม่"
 }

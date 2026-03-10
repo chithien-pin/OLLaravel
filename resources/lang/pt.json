@@ -10,5 +10,7 @@
     "notification.title.profile_like": "Perfil curtido",
     "notification.handshake_accepted": "{name} aceitou seu aperto de mão",
     "notification.livestream": ":name está ao vivo agora!",
-    "notification.title.livestream": "Ao vivo"
+    "notification.title.livestream": "Ao vivo",
+    "notification.mutual_follow_friends": ":name seguiu você de volta. Agora vocês são amigos!",
+    "notification.title.mutual_follow_friends": "Novo amigo"
 }

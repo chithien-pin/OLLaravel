@@ -10,5 +10,7 @@
     "notification.title.profile_like": "Profil Beğenildi",
     "notification.handshake_accepted": "{name} el sıkışmanı kabul etti",
     "notification.livestream": ":name şu anda canlı!",
-    "notification.title.livestream": "Canlı Yayın"
+    "notification.title.livestream": "Canlı Yayın",
+    "notification.mutual_follow_friends": ":name seni geri takip etti. Artık arkadaşsınız!",
+    "notification.title.mutual_follow_friends": "Yeni Arkadaş"
 }

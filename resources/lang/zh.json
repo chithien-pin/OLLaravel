@@ -10,5 +10,7 @@
     "notification.title.profile_like": "个人资料被赞",
     "notification.handshake_accepted": "{name}接受了你的握手",
     "notification.livestream": ":name正在直播！",
-    "notification.title.livestream": "直播"
+    "notification.title.livestream": "直播",
+    "notification.mutual_follow_friends": ":name回关了你。你们现在是朋友了！",
+    "notification.title.mutual_follow_friends": "新朋友"
 }

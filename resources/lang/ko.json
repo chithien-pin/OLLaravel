@@ -10,5 +10,7 @@
     "notification.title.profile_like": "프로필 좋아요",
     "notification.handshake_accepted": "{name}님이 악수를 수락했습니다",
     "notification.livestream": ":name님이 라이브 중입니다!",
-    "notification.title.livestream": "라이브 방송"
+    "notification.title.livestream": "라이브 방송",
+    "notification.mutual_follow_friends": ":name님이 맞팔로우했습니다. 이제 친구입니다!",
+    "notification.title.mutual_follow_friends": "새 친구"
 }

@@ -10,5 +10,7 @@
     "notification.title.profile_like": "Profil aimé",
     "notification.handshake_accepted": "{name} a accepté votre poignée de main",
     "notification.livestream": ":name est en direct !",
-    "notification.title.livestream": "En direct"
+    "notification.title.livestream": "En direct",
+    "notification.mutual_follow_friends": ":name vous a suivi en retour. Vous êtes maintenant amis !",
+    "notification.title.mutual_follow_friends": "Nouvel ami"
 }

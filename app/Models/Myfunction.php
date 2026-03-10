@@ -364,6 +364,35 @@ class Myfunction extends Model
     }
 
     /**
+     * Send mutual follow friends notification
+     * Called when two users follow each other and become friends
+     */
+    public static function sendMutualFollowFriendsNotification($fromUser, $toUser)
+    {
+        if ($toUser->is_notification != 1) {
+            return;
+        }
+
+        $title = TranslationService::forUser($toUser, 'notification.title.mutual_follow_friends');
+        $message = TranslationService::forUser($toUser, 'notification.mutual_follow_friends', [
+            'name' => $fromUser->fullname
+        ]);
+
+        $eventData = [
+            'event_type' => Constants::eventTypeHandshakeAccepted,
+            'user_id' => (string) $fromUser->id,
+            'user_name' => $fromUser->fullname,
+            'user_image' => self::getProfileImageUrl($fromUser),
+            'timestamp' => (string) time(),
+            'action' => Constants::actionNavigateToProfile,
+            'screen' => Constants::screenUserDetail,
+            'params' => json_encode(['userId' => $fromUser->id, 'isFriend' => true])
+        ];
+
+        return self::sendPushToUser($title, $message, $toUser->device_token, $eventData, $toUser->id);
+    }
+
+    /**
      * Get profile image URL for user
      */
     private static function getProfileImageUrl($user)

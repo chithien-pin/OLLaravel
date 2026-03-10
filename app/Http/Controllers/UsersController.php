@@ -2597,21 +2597,6 @@ class UsersController extends Controller
 
                     $following->user = $updatedUser;
 
-                    // Anti-spam: only send notification if not recently followed (5 min cooldown)
-                    $cooldownKey = "follow_cooldown_{$request->my_user_id}_{$request->user_id}";
-                    if (!Cache::has($cooldownKey)) {
-                        Cache::put($cooldownKey, true, now()->addMinutes(2));
-
-                        Myfunction::sendFollowNotification($fromUser, $toUser);
-
-                        $type = Constants::notificationTypeFollow;
-                        $userNotification = new UserNotification();
-                        $userNotification->my_user_id = (int) $request->my_user_id;
-                        $userNotification->user_id = (int) $request->user_id;
-                        $userNotification->type = $type;
-                        $userNotification->save();
-                    }
-
                     // Check mutual follow → auto-create friendship
                     $isMutualFollow = FollowingList::where('my_user_id', $request->user_id)
                         ->where('user_id', $request->my_user_id)
@@ -2628,6 +2613,57 @@ class UsersController extends Controller
                         if (!$alreadyFriends) {
                             Friend::createFriendship((int) $request->my_user_id, (int) $request->user_id);
                             $becameFriends = true;
+
+                            // Soft delete follow notifications for both users
+                            UserNotification::where('my_user_id', $request->my_user_id)
+                                ->where('user_id', $request->user_id)
+                                ->where('type', Constants::notificationTypeFollow)
+                                ->whereNull('deleted_at')
+                                ->update(['deleted_at' => now()]);
+
+                            UserNotification::where('my_user_id', $request->user_id)
+                                ->where('user_id', $request->my_user_id)
+                                ->where('type', Constants::notificationTypeFollow)
+                                ->whereNull('deleted_at')
+                                ->update(['deleted_at' => now()]);
+
+                            // Create "new friend" notification for both users
+                            $notiA = new UserNotification();
+                            $notiA->my_user_id = (int) $request->user_id;
+                            $notiA->user_id = (int) $request->my_user_id;
+                            $notiA->type = Constants::notificationTypeNewFriend;
+                            $notiA->save();
+
+                            $notiB = new UserNotification();
+                            $notiB->my_user_id = (int) $request->my_user_id;
+                            $notiB->user_id = (int) $request->user_id;
+                            $notiB->type = Constants::notificationTypeNewFriend;
+                            $notiB->save();
+
+                            // Send push notification to both users
+                            $userA = Users::with('images')->find($request->my_user_id);
+                            $userB = Users::with('images')->find($request->user_id);
+                            if ($userA && $userB) {
+                                Myfunction::sendMutualFollowFriendsNotification($userA, $userB);
+                                Myfunction::sendMutualFollowFriendsNotification($userB, $userA);
+                            }
+                        }
+                    }
+
+                    // Only send follow notification if they did NOT become friends
+                    if (!$becameFriends) {
+                        $cooldownKey = "follow_cooldown_{$request->my_user_id}_{$request->user_id}";
+                        if (!Cache::has($cooldownKey)) {
+                            Cache::put($cooldownKey, true, now()->addMinutes(2));
+
+                            Myfunction::sendFollowNotification($fromUser, $toUser);
+
+                            $type = Constants::notificationTypeFollow;
+                            $userNotification = new UserNotification();
+                            $userNotification->my_user_id = (int) $request->my_user_id;
+                            $userNotification->user_id = (int) $request->user_id;
+                            $userNotification->type = $type;
+                            $userNotification->save();
                         }
                     }
 

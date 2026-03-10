@@ -10,5 +10,7 @@
     "notification.title.profile_like": "إعجاب بالملف الشخصي",
     "notification.handshake_accepted": "{name} قبل مصافحتك",
     "notification.livestream": ":name يبث مباشرة الآن!",
-    "notification.title.livestream": "بث مباشر"
+    "notification.title.livestream": "بث مباشر",
+    "notification.mutual_follow_friends": ":name تابعك بالمقابل. أنتم أصدقاء الآن!",
+    "notification.title.mutual_follow_friends": "صديق جديد"
 }

@@ -10,5 +10,7 @@
     "notification.title.profile_like": "プロフィールにいいね",
     "notification.handshake_accepted": "{name}があなたの握手を受け入れました",
     "notification.livestream": ":nameがライブ配信中です！",
-    "notification.title.livestream": "ライブ配信"
+    "notification.title.livestream": "ライブ配信",
+    "notification.mutual_follow_friends": ":nameがフォローバックしました。友達になりました！",
+    "notification.title.mutual_follow_friends": "新しい友達"
 }

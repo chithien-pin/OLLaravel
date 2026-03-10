@@ -10,5 +10,7 @@
     "notification.title.profile_like": "Profil liked",
     "notification.handshake_accepted": "{name} accepterede dit håndtryk",
     "notification.livestream": ":name er live nu!",
-    "notification.title.livestream": "Livestream"
+    "notification.title.livestream": "Livestream",
+    "notification.mutual_follow_friends": ":name fulgte dig tilbage. I er nu venner!",
+    "notification.title.mutual_follow_friends": "Ny ven"
 }

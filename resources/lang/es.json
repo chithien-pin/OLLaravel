@@ -10,5 +10,7 @@
     "notification.title.profile_like": "Me gusta en perfil",
     "notification.handshake_accepted": "{name} aceptó tu apretón de manos",
     "notification.livestream": ":name está en vivo ahora!",
-    "notification.title.livestream": "En vivo"
+    "notification.title.livestream": "En vivo",
+    "notification.mutual_follow_friends": ":name te siguió de vuelta. ¡Ahora son amigos!",
+    "notification.title.mutual_follow_friends": "Nuevo amigo"
 }

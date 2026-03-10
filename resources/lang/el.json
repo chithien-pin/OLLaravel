@@ -10,5 +10,7 @@
     "notification.title.profile_like": "Αρέσει το προφίλ",
     "notification.handshake_accepted": "{name} αποδέχτηκε τη χειραψία σου",
     "notification.livestream": ":name είναι ζωντανά τώρα!",
-    "notification.title.livestream": "Ζωντανή μετάδοση"
+    "notification.title.livestream": "Ζωντανή μετάδοση",
+    "notification.mutual_follow_friends": ":name σε ακολούθησε πίσω. Είστε πλέον φίλοι!",
+    "notification.title.mutual_follow_friends": "Νέος φίλος"
 }

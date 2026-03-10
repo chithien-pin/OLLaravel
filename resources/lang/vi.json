@@ -13,5 +13,7 @@
     "notification.new_friend": "Bạn và :name giờ là bạn bè!",
     "notification.title.new_friend": "Bạn bè mới",
     "notification.livestream": ":name đang phát trực tiếp!",
-    "notification.title.livestream": "Phát trực tiếp"
+    "notification.title.livestream": "Phát trực tiếp",
+    "notification.mutual_follow_friends": ":name đã follow lại bạn. Giờ các bạn là bạn bè!",
+    "notification.title.mutual_follow_friends": "Bạn bè mới"
 }
