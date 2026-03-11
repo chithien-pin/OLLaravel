@@ -18,16 +18,16 @@ class UserNotification extends Model
     // Append title và message vào JSON response
     protected $appends = ['title', 'message'];
 
-    // Sender user (người gửi notification)
+    // Sender user (người gửi notification) - withTrashed để hiển thị cả user đã bị xoá
     public function user()
     {
-        return $this->hasOne(Users::class, "id", 'my_user_id');
+        return $this->hasOne(Users::class, "id", 'my_user_id')->withTrashed();
     }
 
     // Receiver user (người nhận notification - để lấy language)
     public function receiverUser()
     {
-        return $this->belongsTo(Users::class, 'user_id', 'id');
+        return $this->belongsTo(Users::class, 'user_id', 'id')->withTrashed();
     }
 
     // Generate title dựa trên type
