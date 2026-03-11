@@ -463,94 +463,26 @@ class UsersController extends Controller
 
         $user = Users::where('id', $request->user_id)->first();
         if ($user == null) {
-            return json_encode([
+            return response()->json([
                 'status' => false,
                 'message' => 'user not found!',
             ]);
         }
 
-        $images = Images::where('user_id', $user->id)->get();
-        foreach ($images as $image) {
-            GlobalFunction::deleteFile($image->image);
-            $image->delete();
+        // 1. Disable Firebase Auth account
+        try {
+            $firebaseService = new \App\Services\FirebaseService();
+            $firebaseService->disableFirebaseAuthUser($user->identity);
+        } catch (\Exception $e) {
+            \Log::error("Failed to disable Firebase Auth for user {$user->id}: " . $e->getMessage());
         }
 
-        $likes = Like::where('user_id', $user->id)->get();
-        foreach ($likes as $like) {
-            $postLikeCount = Post::where('id', $like->post_id)->first();
-            $postLikeCount->likes_count -= 1;
-            $postLikeCount->save();
-            $like->delete();
-        }
-        $comments = Comment::where('user_id', $user->id)->get();
-        foreach ($comments as $comment) {
-            $postCommentCount = Post::where('id', $comment->post_id)->first();
-            $postCommentCount->comments_count -= 1;
-            $postCommentCount->save();
-            $comment->delete();
-        }
+        // 2. Clear device token to stop push notifications
+        $user->device_token = null;
+        $user->is_live_now = 0;
+        $user->save();
 
-        $followerList = FollowingList::where('my_user_id', $user->id)->get();
-        foreach ($followerList as $follower) {
-            $followerUser = User::where('id', $follower->user_id)->first();
-            $followerUser->followers -= 1;
-            $followerUser->save();
-
-            $follower->delete();
-        }
-
-        $followingList = FollowingList::where('user_id', $user->id)->get();
-        foreach ($followingList as $following) {
-            $followingUser = User::where('id', $following->user_id)->first();
-            $followingUser->following -= 1;
-            $followingUser->save();
-
-            $following->delete();
-        }
-
-        LikedProfile::where('my_user_id', $user->id)->delete();
-        LikedProfile::where('user_id', $user->id)->delete();
-
-        $liveApplication = LiveApplications::where('user_id', $user->id)->first();
-        if ($liveApplication) {
-            GlobalFunction::deleteFile($liveApplication->intro_video);
-            $liveApplication->delete();
-        }
-
-        LiveHistory::where('user_id', $user->id)->delete();
-
-        $posts = Post::where('user_id', $user->id)->get();
-        foreach ($posts as $post) {
-            // Delete post media (R2 files will remain, can be cleaned up later)
-            // Foreign key cascade will handle deletion when post is deleted
-            PostMedia::where('post_id', $post->id)->delete();
-
-            Comment::where('post_id', $post->id)->delete();
-            Like::where('post_id', $post->id)->delete();
-            Report::where('post_id', $post->id)->delete();
-            UserNotification::where('post_id', $post->id)->delete();
-
-            $post->delete();
-        }
-
-        RedeemRequest::where('user_id', $user->id)->delete();
-        Report::where('user_id', $user->id)->delete();
-
-        $stories = Story::where('user_id', $user->id)->get();
-        foreach ($stories as $story) {
-            GlobalFunction::deleteFile($story->content);
-        }
-
-        UserNotification::where('user_id', $user->id)->delete();
-        UserNotification::where('my_user_id', $user->id)->delete();
-        
-        $verificationRequest = VerifyRequest::where('user_id', $user->id)->first();
-        if ($verificationRequest) {
-            GlobalFunction::deleteFile($verificationRequest->document);
-            GlobalFunction::deleteFile($verificationRequest->selfie);
-            $verificationRequest->delete();
-        }
-
+        // 3. Soft delete user record
         $user->delete();
 
         return response()->json(['status' => true, 'message' => "Account Deleted Successfully!"]);

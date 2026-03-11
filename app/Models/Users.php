@@ -4,14 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Cashier\Billable;
 
 class Users extends Model
 {
-    use HasFactory, Billable;
+    use HasFactory, Billable, SoftDeletes;
 
     public $table = "users";
     public $timestamps = false;
+
+    const DELETED_AT = 'deleted_at';
 
     /**
      * The attributes that are mass assignable.
