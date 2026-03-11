@@ -2354,12 +2354,25 @@ class UsersController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        $user = Users::with(['images', 'stories'])->where('id', $request->user_id)->first();
+        $user = Users::withTrashed()->with(['images', 'stories'])->where('id', $request->user_id)->first();
         $myUser = Users::with('images')->where('id', $request->my_user_id)->first();
         if ($user == null || $myUser == null) {
             return response()->json([
                 'status' => false,
                 'message' =>  'User Not Found!',
+            ]);
+        }
+
+        // Check if user account has been soft-deleted
+        if ($user->deleted_at !== null) {
+            return response()->json([
+                'status' => true,
+                'message' => 'User account has been deactivated',
+                'data' => [
+                    'id' => $user->id,
+                    'fullname' => $user->fullname,
+                    'is_deleted' => true,
+                ],
             ]);
         }
 
