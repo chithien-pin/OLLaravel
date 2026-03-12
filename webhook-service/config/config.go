@@ -13,6 +13,13 @@ type Config struct {
 	StripeWebhookSecret string
 	Database           DatabaseConfig
 	Laravel            LaravelConfig
+	Redis              RedisConfig
+}
+
+// RedisConfig holds Redis configuration
+type RedisConfig struct {
+	Host string
+	Port string
 }
 
 // DatabaseConfig holds database configuration
@@ -48,6 +55,10 @@ func Load() *Config {
 		Laravel: LaravelConfig{
 			BaseURL: getEnvOrDefault("LARAVEL_API_URL", "http://backend:9000"),
 			APIKey:  getEnvOrDefault("LARAVEL_API_KEY", "123"),
+		},
+		Redis: RedisConfig{
+			Host: getEnvOrDefault("REDIS_HOST", "ol_redis"),
+			Port: getEnvOrDefault("REDIS_PORT", "6379"),
 		},
 	}
 }

@@ -26,6 +26,7 @@ use App\Models\Users;
 use App\Models\UserRole;
 use App\Models\VerifyRequest;
 use App\Services\TranslationService;
+use App\Services\WebSocketEventService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
@@ -1008,6 +1009,15 @@ class UsersController extends Controller
             $query->where('my_user_id', $request->user_id)
                 ->where('user_id', $request->my_user_id);
         })->delete();
+
+        // Publish WebSocket event
+        if ($removed) {
+            WebSocketEventService::publishFriendshipBroken(
+                (int) $request->my_user_id,
+                (int) $request->user_id,
+                Users::with('images')->find($request->my_user_id)
+            );
+        }
 
         return response()->json([
             'status' => $removed,
@@ -2612,6 +2622,22 @@ class UsersController extends Controller
                         }
                     }
 
+                    // Publish WebSocket event
+                    if ($becameFriends) {
+                        WebSocketEventService::publishFriendMade(
+                            (int) $request->my_user_id,
+                            (int) $request->user_id,
+                            $fromUser,
+                            $updatedUser
+                        );
+                    } else {
+                        WebSocketEventService::publishUserFollowed(
+                            (int) $request->my_user_id,
+                            (int) $request->user_id,
+                            $fromUser
+                        );
+                    }
+
                     return response()->json([
                         'status' => true,
                         'message' => $becameFriends ? 'Became friends!' : 'User Added in Following List',
@@ -2885,7 +2911,21 @@ class UsersController extends Controller
                     $followingList->delete();
 
                     // Remove friendship if exists (unfollow breaks mutual follow)
-                    Friend::removeFriendship((int) $request->my_user_id, (int) $request->user_id);
+                    $wasFriend = Friend::removeFriendship((int) $request->my_user_id, (int) $request->user_id);
+
+                    // Publish WebSocket events
+                    WebSocketEventService::publishUserUnfollowed(
+                        (int) $request->my_user_id,
+                        (int) $request->user_id,
+                        $fromUser
+                    );
+                    if ($wasFriend) {
+                        WebSocketEventService::publishFriendshipBroken(
+                            (int) $request->my_user_id,
+                            (int) $request->user_id,
+                            $fromUser
+                        );
+                    }
 
                     return response()->json([
                         'status' => true,
