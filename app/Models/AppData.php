@@ -19,7 +19,13 @@ class AppData extends Model
         'max_minute_live',
         'live_watching_price',
         'live_chat_price',
-        'swipe_limit'
+        'swipe_limit',
+        'min_version_android',
+        'min_version_ios',
+        'latest_version_android',
+        'latest_version_ios',
+        'store_url_android',
+        'store_url_ios',
     ];
 
     /**

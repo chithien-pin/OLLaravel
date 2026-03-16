@@ -290,6 +290,24 @@ class SettingController extends Controller
       if ($request->has('swipe_limit')) {
          $setting->swipe_limit = (int) $request->swipe_limit;
       }
+      if ($request->has('min_version_android')) {
+         $setting->min_version_android = $request->min_version_android;
+      }
+      if ($request->has('min_version_ios')) {
+         $setting->min_version_ios = $request->min_version_ios;
+      }
+      if ($request->has('latest_version_android')) {
+         $setting->latest_version_android = $request->latest_version_android;
+      }
+      if ($request->has('latest_version_ios')) {
+         $setting->latest_version_ios = $request->latest_version_ios;
+      }
+      if ($request->has('store_url_android')) {
+         $setting->store_url_android = $request->store_url_android;
+      }
+      if ($request->has('store_url_ios')) {
+         $setting->store_url_ios = $request->store_url_ios;
+      }
       $setting->save();
 
       return response()->json([
