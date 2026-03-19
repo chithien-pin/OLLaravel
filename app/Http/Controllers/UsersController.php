@@ -2821,6 +2821,9 @@ class UsersController extends Controller
                 $user->is_liked_me = in_array($user->id, $likedMeData);
                 $user->is_like = in_array($user->id, $likedByMeData);
 
+                // followingStatus: 1 = they follow me (I don't follow them back yet)
+                $user->followingStatus = 1;
+
                 return $user;
             });
 
