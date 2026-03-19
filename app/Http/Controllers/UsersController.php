@@ -2737,22 +2737,29 @@ class UsersController extends Controller
         $start = (int)$request->start;
         $limit = (int)$request->limit;
 
-        // Get total count for pagination
+        // Get IDs of users that current user already follows back
+        $alreadyFollowingBack = FollowingList::where('my_user_id', $userId)
+            ->pluck('user_id')
+            ->toArray();
+
+        // Get total count for pagination (exclude users already followed back)
         $totalCount = FollowingList::where('user_id', $userId)
             ->whereNotIn('my_user_id', function ($query) use ($userId) {
                 $query->select('id')
                     ->from('users')
                     ->whereRaw("FIND_IN_SET(?, blocked_users)", [$userId]);
             })
+            ->whereNotIn('my_user_id', $alreadyFollowingBack)
             ->count();
 
-        // Get follower IDs first for batch queries
+        // Get follower IDs first for batch queries (exclude users already followed back)
         $followerRecords = FollowingList::where('user_id', $userId)
             ->whereNotIn('my_user_id', function ($query) use ($userId) {
                 $query->select('id')
                     ->from('users')
                     ->whereRaw("FIND_IN_SET(?, blocked_users)", [$userId]);
             })
+            ->whereNotIn('my_user_id', $alreadyFollowingBack)
             ->orderBy('created_at', 'desc')
             ->offset($start)
             ->limit($limit)
