@@ -51,7 +51,7 @@ class LoginController extends Controller
     function login()
     {
         if (Session::get('user_name')) {
-            return redirect('index');
+            return redirect('gyp-users');
         }
 
         return  view('login.login');

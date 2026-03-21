@@ -43,6 +43,7 @@ Route::get('logout', [LoginController::class, 'logout'])->middleware(['checkLogi
   |--------------------------------------------------------------------------|*/
 
 Route::view('users', 'users')->middleware(['checkLogin'])->name('users');
+Route::view('gyp-users', 'users')->middleware(['checkLogin'])->name('gyp-users');
 Route::view('addFakeUser', 'addFakeUser')->middleware(['checkLogin'])->name('addFakeUser');
 
 Route::post('fetchAllUsers', [UsersController::class, 'fetchAllUsers'])->middleware(['checkLogin'])->name('fetchAllUsers');

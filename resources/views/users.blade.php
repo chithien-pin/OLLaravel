@@ -1,101 +1,25 @@
 @extends('include.app')
 @section('header')
-    <script src="{{ asset('asset/script/users.js') }}"></script>
+    <script src="{{ asset('asset/script/users.js') }}?v=2"></script>
 @endsection
 
 @section('content')
     <div class="card">
-        <div class="card-header">
-            <div class="d-flex align-items-center">
-                <h4>{{ __('app.Users') }}</h4>
-                <div class="ms-3 card-tab">
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        <li role="presentation" class="nav-item">
-                        <a class="nav-link pointer active" href="#Section1"
-                            aria-controls="home" role="tab" data-toggle="tab">{{ __('app.All_Users') }}<span
-                                class="badge badge-transparent total_open_complaint"></span></a>
-                    </li>
-
-                    <li role="presentation" class="nav-item"><a class="nav-link pointer" href="#Section2" role="tab"
-                            data-toggle="tab">{{ __('app.Streamers') }}
-                            <span class="badge badge-transparent total_close_complaint"></span></a>
-                    </li>
-
-                    <li role="presentation" class="nav-item"><a class="nav-link pointer" href="#Section3" role="tab"
-                            data-toggle="tab">{{ __('app.Fake_Users') }}
-                            <span class="badge badge-transparent total_close_complaint"></span></a>
-                    </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="ml-auto">
-                <button id="expire-vip-roles" class="btn btn-warning mr-2">
-                    <i class="fas fa-search mr-1"></i>Check Expired VIPs & Packages
-                </button>
-                <a href="{{ route('addFakeUser') }}" id="add-fake-user" class="btn btn-primary">{{ __('app.Add_fake_user') }}</a>
-            </div>
-        </div>
+        {{-- Header hidden --}}
 
         <div class="card-body">
-
-            <div class="tab" role="tabpanel">
-                <div class="tab-content tabs" id="home">
-                    {{-- Section 1 --}}
-                    <div role="tabpanel" class="tab-pane active" id="Section1">
-                        <table class="table table-striped w-100" id="UsersTable">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('app.User_Image') }}</th>
-                                    <th>{{ __('app.Identity') }}</th>
-                                    <th>{{ __('app.Full_Name') }}</th>
-                                    <th>{{ __('app.Wallet') }}</th>
-                                    <th>{{ __('app.Live_eligible') }}</th>
-                                    <th>{{ __('app.Age') }}</th>
-                                    <th>{{ __('app.Gender') }}</th>
-                                    <th>{{ __('app.Role') }}</th>
-                                    <th>{{ __('Package') }}</th>
-                                    <th>{{ __('app.BlockUser') }}</th>
-                                    <th>{{ __('app.ViewDetails') }}</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                    {{-- Section 2 --}}
-                    <div role="tabpanel" class="tab-pane" id="Section2">
-                        <table class="table table-striped w-100" id="StreamersTable">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('app.User_Image') }}</th>
-                                    <th>{{ __('app.Identity') }}</th>
-                                    <th>{{ __('app.Full_Name') }}</th>
-                                    <th>{{ __('app.Live_eligible') }}</th>
-                                    <th>{{ __('app.Age') }}</th>
-                                    <th>{{ __('app.Gender') }}</th>
-                                    <th>{{ __('app.BlockUser') }}</th>
-                                    <th>{{ __('app.ViewDetails') }}</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                    {{-- Section 3 --}}
-                    <div role="tabpanel" class="tab-pane" id="Section3">
-                        <table class="table table-striped w-100" id="FakeUsersTable">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('app.User_Image') }}</th>
-                                    <th>{{ __('app.Full_Name') }}</th>
-                                    <th>{{ __('app.Identity') }}</th>
-                                    <th>{{ __('app.Password') }}</th>
-                                    <th>{{ __('app.Age') }}</th>
-                                    <th>{{ __('app.Gender') }}</th>
-                                    <th>{{ __('app.BlockUser') }}</th>
-                                    <th>{{ __('app.ViewDetails') }}</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            <table class="table table-striped" style="width:100%;table-layout:auto;" id="UsersTable">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">Image</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Full Name</th>
+                        <th style="white-space:nowrap;">Joined</th>
+                        <th style="width:60px;">Action</th>
+                    </tr>
+                </thead>
+            </table>
         </div>
     </div>
 

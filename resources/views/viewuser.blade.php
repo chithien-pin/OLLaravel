@@ -66,45 +66,12 @@
 @section('content')
 <div class="card">
     <div class="card-header" id="reloadContent">
-        <h4>
-            <?php
-            echo $data['fullname'];
-
-            if ($data['can_go_live'] == 2) {
-                echo '<span class="ml-2 badge bg-success text-white  ">Can Go Live</span>';
-            } else {
-                // echo '<span class="ml-2 badge bg-danger text-white  ">Not Eligible To Go Live</span>';
-            }
-            if ($data['is_fake'] == 1) {
-                echo '<span class="ml-2 badge bg-black text-white  ">Fake User</span>';
-            } else {
-                echo '<span class="ml-2 badge bg-success text-white  ">Real User</span>';
-            }
-            ?>
-
-        </h4>
+        <div>
+            <h4 class="mb-0">{{ $data['fullname'] }} <span style="font-weight:400;color:#888;font-size:16px;">- {{ $data['gender'] == 1 ? 'Male' : 'Female' }}</span></h4>
+            <div style="color:#888;font-size:14px;">{{ $data['username'] ?? '' }}</div>
+        </div>
 
         <div class="d-flex ml-auto">
-
-
-            @if($data['is_block'] == 1)
-            <h2 class='btn btn-success unblock' rel='{{ $data->id }}'>{{ __('app.Unblock') }}</h2>
-            @else
-            <h2 class='btn btn-danger block' rel='{{ $data->id }}'>{{ __('app.Block') }}</h2>
-            @endif
-
-            @if($data['can_go_live'] == 2)
-            <h2 class='btn btn-danger ml-2 restrict-live' rel='{{ $data->id }}'>{{ __('app.Restrict_live') }}</h2>
-            @else
-            <h2 class='btn btn-success ml-2 allow-live' rel='{{ $data->id }}'>{{ __('app.Allow_live') }}</h2>
-            @endif
-
-            @if($data['gender'] == 1)
-            <h2 class='btn btn-primary ml-2'>{{ __('app.Male') }}</h2>
-            @else
-            <h2 class='btn btn-primary ml-2'>{{ __('app.Female') }}</h2>
-            @endif
-
             <!-- User Role Management Button -->
             <h2 class="btn btn-success ml-2" id="roleManagementBtn" style="cursor: pointer;">
                 <span id="currentRoleText">Loading Role...</span>
@@ -113,16 +80,6 @@
             <!-- User Package Management Button -->
             <h2 class="btn btn-warning ml-2" id="packageManagementBtn" style="cursor: pointer;">
                 <span id="currentPackageText">Loading Package...</span>
-            </h2>
-
-            <h2 class='btn btn-danger ml-2 deleteUser' rel='{{ $data->id }}'>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 me-2">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-                {{ __('app.deleteUser') }}
             </h2>
         </div>
     </div>
@@ -135,16 +92,14 @@
             <div class="borderwrap2 " data-href="">
                 <div class="filenameupload2">
                     <img class="rounded " src="{{ env('image') }}{{ $image->image }}" width="130" height="130">
-                    <div data-imgid="{{ $image->id }}" class="middle btnRemove"><i class="material-icons remove_img2">cancel</i>
-                    </div>
+                    {{-- <div data-imgid="{{ $image->id }}" class="middle btnRemove"><i class="material-icons remove_img2">cancel</i>
+                    </div> --}}
                 </div>
             </div>
             @endforeach
         </div>
 
-        <div class="mb-4">
-            <button id="btnAddImage" class="btn btn-primary">Add Image</button>
-        </div>
+        {{-- Add Image button hidden --}}
 
         <form method="post" class="" action="" id="userUpdate" enctype="multipart/form-data">
             @csrf
@@ -154,12 +109,12 @@
             <div class="form-row">
                 @if ($data['is_fake'] == 0)
                 <div class="form-group col-md-3">
-                    <label>{{ __('app.Identity') }}</label>
+                    <label>Email</label>
                     <input name="identity" class="form-control" value="{{ $data['identity'] }}" readonly>
                 </div>
                 @else
                 <div class="form-group col-md-3">
-                    <label>{{ __('app.Identity') }}</label>
+                    <label>Email</label>
                     <input name="identity" class="form-control" value="{{ $data['identity'] }}" readonly>
                 </div>
                 <div class="form-group col-md-3">
@@ -223,6 +178,7 @@
 </div>
 
 
+{{-- Posts & Stories tabs hidden
 <div class="my-3 card-tab">
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item " role="presentation">
@@ -233,8 +189,6 @@
         </li>
     </ul>
 </div>
-
-
 
 <div class="tab-content" id="myTabContent">
     <div class="tab-pane show active" id="allUserPostsTab-pane" role="tabpanel" tabindex="0">
@@ -285,6 +239,7 @@
         </div>
     </div>
 </div>
+--}}
 
 
 <!-- View Story Modal -->

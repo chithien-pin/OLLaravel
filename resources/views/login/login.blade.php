@@ -21,7 +21,7 @@
     <link rel='shortcut icon' type='image/x-icon' href='asset/img/favicon.png' />
     <script src="{{asset('asset/cdnjs/iziToast.min.js')}}"></script>
     <script src="{{asset('asset/script/env.js')}}"></script>
-    <script src="{{asset('asset/script/login.js')}}"></script>
+    <script src="{{asset('asset/script/login.js')}}?v=2"></script>
     <link rel="stylesheet" href="{{asset('asset/cdncss/iziToast.css')}}" />
 
 </head>

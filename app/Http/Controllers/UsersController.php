@@ -1609,8 +1609,8 @@ class UsersController extends Controller
     function fetchAllUsers(Request $request)
     {
 
-        $totalData =  Users::count();
-        $rows = Users::orderBy('id', 'DESC')->get();
+        $totalData =  Users::withTrashed()->count();
+        $rows = Users::withTrashed()->orderBy('id', 'DESC')->get();
 
         $result = $rows;
 
@@ -1625,102 +1625,68 @@ class UsersController extends Controller
 
         $totalFiltered = $totalData;
         if (empty($request->input('search.value'))) {
-            $result = Users::offset($start)
+            $result = Users::withTrashed()->offset($start)
                 ->limit($limit)
                 ->orderBy($order, $dir)
                 ->get();
         } else {
             $search = $request->input('search.value');
-            $result =  Users::Where('fullname', 'LIKE', "%{$search}%")
-                ->orWhere('identity', 'LIKE', "%{$search}%")
+            $result =  Users::withTrashed()->where(function($q) use ($search) {
+                    $q->where('fullname', 'LIKE', "%{$search}%")
+                      ->orWhere('identity', 'LIKE', "%{$search}%")
+                      ->orWhere('username', 'LIKE', "%{$search}%");
+                })
                 ->offset($start)
                 ->limit($limit)
                 ->orderBy($order, $dir)
                 ->get();
-            $totalFiltered = Users::where('identity', 'LIKE', "%{$search}%")
-                ->orWhere('fullname', 'LIKE', "%{$search}%")
+            $totalFiltered = Users::withTrashed()->where(function($q) use ($search) {
+                    $q->where('fullname', 'LIKE', "%{$search}%")
+                      ->orWhere('identity', 'LIKE', "%{$search}%")
+                      ->orWhere('username', 'LIKE', "%{$search}%");
+                })
                 ->count();
         }
         $data = array();
         foreach ($result as $item) {
 
-            if ($item->is_block == 0) {
-                $block  =  '<a class=" btn btn-danger text-white block" rel=' . $item->id . ' >' . __('app.Block') . '</a>';
-            } else {
-                $block  =  '<a class=" btn btn-success  text-white unblock " rel=' . $item->id . ' >' . __('app.Unblock') . '</a>';
-            }
-
-            if ($item->gender == 1) {
-                $gender = ' <span  class="badge bg-dark text-white  ">' . __('app.Male') . '</span>';
-            } else {
-                $gender = '  <span  class="badge bg-dark text-white  ">' . __('app.Female') . '</span>';
-            }
-
             if (count($item->images) > 0) {
-                $image = '<img src="public/storage/' . $item->images[0]->image . '" width="50" height="50">';
+                $image = '<img src="storage/' . $item->images[0]->image . '" width="50" height="50" style="border-radius:50%;object-fit:cover;" loading="lazy">';
             } else {
-                $image = '<img src="http://placehold.jp/150x150.png" width="50" height="50">';
+                $image = '<div style="width:50px;height:50px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#999;font-size:18px;">' . strtoupper(substr($item->fullname ?? '?', 0, 1)) . '</div>';
             }
 
-            if ($item->can_go_live == 2) {
-                $liveEligible = ' <span class="badge bg-success text-white  ">Yes</span>';;
+            // Format joined date: "February 22 at 2:35 PM"
+            $joinedDate = $item->created_at ? \Carbon\Carbon::parse($item->created_at)->format('F j \\a\\t g:i A') : '-';
+
+            $isDeleted = $item->trashed();
+
+            if ($isDeleted) {
+                $action = '<span class="badge badge-secondary">Deleted</span>';
             } else {
-                $liveEligible = ' <span class="badge bg-danger text-white  ">No</span>';;
+                $action = '<a href="' . route('viewUserDetails', $item->id) . '" style="color:#2089F4;font-weight:500;font-size:13px;text-decoration:none;">View</a>';
             }
 
-            $action = '<a href="' . route('viewUserDetails', $item->id) . '"class=" btn btn-primary text-white " rel=' . $item->id . ' ><i class="fas fa-eye"></i></a>';
-            $addCoin = '<a href="" data-id="' . $item->id . '" class="addCoins"><i class="i-cl-3 fas fa-plus-circle primary font-20 pointer p-l-5 p-r-5 me-2"></i></a>';
-
-            // Format role display
-            $currentRole = $item->getCurrentRoleType();
-            if ($currentRole === 'vip') {
-                $roleObj = $item->currentRole();
-                $daysRemaining = $roleObj ? $roleObj->getDaysRemaining() : 0;
-                $role = '<span class="badge badge-warning">VIP';
-                if ($daysRemaining !== null) {
-                    $role .= ' (' . $daysRemaining . 'd)';
-                }
-                $role .= '</span>';
+            if ($isDeleted) {
+                $dim = 'style="opacity: 0.4; pointer-events: none;"';
+                $data[] = array(
+                    '<div '.$dim.'>'.$image.'</div>',
+                    '<div '.$dim.'>'.($item->username ?? '-').'</div>',
+                    '<div '.$dim.'>'.$item->identity.'</div>',
+                    '<div '.$dim.'>'.$item->fullname.'</div>',
+                    '<div '.$dim.'>'.$joinedDate.'</div>',
+                    $action,
+                );
             } else {
-                $role = '<span class="badge badge-success">Normal</span>';
+                $data[] = array(
+                    $image,
+                    $item->username ?? '-',
+                    $item->identity,
+                    $item->fullname,
+                    $joinedDate,
+                    $action,
+                );
             }
-
-            // Format package display
-            $currentPackage = $item->getCurrentPackageType();
-            if ($currentPackage && $item->hasPackage()) {
-                $packageObj = $item->currentPackage();
-                $packageDisplayName = $item->getPackageDisplayName();
-                $packageColor = $item->getPackageBadgeColor();
-                
-                $package = '<span class="badge" style="background-color: ' . $packageColor . '; color: white;">';
-                $package .= $packageDisplayName;
-                
-                if ($currentPackage !== 'celebrity' && $packageObj) {
-                    $daysRemaining = $item->getDaysRemainingForPackage();
-                    if ($daysRemaining !== null) {
-                        $package .= ' (' . $daysRemaining . 'd)';
-                    }
-                }
-                $package .= '</span>';
-            } else {
-                $package = '<span class="badge badge-secondary">None</span>';
-            }
-
-            $data[] = array(
-
-                $image,
-                $item->identity,
-                $item->fullname,
-                $addCoin.$item->wallet,
-                $liveEligible,
-                $item->age,
-                $gender,
-                $role,
-                $package,
-                $block,
-                $action,
-
-            );
         }
         $json_data = array(
             "draw"            => intval($request->input('draw')),
@@ -1791,7 +1757,7 @@ class UsersController extends Controller
             }
 
             if (count($item->images) > 0) {
-                $image = '<img src="public/storage/' . $item->images[0]->image . '" width="50" height="50">';
+                $image = '<img src="storage/' . $item->images[0]->image . '" width="50" height="50" loading="lazy">';
             } else {
                 $image = '<img src="http://placehold.jp/150x150.png" width="50" height="50">';
             }
@@ -1887,7 +1853,7 @@ class UsersController extends Controller
             }
 
             if (count($item->images) > 0) {
-                $image = '<img src="public/storage/' . $item->images[0]->image . '" width="50" height="50">';
+                $image = '<img src="storage/' . $item->images[0]->image . '" width="50" height="50" loading="lazy">';
             } else {
                 $image = '<img src="http://placehold.jp/150x150.png" width="50" height="50">';
             }

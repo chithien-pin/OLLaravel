@@ -24,7 +24,7 @@ $(document).ready(function () {
                         position: "topRight",
                     });
 
-                    window.location.href = `${domainUrl}index`;
+                    window.location.href = `${domainUrl}gyp-users`;
                 } else {
                     $("#loginform")[0].reset();
 

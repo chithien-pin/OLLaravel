@@ -57,116 +57,16 @@
             <div class="main-sidebar sidebar-style-2">
                 <aside id="sidebar-wrapper">
                     <div class="sidebar-brand">
-                        <a href="{{ route('index') }}">
+                        <a href="{{ route('gyp-users') }}">
                             <span class="logo-name"> {!! Session::get('app_name') !!} </span>
                         </a>
                     </div>
                     <ul class="sidebar-menu">
                         <li class="menu-header">{{ __('app.Main') }}</li>
-                        <li class="sideBarli indexSideA">
-                            <a href="{{ route('index') }}" class="nav-link">
-                                <i class="fas fa-tachometer-alt pt-1"></i>
-                                <span> {{ __('app.Dashboard') }}</span>
-                            </a>
-                        </li>
                         <li class="sideBarli usersSideA">
-                            <a href="{{ route('users') }}" class="nav-link">
+                            <a href="{{ route('gyp-users') }}" class="nav-link">
                                 <i class="fas fa-users"></i>
                                 <span>{{ __('app.Users') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli postSideA">
-                            <a href="{{ route('posts') }}" class="nav-link">
-                                <i class="fas fa-image"></i>
-                                <span> {{ __('app.Posts') }} </span>
-                            </a>
-                        </li>
-                        <li class="sideBarli storySideA">
-                            <a href="{{ route('viewStories') }}" class="nav-link">
-                                <i class="fas fa-compact-disc"></i>
-                                <span> {{ __('stories') }} </span>
-                            </a>
-                        </li>
-                        <li class="sideBarli liveapplicationSideA">
-                            <a href="{{ route('liveapplication') }}" class="nav-link">
-                                <i class="fas fa-rss"></i>
-                                <span>{{ __('app.Live_applications') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli livehistorySideA">
-                            <a href="{{ route('livehistory') }}" class="nav-link">
-                                <i class="fas fa-rss"></i>
-                                <span>{{ __('app.Live_History') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli redeemrequestsSideA">
-                            <a href="{{ route('redeemrequests') }}" class="nav-link"><i class="fas fa-university"></i><span>{{ __('app.Redeem_Requests') }}</span></a>
-                        </li>
-                        {{-- <li class="sideBarli packageSideA">
-                            <a href="{{ route('package') }}" class="nav-link">
-                        <i class="fas fa-box"></i>
-                        <span>{{ __('app.Subscriptions') }}</span>
-                        </a>
-                        </li> --}}
-                        <li class="sideBarli diamondpackSideA">
-                            <a href="{{ route('diamondpacks') }}" class="nav-link">
-                                <i class="fas fa-box"></i>
-                                <span>{{ __('app.Diamond_packs') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli subscriptionpackSideA">
-                            <a href="{{ route('subscriptionpacks') }}" class="nav-link">
-                                <i class="fas fa-crown"></i>
-                                <span>{{ __('Subscription Packs') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli giftSideA">
-                            <a href="{{ route('gifts') }}" class="nav-link">
-                                <i class="fas fa-gift"></i>
-                                <span>{{ __('app.Gifts') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli verificationRequestSideA">
-                            <a href="{{ route('verificationrequests') }}" class="nav-link">
-                                <i class="fas fa-check-circle"></i>
-                                <span>{{ __('app.Verification_requests') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli reportSideA">
-                            <a href="{{ route('report') }}" class="nav-link">
-                                <i class="fas fa-question"></i>
-                                <span>{{ __('app.Report') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli notificationSideA">
-                            <a href="{{ route('notifications') }}" class="nav-link">
-                                <i class="fas fa-bell"></i>
-                                <span>{{ __('app.Notifications') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli interestsSideA">
-                            <a href="{{ route('interest') }}" class="nav-link">
-                                <i class="fas fa-heart"></i>
-                                <span>{{ __('app.Interests') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli otherSideA">
-                            <a href="{{ route('setting') }}">
-                                <i class="fas fa-cog pt-1"></i>
-                                <span>{{ __('app.Setting') }}</span>
-                            </a>
-                        </li>
-                        <li class="menu-header">{{ __('Pages') }}</li>
-                        <li class="sideBarli  privacySideA">
-                            <a href="{{ route('viewPrivacy') }}" class="nav-link">
-                                <i class="fas fa-info"></i>
-                                <span>{{ __('Privacy Policy') }}</span>
-                            </a>
-                        </li>
-                        <li class="sideBarli  termsSideA">
-                            <a href="{{ route('viewTerms') }}" class="nav-link">
-                                <i class="fas fa-info"></i>
-                                <span>{{ __('Terms Of Use') }}</span>
                             </a>
                         </li>
                     </ul>
