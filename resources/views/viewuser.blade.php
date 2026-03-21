@@ -68,7 +68,7 @@
     <div class="card-header" id="reloadContent">
         <div>
             <h4 class="mb-0">{{ $data['fullname'] }} <span style="font-weight:400;color:#888;font-size:16px;">- {{ $data['gender'] == 1 ? 'Male' : 'Female' }}</span></h4>
-            <div style="color:#888;font-size:14px;">{{ $data['username'] ?? '' }}</div>
+            <div style="color:#888;font-size:14px;">{{ $data['username'] ?? '' }} · Joined {{ $data['created_at'] ? \Carbon\Carbon::parse($data['created_at'])->format('F j \\a\\t g:i A') : '-' }}</div>
         </div>
 
         <div class="d-flex ml-auto">
@@ -110,37 +110,37 @@
                 @if ($data['is_fake'] == 0)
                 <div class="form-group col-md-3">
                     <label>Email</label>
-                    <input name="identity" class="form-control" value="{{ $data['identity'] }}" readonly>
+                    <input name="identity" class="form-control" value="{{ $data['identity'] }}" readonly disabled style="pointer-events:none;background:#f5f5f5;">
                 </div>
                 @else
                 <div class="form-group col-md-3">
                     <label>Email</label>
-                    <input name="identity" class="form-control" value="{{ $data['identity'] }}" readonly>
+                    <input name="identity" class="form-control" value="{{ $data['identity'] }}" readonly disabled style="pointer-events:none;background:#f5f5f5;">
                 </div>
                 <div class="form-group col-md-3">
                     <label>{{ __('app.Password') }}</label>
-                    <input name="password" class="form-control" value="{{ $data['password'] }}" readonly>
+                    <input name="password" class="form-control" value="{{ $data['password'] }}" readonly disabled style="pointer-events:none;background:#f5f5f5;">
                 </div>
                 @endif
                 <div class="form-group col-md-3">
                     <label>{{ __('app.Full_Name') }}</label>
-                    <input name="fullname" class="form-control" value="{{ $data['fullname'] }}" readonly>
+                    <input name="fullname" class="form-control" value="{{ $data['fullname'] }}" readonly disabled style="pointer-events:none;background:#f5f5f5;">
                 </div>
                 <div class="form-group col-md-2">
                     <label>{{ __('app.Age') }}</label>
-                    <input name="age" class="form-control" value="{{ $data['age'] }}" readonly>
+                    <input name="age" class="form-control" value="{{ $data['age'] }}" readonly disabled style="pointer-events:none;background:#f5f5f5;">
                 </div>
                 <div class="form-group col-md-2">
                     <label>{{ __('app.Live') }}</label>
-                    <input name="live" class="form-control" value="{{ $data['live'] }}" readonly>
+                    <input name="live" class="form-control" value="{{ $data['live'] }}" readonly disabled style="pointer-events:none;background:#f5f5f5;">
                 </div>
                 <div class="form-group col-md-1">
                     <label>{{ __('app.Following') }}</label>
-                    <input name="following" class="form-control" value="{{ $data['following'] }}" readonly>
+                    <input name="following" class="form-control" value="{{ $data['following'] }}" readonly disabled style="pointer-events:none;background:#f5f5f5;">
                 </div>
                 <div class="form-group col-md-1">
                     <label>{{ __('app.Followers') }}</label>
-                    <input name="followers" class="form-control" value="{{ $data['followers'] }}" readonly>
+                    <input name="followers" class="form-control" value="{{ $data['followers'] }}" readonly disabled style="pointer-events:none;background:#f5f5f5;">
                 </div>
             </div>
 
