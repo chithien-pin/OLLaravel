@@ -523,8 +523,14 @@ class SuggestionController extends Controller
             return $candidate;
         });
 
-        // Sort by score (descending)
-        return $scoredCandidates->sortByDesc('suggestion_score')->values();
+        // Sort by score descending, then by id ascending (stable tiebreaker to prevent
+        // duplicate suggestions across paginated requests when users share the same score)
+        return $scoredCandidates->sort(function ($a, $b) {
+            if ($b->suggestion_score != $a->suggestion_score) {
+                return $b->suggestion_score <=> $a->suggestion_score;
+            }
+            return $a->id <=> $b->id;
+        })->values();
     }
 
     /**
