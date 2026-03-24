@@ -6,10 +6,11 @@ $(document).ready(function () {
         processing: true,
         serverSide: true,
         serverMethod: "post",
+        autoWidth: true,
         aaSorting: [[0, "desc"]],
         columnDefs: [
             {
-                targets: [0, 1, 2, 3, 4, 5],
+                targets: [0, 1, 2, 3, 4],
                 orderable: false,
             },
         ],

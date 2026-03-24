@@ -13,7 +13,7 @@
     <link rel='shortcut icon' type='image/x-icon' href="{{ asset('asset/img/favicon.png') }}" style="width: 2px !important;" />
     <link rel="stylesheet" href="{{ asset('asset/css/app.min.css') }}">
     <link rel="stylesheet" href="{{ asset('asset/css/components.css') }}">
-    <link rel="stylesheet" href="{{ asset('asset/css/custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('asset/css/custom.css') }}?v=3">
     <link rel="stylesheet" href="{{ asset('asset/bundles/codemirror/lib/codemirror.css') }}">
     <link rel="stylesheet" href="{{ asset('asset/bundles/codemirror/theme/duotone-dark.css') }} ">
     <link rel="stylesheet" href="{{ asset('asset/bundles/jquery-selectric/selectric.css') }}">

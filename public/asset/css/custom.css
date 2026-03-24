@@ -62,4 +62,13 @@
     border-radius: 50%;
   }
 
-  
+  /* Force card and DataTables to use full width */
+  .main-content > .card {
+    width: 100% !important;
+  }
+  .dataTables_wrapper {
+    width: 100% !important;
+  }
+  .dataTables_wrapper table.dataTable {
+    width: 100% !important;
+  }

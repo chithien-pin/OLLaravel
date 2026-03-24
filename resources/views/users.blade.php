@@ -1,6 +1,6 @@
 @extends('include.app')
 @section('header')
-    <script src="{{ asset('asset/script/users.js') }}?v=2"></script>
+    <script src="{{ asset('asset/script/users.js') }}?v=4"></script>
 @endsection
 
 @section('content')
@@ -8,15 +8,14 @@
         {{-- Header hidden --}}
 
         <div class="card-body">
-            <table class="table table-striped" style="width:100%;table-layout:auto;" id="UsersTable">
+            <table class="table table-striped" style="width:100%;" id="UsersTable">
                 <thead>
                     <tr>
                         <th style="width:60px;">Image</th>
-                        <th>Username</th>
+                        <th style="width:12%;">Username</th>
                         <th>Email</th>
-                        <th>Full Name</th>
-                        <th style="white-space:nowrap;">Joined</th>
-                        <th style="width:60px;">Action</th>
+                        <th style="width:15%;">Full Name</th>
+                        <th style="width:18%;">Joined</th>
                     </tr>
                 </thead>
             </table>

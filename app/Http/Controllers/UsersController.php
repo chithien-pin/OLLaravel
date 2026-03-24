@@ -1675,7 +1675,6 @@ class UsersController extends Controller
                     '<div '.$dim.'>'.$item->identity.'</div>',
                     '<div '.$dim.'>'.$item->fullname.'</div>',
                     '<div '.$dim.'>'.$joinedDate.'</div>',
-                    $action,
                 );
             } else {
                 $data[] = array(
@@ -1684,7 +1683,6 @@ class UsersController extends Controller
                     $item->identity,
                     $item->fullname,
                     $joinedDate,
-                    $action,
                 );
             }
         }
