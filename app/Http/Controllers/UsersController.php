@@ -2642,20 +2642,26 @@ class UsersController extends Controller
             ->pluck('user_id')
             ->toArray();
 
+        // Get users that follow ME back (for followingStatus calculation)
+        $followingUserIds = FollowingList::where('my_user_id', $request->my_user_id)
+                                        ->pluck('user_id')
+                                        ->toArray();
+        $usersFollowingMeBack = FollowingList::where('user_id', $request->my_user_id)
+                                            ->whereIn('my_user_id', $followingUserIds)
+                                            ->pluck('my_user_id')
+                                            ->toArray();
+
         $fetchFollowingList = FollowingList::whereRelation('user', 'is_block', 0)
                                             ->whereNotIn('user_id', $blockUserIds)
                                             ->where('my_user_id', $request->my_user_id)
-                                            // ->with('user', 'user.images')
-                                            ->with(['user' => function ($query) {
-                                                $query->whereHas('images');
-                                            }, 'user.images'])
+                                            ->with(['user', 'user.images'])
                                             ->offset($request->start)
                                             ->limit($request->limit)
                                             ->get()
                                             ->pluck('user')
                                             ->filter()
                                             ->values()
-                                            ->map(function($user) use ($likedUsers) {
+                                            ->map(function($user) use ($likedUsers, $usersFollowingMeBack) {
                                                 // Add role information to each user
                                                 $user->role_type = $user->getCurrentRoleType();
                                                 $user->is_vip = $user->isVip();
@@ -2672,6 +2678,9 @@ class UsersController extends Controller
 
                                                 // Add is_like status (same logic as getExplorePageProfileList)
                                                 $user->is_like = in_array($user->id, $likedUsers);
+
+                                                // followingStatus: 2 = I follow them, 3 = mutual follow
+                                                $user->followingStatus = in_array($user->id, $usersFollowingMeBack) ? 3 : 2;
 
                                                 return $user;
                                             });
