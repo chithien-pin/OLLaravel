@@ -24,6 +24,11 @@ class Users extends Model
     protected $fillable = [
         'daily_swipes',
         'last_swipe_date',
+        'date_of_birth',
+    ];
+
+    protected $casts = [
+        'date_of_birth' => 'date',
     ];
 
     public function images()

@@ -2215,6 +2215,9 @@ class UsersController extends Controller
         if ($req->has("age")) {
             $user->age = $req->age;
         }
+        if ($req->has("date_of_birth")) {
+            $user->date_of_birth = $req->date_of_birth;
+        }
         if ($req->has("interests")) {
             $user->interests = $req->interests;
         }
