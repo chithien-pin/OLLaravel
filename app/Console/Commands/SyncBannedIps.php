@@ -45,6 +45,22 @@ class SyncBannedIps extends Command
         Redis::sadd('banned_ips', $ip);
 
         $this->info("✅ Banned IP: {$ip} (DB + Redis)");
+
+        // Find and ban all users with this IP
+        $users = DB::table('users')
+            ->where('ip_network', $ip)
+            ->whereNull('banned_at')
+            ->get(['id', 'fullname', 'identity']);
+
+        if ($users->isEmpty()) {
+            $this->info("   No active users found with IP {$ip}");
+            return;
+        }
+
+        $this->info("   Found {$users->count()} user(s) with this IP:");
+        foreach ($users as $user) {
+            $this->call('user:ban', ['--ban' => $user->id]);
+        }
     }
 
     private function removeBan(string $ip)
