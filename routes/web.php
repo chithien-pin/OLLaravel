@@ -57,6 +57,8 @@ Route::post('addCoinsToUserWalletFromAdmin', [UsersController::class, 'addCoinsT
 Route::post('blockUser', [UsersController::class, 'blockUser'])->middleware(['checkLogin'])->name('blockUser');
 Route::get('deleteUserImage/{id}', [UsersController::class, 'deleteUserImage'])->middleware(['checkLogin'])->name('deleteUserImage');
 Route::post('unblockUser', [UsersController::class, 'unblockUser'])->middleware(['checkLogin'])->name('unblockUser');
+Route::post('banUserFromAdmin', [UsersController::class, 'banUserFromAdmin'])->middleware(['checkLogin'])->name('banUserFromAdmin');
+Route::post('unbanUserFromAdmin', [UsersController::class, 'unbanUserFromAdmin'])->middleware(['checkLogin'])->name('unbanUserFromAdmin');
 Route::get('viewUserDetails/{id}', [UsersController::class, 'viewUserDetails'])->middleware(['checkLogin'])->name('viewUserDetails');
 Route::post('allowLiveToUser', [UsersController::class, 'allowLiveToUser'])->middleware(['checkLogin'])->name('allowLiveToUser');
 Route::post('restrictLiveToUser', [UsersController::class, 'restrictLiveToUser'])->middleware(['checkLogin'])->name('restrictLiveToUser');

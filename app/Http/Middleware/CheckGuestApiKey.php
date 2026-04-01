@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class CheckGuestApiKey
 {
@@ -19,6 +20,13 @@ class CheckGuestApiKey
      */
     public function handle(Request $request, Closure $next)
     {
+        // Check IP ban first
+        try {
+            if (Redis::sismember('banned_ips', $request->ip())) {
+                return response()->json(['status' => false, 'message' => 'Access Denied'], 403);
+            }
+        } catch (\Exception $e) {}
+
         // Get API key from environment variable
         $validApiKey = env('GUEST_KEY');
 

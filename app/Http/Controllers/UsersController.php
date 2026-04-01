@@ -1662,27 +1662,39 @@ class UsersController extends Controller
             $isDeleted = $item->trashed();
 
             if ($isDeleted) {
-                $action = '<span class="badge badge-secondary">Deleted</span>';
+                $action = '<span style="background:#ccc;color:#666;padding:4px 10px;border-radius:4px;font-size:12px;">Deleted</span>';
             } else {
                 $action = '<a href="' . route('viewUserDetails', $item->id) . '" style="color:#2089F4;font-weight:500;font-size:13px;text-decoration:none;">View</a>';
             }
 
-            if ($isDeleted) {
+            $isBanned = $item->banned_at !== null;
+
+            if ($isDeleted && !$isBanned) {
                 $dim = 'style="opacity: 0.4; pointer-events: none;"';
+                $banAction = '<span style="background:#ccc;color:#666;padding:4px 10px;border-radius:4px;font-size:12px;">Deleted</span>';
                 $data[] = array(
                     '<div '.$dim.'>'.$image.'</div>',
                     '<div '.$dim.'>'.($item->username ?? '-').'</div>',
                     '<div '.$dim.'>'.$item->identity.'</div>',
                     '<div '.$dim.'>'.$item->fullname.'</div>',
                     '<div '.$dim.'>'.$joinedDate.'</div>',
+                    $banAction,
                 );
             } else {
+                if ($isBanned) {
+                    $banAction = '<button class="btn btn-sm unbanUser" data-id="'.$item->id.'" data-name="'.htmlspecialchars($item->fullname).'" title="Unban" style="background:none;border:none;"><i class="fas fa-unlock" style="color:#28a745;font-size:18px;"></i></button>';
+                } else {
+                    $banAction = '<button class="btn btn-sm banUser" data-id="'.$item->id.'" data-name="'.htmlspecialchars($item->fullname).'" title="Ban" style="background:none;border:none;"><i class="fas fa-ban" style="color:#dc3545;font-size:18px;"></i></button>';
+                }
+
+                $dim = $isBanned ? 'style="opacity: 0.5;"' : '';
                 $data[] = array(
-                    $image,
-                    $item->username ?? '-',
-                    $item->identity,
-                    $item->fullname,
-                    $joinedDate,
+                    '<div '.$dim.'>'.$image.'</div>',
+                    '<div '.$dim.'>'.($item->username ?? '-') . ($isBanned ? ' <span class="badge badge-danger">Banned</span>' : '') . '</div>',
+                    '<div '.$dim.'>'.$item->identity.'</div>',
+                    '<div '.$dim.'>'.$item->fullname.'</div>',
+                    '<div '.$dim.'>'.$joinedDate.'</div>',
+                    $banAction,
                 );
             }
         }
@@ -2308,6 +2320,54 @@ class UsersController extends Controller
                 'message' => 'User not found',
             ]);
         }
+    }
+
+    function banUserFromAdmin(Request $request)
+    {
+        $user = Users::withTrashed()->where('id', $request->user_id)->first();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not found']);
+        }
+        if ($user->banned_at) {
+            return response()->json(['status' => false, 'message' => 'User already banned']);
+        }
+
+        try {
+            \Artisan::call('user:ban', ['--ban' => $user->id]);
+            $output = \Artisan::output();
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Ban failed: ' . $e->getMessage()]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => "User {$user->fullname} has been banned",
+            'output' => trim($output),
+        ]);
+    }
+
+    function unbanUserFromAdmin(Request $request)
+    {
+        $user = Users::withTrashed()->where('id', $request->user_id)->first();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not found']);
+        }
+        if (!$user->banned_at) {
+            return response()->json(['status' => false, 'message' => 'User is not banned']);
+        }
+
+        try {
+            \Artisan::call('user:ban', ['--unban' => $user->id]);
+            $output = \Artisan::output();
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Unban failed: ' . $e->getMessage()]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => "User {$user->fullname} has been unbanned",
+            'output' => trim($output),
+        ]);
     }
 
     function viewUserDetails($id)

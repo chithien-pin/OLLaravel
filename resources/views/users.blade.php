@@ -1,6 +1,10 @@
 @extends('include.app')
 @section('header')
-    <script src="{{ asset('asset/script/users.js') }}?v=4"></script>
+    <script src="{{ asset('asset/script/users.js') }}?v=10"></script>
+    <style>
+        #UsersTable { width: 100% !important; }
+        #UsersTable td, #UsersTable th { vertical-align: middle; }
+    </style>
 @endsection
 
 @section('content')
@@ -11,11 +15,12 @@
             <table class="table table-striped" style="width:100%;" id="UsersTable">
                 <thead>
                     <tr>
-                        <th style="width:60px;">Image</th>
-                        <th style="width:12%;">Username</th>
+                        <th>Image</th>
+                        <th>Username</th>
                         <th>Email</th>
-                        <th style="width:15%;">Full Name</th>
-                        <th style="width:18%;">Joined</th>
+                        <th>Full Name</th>
+                        <th>Joined</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
             </table>

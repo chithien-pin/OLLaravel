@@ -10,7 +10,7 @@ $(document).ready(function () {
         aaSorting: [[0, "desc"]],
         columnDefs: [
             {
-                targets: [0, 1, 2, 3, 4],
+                targets: [0, 1, 2, 3, 4, 5],
                 orderable: false,
             },
         ],
@@ -228,6 +228,95 @@ $(document).ready(function () {
                 iconUrl: app.cancleIcon,
             });
         }
+    });
+
+    // Ban User Handler
+    $(document).on("click", ".banUser", function (e) {
+        e.preventDefault();
+        var id = $(this).attr("data-id");
+        var name = $(this).attr("data-name");
+        swal({
+            title: "Are you sure you want to ban " + name + "?",
+            text: "This will disable their account, remove all posts, and block Firebase login.",
+            icon: "warning",
+            buttons: ["Cancel", "Yes, Ban"],
+            dangerMode: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                $(".loader").show();
+                $.ajax({
+                    type: "POST",
+                    url: `${domainUrl}banUserFromAdmin`,
+                    dataType: "json",
+                    data: { user_id: id },
+                    success: function (response) {
+                        $(".loader").hide();
+                        if (response.status) {
+                            iziToast.success({
+                                title: "Banned!",
+                                message: response.message,
+                                position: "topRight",
+                            });
+                            $("#UsersTable").DataTable().ajax.reload(null, false);
+                        } else {
+                            iziToast.error({
+                                title: "Error",
+                                message: response.message,
+                                position: "topRight",
+                            });
+                        }
+                    },
+                    error: function () {
+                        $(".loader").hide();
+                        iziToast.error({ title: "Error", message: "Failed to ban user", position: "topRight" });
+                    },
+                });
+            }
+        });
+    });
+
+    // Unban User Handler
+    $(document).on("click", ".unbanUser", function (e) {
+        e.preventDefault();
+        var id = $(this).attr("data-id");
+        var name = $(this).attr("data-name");
+        swal({
+            title: "Are you sure you want to unban " + name + "?",
+            text: "This will restore their account and posts.",
+            icon: "info",
+            buttons: ["Cancel", "Yes, Unban"],
+        }).then((confirmed) => {
+            if (confirmed) {
+                $(".loader").show();
+                $.ajax({
+                    type: "POST",
+                    url: `${domainUrl}unbanUserFromAdmin`,
+                    dataType: "json",
+                    data: { user_id: id },
+                    success: function (response) {
+                        $(".loader").hide();
+                        if (response.status) {
+                            iziToast.success({
+                                title: "Unbanned!",
+                                message: response.message,
+                                position: "topRight",
+                            });
+                            $("#UsersTable").DataTable().ajax.reload(null, false);
+                        } else {
+                            iziToast.error({
+                                title: "Error",
+                                message: response.message,
+                                position: "topRight",
+                            });
+                        }
+                    },
+                    error: function () {
+                        $(".loader").hide();
+                        iziToast.error({ title: "Error", message: "Failed to unban user", position: "topRight" });
+                    },
+                });
+            }
+        });
     });
 
     // Expire VIP Roles Button Handler
