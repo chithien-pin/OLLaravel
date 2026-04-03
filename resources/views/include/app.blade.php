@@ -69,6 +69,18 @@
                                 <span>{{ __('app.Users') }}</span>
                             </a>
                         </li>
+                        <li class="sideBarli adminsSideA">
+                            <a href="{{ route('gyp-admins') }}" class="nav-link">
+                                <i class="fas fa-crown" style="color:#FFD700;"></i>
+                                <span>Admins</span>
+                            </a>
+                        </li>
+                        <li class="sideBarli bannedSideA">
+                            <a href="{{ route('gyp-banned') }}" class="nav-link">
+                                <i class="fas fa-ban" style="color:#dc3545;"></i>
+                                <span>Banned</span>
+                            </a>
+                        </li>
                     </ul>
                 </aside>
             </div>

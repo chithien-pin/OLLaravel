@@ -1687,14 +1687,21 @@ class UsersController extends Controller
                     $banAction = '<button class="btn btn-sm banUser" data-id="'.$item->id.'" data-name="'.htmlspecialchars($item->fullname).'" title="Ban" style="background:none;border:none;"><i class="fas fa-ban" style="color:#dc3545;font-size:18px;"></i></button>';
                 }
 
+                $isAdmin = $item->is_admin == 1;
+                $adminAction = '<button class="btn btn-sm toggleAdmin" data-id="'.$item->id.'" data-name="'.htmlspecialchars($item->fullname).'" data-admin="'.($isAdmin ? '1' : '0').'" title="'.($isAdmin ? 'Remove Admin' : 'Set Admin').'" style="background:none;border:none;"><i class="fas fa-crown" style="color:'.($isAdmin ? '#FFD700' : '#ccc').';font-size:18px;"></i></button>';
+
                 $dim = $isBanned ? 'style="opacity: 0.5;"' : '';
+                $badges = '';
+                if ($isBanned) $badges .= ' <span class="badge badge-danger">Banned</span>';
+                if ($isAdmin) $badges .= ' <span style="background:#FFD700;color:#333;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">Admin</span>';
+
                 $data[] = array(
                     '<div '.$dim.'>'.$image.'</div>',
-                    '<div '.$dim.'>'.($item->username ?? '-') . ($isBanned ? ' <span class="badge badge-danger">Banned</span>' : '') . '</div>',
+                    '<div '.$dim.'>'.($item->username ?? '-') . $badges . '</div>',
                     '<div '.$dim.'>'.$item->identity.'</div>',
                     '<div '.$dim.'>'.$item->fullname.'</div>',
                     '<div '.$dim.'>'.$joinedDate.'</div>',
-                    $banAction,
+                    $adminAction . ' ' . $banAction,
                 );
             }
         }
@@ -2320,6 +2327,147 @@ class UsersController extends Controller
                 'message' => 'User not found',
             ]);
         }
+    }
+
+    function fetchBannedUsers(Request $request)
+    {
+        $query = Users::withTrashed()->whereNotNull('banned_at');
+        $totalData = $query->count();
+
+        $limit = $request->input('length');
+        $start = $request->input('start');
+
+        if (empty($request->input('search.value'))) {
+            $result = Users::withTrashed()->whereNotNull('banned_at')
+                ->offset($start)->limit($limit)->orderBy('banned_at', 'DESC')->get();
+            $totalFiltered = $totalData;
+        } else {
+            $search = $request->input('search.value');
+            $result = Users::withTrashed()->whereNotNull('banned_at')
+                ->where(function($q) use ($search) {
+                    $q->where('fullname', 'LIKE', "%{$search}%")
+                      ->orWhere('identity', 'LIKE', "%{$search}%")
+                      ->orWhere('username', 'LIKE', "%{$search}%")
+                      ->orWhere('ip_network', 'LIKE', "%{$search}%");
+                })
+                ->offset($start)->limit($limit)->orderBy('banned_at', 'DESC')->get();
+            $totalFiltered = Users::withTrashed()->whereNotNull('banned_at')
+                ->where(function($q) use ($search) {
+                    $q->where('fullname', 'LIKE', "%{$search}%")
+                      ->orWhere('identity', 'LIKE', "%{$search}%")
+                      ->orWhere('username', 'LIKE', "%{$search}%")
+                      ->orWhere('ip_network', 'LIKE', "%{$search}%");
+                })->count();
+        }
+
+        $data = array();
+        foreach ($result as $item) {
+            if (count($item->images) > 0) {
+                $image = '<img src="storage/' . $item->images[0]->image . '" width="50" height="50" style="border-radius:50%;object-fit:cover;" loading="lazy">';
+            } else {
+                $image = '<div style="width:50px;height:50px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#999;font-size:18px;">' . strtoupper(substr($item->fullname ?? '?', 0, 1)) . '</div>';
+            }
+
+            $bannedDate = $item->banned_at ? \Carbon\Carbon::parse($item->banned_at)->format('F j \\a\\t g:i A') : '-';
+
+            $unbanBtn = '<button class="btn btn-sm unbanUser" data-id="'.$item->id.'" data-name="'.htmlspecialchars($item->fullname).'" title="Unban" style="background:none;border:none;"><i class="fas fa-unlock" style="color:#28a745;font-size:18px;"></i></button>';
+
+            $data[] = array(
+                $image,
+                $item->username ?? '-',
+                $item->identity,
+                $item->fullname,
+                $item->ip_network ?? '-',
+                $bannedDate,
+                $unbanBtn,
+            );
+        }
+
+        echo json_encode(array(
+            "draw" => intval($request->input('draw')),
+            "recordsTotal" => intval($totalData),
+            "recordsFiltered" => $totalFiltered,
+            "data" => $data
+        ));
+        exit();
+    }
+
+    function fetchAdminUsers(Request $request)
+    {
+        $query = Users::withTrashed()->where('is_admin', 1);
+        $totalData = $query->count();
+
+        $limit = $request->input('length');
+        $start = $request->input('start');
+
+        if (empty($request->input('search.value'))) {
+            $result = Users::withTrashed()->where('is_admin', 1)
+                ->offset($start)->limit($limit)->orderBy('id', 'DESC')->get();
+            $totalFiltered = $totalData;
+        } else {
+            $search = $request->input('search.value');
+            $result = Users::withTrashed()->where('is_admin', 1)
+                ->where(function($q) use ($search) {
+                    $q->where('fullname', 'LIKE', "%{$search}%")
+                      ->orWhere('identity', 'LIKE', "%{$search}%")
+                      ->orWhere('username', 'LIKE', "%{$search}%");
+                })
+                ->offset($start)->limit($limit)->orderBy('id', 'DESC')->get();
+            $totalFiltered = Users::withTrashed()->where('is_admin', 1)
+                ->where(function($q) use ($search) {
+                    $q->where('fullname', 'LIKE', "%{$search}%")
+                      ->orWhere('identity', 'LIKE', "%{$search}%")
+                      ->orWhere('username', 'LIKE', "%{$search}%");
+                })->count();
+        }
+
+        $data = array();
+        foreach ($result as $item) {
+            if (count($item->images) > 0) {
+                $image = '<img src="storage/' . $item->images[0]->image . '" width="50" height="50" style="border-radius:50%;object-fit:cover;" loading="lazy">';
+            } else {
+                $image = '<div style="width:50px;height:50px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#999;font-size:18px;">' . strtoupper(substr($item->fullname ?? '?', 0, 1)) . '</div>';
+            }
+
+            $joinedDate = $item->created_at ? \Carbon\Carbon::parse($item->created_at)->format('F j \\a\\t g:i A') : '-';
+
+            $removeBtn = '<button class="btn btn-sm removeAdmin" data-id="'.$item->id.'" data-name="'.htmlspecialchars($item->fullname).'" title="Remove Admin" style="background:none;border:none;"><i class="fas fa-user-minus" style="color:#dc3545;font-size:16px;"></i></button>';
+
+            $data[] = array(
+                $image,
+                $item->username ?? '-',
+                $item->identity,
+                $item->fullname,
+                $joinedDate,
+                $removeBtn,
+            );
+        }
+
+        echo json_encode(array(
+            "draw" => intval($request->input('draw')),
+            "recordsTotal" => intval($totalData),
+            "recordsFiltered" => $totalFiltered,
+            "data" => $data
+        ));
+        exit();
+    }
+
+    function toggleAdminFromAdmin(Request $request)
+    {
+        $user = Users::withTrashed()->where('id', $request->user_id)->first();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not found']);
+        }
+
+        $newStatus = $user->is_admin == 1 ? 0 : 1;
+        $user->is_admin = $newStatus;
+        $user->save();
+
+        $action = $newStatus == 1 ? 'granted admin role' : 'removed admin role';
+        return response()->json([
+            'status' => true,
+            'message' => "{$user->fullname} {$action}",
+        ]);
     }
 
     function banUserFromAdmin(Request $request)

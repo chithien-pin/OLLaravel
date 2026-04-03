@@ -23,6 +23,41 @@ $(document).ready(function () {
         },
     });
 
+    // Toggle Admin Handler
+    $(document).on("click", ".toggleAdmin", function (e) {
+        e.preventDefault();
+        var id = $(this).attr("data-id");
+        var name = $(this).attr("data-name");
+        var isAdmin = $(this).attr("data-admin") === "1";
+        var action = isAdmin ? "remove admin role from" : "grant admin role to";
+        swal({
+            title: "Are you sure you want to " + action + " " + name + "?",
+            text: isAdmin ? "This user will lose admin privileges." : "This user will be able to message anyone freely.",
+            icon: "info",
+            buttons: ["Cancel", "Yes"],
+        }).then((confirmed) => {
+            if (confirmed) {
+                $.ajax({
+                    type: "POST",
+                    url: `${domainUrl}toggleAdminFromAdmin`,
+                    dataType: "json",
+                    data: { user_id: id },
+                    success: function (response) {
+                        if (response.status) {
+                            iziToast.success({ title: "Success!", message: response.message, position: "topRight" });
+                            $("#UsersTable").DataTable().ajax.reload(null, false);
+                        } else {
+                            iziToast.error({ title: "Error", message: response.message, position: "topRight" });
+                        }
+                    },
+                    error: function () {
+                        iziToast.error({ title: "Error", message: "Failed to update admin role", position: "topRight" });
+                    },
+                });
+            }
+        });
+    });
+
     $("#UsersTable").on("click", ".addCoins", function (e) {
         e.preventDefault();
 

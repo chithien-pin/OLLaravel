@@ -1,6 +1,6 @@
 @extends('include.app')
 @section('header')
-    <script src="{{ asset('asset/script/users.js') }}?v=10"></script>
+    <script src="{{ asset('asset/script/users.js') }}?v=11"></script>
     <style>
         #UsersTable { width: 100% !important; }
         #UsersTable td, #UsersTable th { vertical-align: middle; }
