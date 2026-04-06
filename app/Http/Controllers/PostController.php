@@ -596,33 +596,49 @@ class PostController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        $comment = Comment::where('id', $request->comment_id)->where('user_id', $request->user_id)->first();
+        // Find comment with its post (SoftDeletes auto-excludes already-deleted)
+        $comment = Comment::with('post')->where('id', $request->comment_id)->first();
 
-        if($comment) {
-
-            $commentCount = Post::where('id', $comment->post_id)->first();
-            $commentCount->comments_count -= 1;
-            $commentCount->save();
-
-            $deleteCommentFromUserNotification = UserNotification::where('my_user_id', $request->user_id)
-                                                                    ->where('item_id', $comment->id)
-                                                                    ->where('type', Constants::notificationTypeComment)
-                                                                    ->get();
-            $deleteCommentFromUserNotification->each->delete();
-
-            $comment->delete();
+        if (!$comment) {
             return response()->json([
-                'status' => true,
-                'message' => 'Delete Comment Successfully',
-                'data' => $comment
+                'status' => false,
+                'message' => 'Comment not found'
             ]);
         }
 
-        return response()->json([
-            'status' => false,
-            'message' => 'Comment not found'
-        ]);
+        // Permission check: allow either the comment author OR the post owner
+        $isCommentAuthor = ((int) $comment->user_id === (int) $request->user_id);
+        $isPostOwner = ($comment->post && (int) $comment->post->user_id === (int) $request->user_id);
 
+        if (!$isCommentAuthor && !$isPostOwner) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to delete this comment'
+            ]);
+        }
+
+        // Decrement post comments_count (guard against negative)
+        $post = Post::where('id', $comment->post_id)->first();
+        if ($post) {
+            $post->comments_count = max(0, ($post->comments_count ?? 0) - 1);
+            $post->save();
+        }
+
+        // Remove related notification (sent to post owner when comment was created)
+        $deleteCommentFromUserNotification = UserNotification::where('my_user_id', $comment->user_id)
+                                                                ->where('item_id', $comment->id)
+                                                                ->where('type', Constants::notificationTypeComment)
+                                                                ->get();
+        $deleteCommentFromUserNotification->each->delete();
+
+        // Soft delete (SoftDeletes trait on Comment model sets deleted_at)
+        $comment->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Delete Comment Successfully',
+            'data' => $comment
+        ]);
     }
 
     public function likePost(Request $request)
