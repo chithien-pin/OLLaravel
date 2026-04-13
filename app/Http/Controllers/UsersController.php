@@ -254,10 +254,11 @@ class UsersController extends Controller
             ->pluck('user_id')
             ->toArray();
 
-        // Get IDs of users I'm following (for followingStatus)
+        // Get IDs of users I'm following — exclude them from explore results
         $myFollowingIds = FollowingList::where('my_user_id', $request->user_id)
             ->pluck('user_id')
             ->toArray();
+        $blockedUsers = array_merge($blockedUsers, $myFollowingIds);
 
         // Track recently shown profiles to reduce close repetition
         $cacheKey = "explore_shown_{$request->user_id}";
