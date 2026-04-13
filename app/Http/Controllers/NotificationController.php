@@ -649,6 +649,8 @@ class NotificationController extends Controller
                     'user' => $notification->user,
                     'title' => $notification->title,
                     'message' => $notification->message,
+                    'post_thumbnail' => $notification->post_thumbnail,
+                    'post_id_resolved' => $notification->post_id_resolved,
                     'created_at' => $notification->created_at,
                     'updated_at' => $notification->updated_at,
                 ];

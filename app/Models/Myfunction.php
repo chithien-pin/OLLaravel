@@ -31,6 +31,11 @@ class Myfunction extends Model
         $url = 'https://fcm.googleapis.com/v1/projects/'.$json['project_id'].'/messages:send';
         $notificationArray = array('title' => $title, 'body' => $message);
 
+        // Add image to notification if provided in eventData
+        if ($eventData !== null && isset($eventData['notification_image'])) {
+            $notificationArray['image'] = $eventData['notification_image'];
+        }
+
         $device_token = $token;
 
         // Increment badge count for user

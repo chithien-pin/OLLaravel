@@ -16,7 +16,7 @@ class UserNotification extends Model
     ];
 
     // Append title và message vào JSON response
-    protected $appends = ['title', 'message'];
+    protected $appends = ['title', 'message', 'post_thumbnail', 'post_id_resolved'];
 
     // Sender user (người gửi notification) - withTrashed để hiển thị cả user đã bị xoá
     public function user()
@@ -69,8 +69,66 @@ class UserNotification extends Model
         $key = $messageKeys[$this->type] ?? '';
         if (empty($key)) return '';
 
+        // Type 2 (Comment): return comment text directly (truncated)
+        if ($this->type == 2 && $this->item_id) {
+            $comment = Comment::withTrashed()->find($this->item_id);
+            if ($comment && $comment->description) {
+                $text = $comment->description;
+                return mb_strlen($text) > 50 ? mb_substr($text, 0, 50) . '...' : $text;
+            }
+            return '';
+        }
+
         return TranslationService::forUser($receiver, $key, [
             'name' => $senderName
         ]);
+    }
+
+    // Generate post thumbnail URL for post-related notifications (like, comment)
+    public function getPostThumbnailAttribute()
+    {
+        $postId = null;
+
+        if ($this->type == 3 && $this->item_id) {
+            // Type 3 (Like): item_id = post_id
+            $postId = $this->item_id;
+        } elseif ($this->type == 2 && $this->item_id) {
+            // Type 2 (Comment): item_id = comment_id → get post_id
+            $comment = Comment::withTrashed()->find($this->item_id);
+            $postId = $comment ? $comment->post_id : null;
+        }
+
+        if (!$postId) return null;
+
+        $media = PostMedia::where('post_id', $postId)
+            ->orderBy('sort_order')
+            ->first();
+
+        if (!$media) return null;
+
+        // Video: use r2_thumbnail_url
+        if ($media->media_type == 1) {
+            return $media->r2_thumbnail_url;
+        }
+
+        // Image: use gallery_path with base URL
+        if ($media->gallery_path) {
+            return url('storage/' . $media->gallery_path);
+        }
+
+        return null;
+    }
+
+    // Resolve post_id for post-related notifications
+    public function getPostIdResolvedAttribute()
+    {
+        if ($this->type == 3 && $this->item_id) {
+            return $this->item_id; // item_id IS the post_id
+        }
+        if ($this->type == 2 && $this->item_id) {
+            $comment = Comment::withTrashed()->find($this->item_id);
+            return $comment ? $comment->post_id : null;
+        }
+        return null;
     }
 }

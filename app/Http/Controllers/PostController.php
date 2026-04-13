@@ -26,6 +26,15 @@ use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
+    private function getPostThumbnailUrl($postId)
+    {
+        $media = PostMedia::where('post_id', $postId)->orderBy('sort_order')->first();
+        if (!$media) return null;
+        if ($media->media_type == 1) return $media->r2_thumbnail_url;
+        if ($media->gallery_path) return url('storage/' . $media->gallery_path);
+        return null;
+    }
+
     public function posts()
     {
         return view('posts');
@@ -515,7 +524,13 @@ class PostController extends Controller
                             'name' => $user->fullname,
                             'comment' => substr($request->description, 0, 50)
                         ]);
-                        Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token, null, $toUser->id);
+                        $thumbUrl = $this->getPostThumbnailUrl($post->id);
+                        Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token, [
+                            'event_type' => 'post_comment',
+                            'post_id' => $post->id,
+                            'comment_id' => $comment->id,
+                            'notification_image' => $thumbUrl,
+                        ], $toUser->id);
                     }
                 }
 
@@ -683,7 +698,12 @@ class PostController extends Controller
                             $notificationDesc = TranslationService::forUser($toUser, 'notification.post_like', [
                                 'name' => $user->fullname
                             ]);
-                            Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token, null, $toUser->id);
+                            $thumbUrl = $this->getPostThumbnailUrl($request->post_id);
+                            Myfunction::sendPushToUser($title, $notificationDesc, $toUser->device_token, [
+                                'event_type' => 'post_like',
+                                'post_id' => $request->post_id,
+                                'notification_image' => $thumbUrl,
+                            ], $toUser->id);
                         }
                     }
 
