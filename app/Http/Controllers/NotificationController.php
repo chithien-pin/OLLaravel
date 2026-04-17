@@ -9,6 +9,7 @@ use App\Models\UserNotification;
 use App\Models\FollowingList;
 use App\Models\Friend;
 use App\Models\Users;
+use App\Services\TranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -181,8 +182,6 @@ class NotificationController extends Controller
     {
         $rules = [
             'streamer_user_id' => 'required',
-            'title' => 'required',
-            'body' => 'required',
             'live_stream_data' => 'required'
         ];
 
@@ -192,9 +191,18 @@ class NotificationController extends Controller
         }
 
         $streamerUserId = $request->streamer_user_id;
-        $title = $request->title;
-        $body = $request->body;
         $liveStreamData = $request->live_stream_data;
+
+        // Fetch streamer to get name for localized body
+        $streamer = Users::find($streamerUserId);
+        if (!$streamer) {
+            return response()->json(['status' => false, 'message' => 'Streamer not found']);
+        }
+        $streamerName = $streamer->fullname ?? '';
+
+        // Optional: custom stream title from client (streamer's chosen title).
+        // If provided & non-empty, used as body override. Otherwise localize per recipient.
+        $customStreamTitle = trim((string) $request->input('custom_stream_title', ''));
 
         // Collect unique user IDs to notify (followers + friends, no duplicates)
         $userIdsToNotify = collect();
@@ -251,6 +259,12 @@ class NotificationController extends Controller
             if (!$user->device_token || $user->is_notification != 1) {
                 continue;
             }
+
+            // Build title/body in RECIPIENT's language
+            $title = TranslationService::forUser($user, 'notification.title.app');
+            $body = $customStreamTitle !== ''
+                ? $customStreamTitle
+                : TranslationService::forUser($user, 'notification.livestream', ['name' => $streamerName]);
 
             if ($this->sendSingleLivestreamNotification($user->device_token, $title, $body, $liveStreamData, $user->id)) {
                 $successCount++;
