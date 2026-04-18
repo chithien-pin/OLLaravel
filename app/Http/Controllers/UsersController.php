@@ -262,6 +262,12 @@ class UsersController extends Controller
 
         // Track recently shown profiles to reduce close repetition
         $cacheKey = "explore_shown_{$request->user_id}";
+
+        // Client-triggered reset: clear recently-shown cache to restart cycle
+        if ($request->boolean('reset')) {
+            Cache::forget($cacheKey);
+        }
+
         $recentlyShown = Cache::get($cacheKey, []);
 
         // Base query builder (reusable)
@@ -331,23 +337,10 @@ class UsersController extends Controller
             $profiles = $baseQuery(true)->inRandomOrder()->limit($limit)->get();
         }
 
-        // No fill - never return previously shown profiles
-        // Only reset cycle when all fresh profiles are exhausted
-        if ($profiles->isEmpty()) {
-            Cache::forget($cacheKey);
-            $recentlyShown = [];
-
-            $profiles = $getWithFilters($baseQuery(false))->get();
-
-            if ($profiles->isEmpty() && $genderPreference != 3) {
-                $profiles = $baseQuery(false)
-                    ->where('gender', $genderPreference)
-                    ->inRandomOrder()->limit($limit)->get();
-            }
-            if ($profiles->isEmpty()) {
-                $profiles = $baseQuery(false)->inRandomOrder()->limit($limit)->get();
-            }
-        }
+        // When all fresh profiles are exhausted, return empty so the client can
+        // show the "No more profiles" dialog. The client may then call this
+        // endpoint again with reset=1 to explicitly cycle through previously
+        // shown profiles (cache is cleared at the top of this method).
 
         // Update cache: accumulate shown IDs, auto-expire after 10 minutes
         $newShown = array_merge($recentlyShown, $profiles->pluck('id')->toArray());
