@@ -17,6 +17,7 @@ use App\Models\LikedProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class SuggestionController extends Controller
 {
@@ -49,13 +50,42 @@ class SuggestionController extends Controller
 
         $start = $request->start;
         $limit = $request->limit;
-        $minResults = 10; // Minimum results to return
 
-        // Get excluded user IDs (dismissed, blocked, already following)
+        // Fresh exclude list (self, dismissed, following, blocked) — ALWAYS computed fresh
+        // so newly-followed/dismissed/blocked users are filtered out even if cached ranking
+        // still contains them.
         $excludeUserIds = $this->getExcludedUserIds($request->user_id, null);
 
-        // Use automatic fallback strategy to get suggestions
-        $suggestions = $this->getSuggestionsWithFallback($user, $excludeUserIds, $start, $limit, $minResults);
+        // ===== Cached RANKING (ordered candidate IDs only — NOT user data) =====
+        // The expensive part is scoring all candidates and sorting. We do it once per
+        // 10-minute window per user and cache only the ordered ID list. Each page then
+        // slices this stable list and enriches ONLY that page's ~10 users with fresh data.
+        $cacheKey = "suggest_ranking_{$request->user_id}";
+        if ($start == 0 || !Cache::has($cacheKey)) {
+            // Fresh ranking on first page / pull-refresh / cache miss
+            $orderedIds = $this->computeRankedCandidateIds($user, $excludeUserIds);
+            Cache::put($cacheKey, $orderedIds, now()->addMinutes(10));
+        } else {
+            $orderedIds = Cache::get($cacheKey, []);
+            if (empty($orderedIds)) {
+                $orderedIds = $this->computeRankedCandidateIds($user, $excludeUserIds);
+                Cache::put($cacheKey, $orderedIds, now()->addMinutes(10));
+            }
+        }
+
+        // Stable slice by position (start maps directly to ranking position)
+        $pageIds = array_slice($orderedIds, $start, $limit);
+
+        // Fresh filter: drop anyone newly excluded since the ranking was cached
+        $pageIds = array_values(array_diff($pageIds, $excludeUserIds));
+
+        // Liked users for is_like flag (cheap, fresh)
+        $likedUsers = \App\Models\LikedProfile::where('my_user_id', $user->id)
+            ->pluck('user_id')
+            ->toArray();
+
+        // Enrich ONLY this page's users (full role/package/context/posts) — fast (~10 users)
+        $suggestions = $this->enrichPageUsers($user, $pageIds, $likedUsers);
 
         // Apply VIP-based visibility restrictions
         $suggestions = $this->applyVipVisibilityRestrictions($user, $suggestions, $start);
@@ -72,8 +102,8 @@ class SuggestionController extends Controller
             }
         }
 
-        // Get total count for pagination
-        $totalCount = $this->getTotalSuggestionsCount($user, $excludeUserIds);
+        // Total = size of the cached ranking (accurate to what's actually suggestable)
+        $totalCount = count($orderedIds);
 
         return response()->json([
             'status' => true,
@@ -84,7 +114,7 @@ class SuggestionController extends Controller
                 'limit' => $limit,
                 'count' => $suggestions->count(),
                 'total' => $totalCount,
-                'has_more' => ($start + $suggestions->count()) < $totalCount
+                'has_more' => ($start + $limit) < $totalCount
             ]
         ]);
     }
@@ -211,6 +241,9 @@ class SuggestionController extends Controller
             $request->reason,
             $hideDurationDays
         );
+
+        // Invalidate cached ranking so dismissed user no longer counts in total
+        Cache::forget("suggest_ranking_{$request->user_id}");
 
         // Log feedback for analytics
         UserSuggestionFeedback::logAction(
@@ -358,6 +391,176 @@ class SuggestionController extends Controller
         }
 
         return array_unique($excludeIds);
+    }
+
+    /**
+     * Compute the full ranked list of candidate IDs (ordered by score).
+     * LIGHTWEIGHT: only scores candidates (no role/package badges, no posts gallery,
+     * no context users). Used to build the cached ranking. Heavy enrichment happens
+     * per-page in enrichPageUsers() for only ~10 users.
+     */
+    private function computeRankedCandidateIds($user, $excludeUserIds)
+    {
+        $minResults = 10;
+        $strategies = [
+            ['use_location' => true, 'location_radius' => 100],
+            ['use_location' => true, 'location_radius' => 500],
+            ['use_location' => false],
+        ];
+
+        $lastIds = [];
+        foreach ($strategies as $filters) {
+            $ids = $this->scoreCandidateIds($user, $excludeUserIds, $filters);
+            if (count($ids) >= $minResults) {
+                return $ids;
+            }
+            if (count($ids) > count($lastIds)) {
+                $lastIds = $ids;
+            }
+        }
+        return $lastIds;
+    }
+
+    /**
+     * Score candidates under given filters and return ordered IDs (no enrichment).
+     */
+    private function scoreCandidateIds($user, $excludeUserIds, $filters)
+    {
+        $query = Users::where('is_block', 0)
+            ->whereNotIn('id', $excludeUserIds)
+            ->with(['images', 'activeRole']); // only what scoring needs
+
+        if (($filters['use_location'] ?? false) && $user->lattitude && $user->longitude) {
+            $lat = floatval($user->lattitude);
+            $lng = floatval($user->longitude);
+            $radius = $filters['location_radius'] ?? 100;
+            $query->whereNotNull('lattitude')
+                ->whereNotNull('longitude')
+                ->whereRaw("
+                    (6371 * acos(cos(radians(?)) * cos(radians(lattitude)) *
+                    cos(radians(longitude) - radians(?)) + sin(radians(?)) *
+                    sin(radians(lattitude)))) <= ?
+                ", [$lat, $lng, $lat, $radius]);
+        }
+
+        $candidates = $query->get();
+        $candidateIds = $candidates->pluck('id')->toArray();
+        if (empty($candidateIds)) {
+            return [];
+        }
+
+        // Only data SCORING needs (mutual friends count + recent posts count)
+        $mutualFriendsData = $this->batchGetMutualFriends($user->id, $candidateIds);
+        $recentPostsCounts = Post::whereIn('user_id', $candidateIds)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('user_id, COUNT(*) as count')
+            ->groupBy('user_id')
+            ->pluck('count', 'user_id')
+            ->toArray();
+
+        $scored = $candidates->map(function ($candidate) use ($user, $filters, $mutualFriendsData, $recentPostsCounts) {
+            $mutualFriendIds = $mutualFriendsData[$candidate->id] ?? [];
+            $recentPostsCount = $recentPostsCounts[$candidate->id] ?? 0;
+            $score = $this->calculateScoreOptimized($user, $candidate, $filters, count($mutualFriendIds), $recentPostsCount);
+            $candidate->suggestion_score = $score['total_score'];
+            return $candidate;
+        });
+
+        // Stable sort: score DESC, id ASC (deterministic → stable pagination)
+        return $scored->sort(function ($a, $b) {
+            if ($b->suggestion_score != $a->suggestion_score) {
+                return $b->suggestion_score <=> $a->suggestion_score;
+            }
+            return $a->id <=> $b->id;
+        })->pluck('id')->values()->toArray();
+    }
+
+    /**
+     * Fully enrich a page of candidate IDs (preserving order) with role/package,
+     * context, recent posts, and relationship flags. Heavy work but only for ~10 users.
+     */
+    private function enrichPageUsers($user, $pageIds, $likedUsers)
+    {
+        if (empty($pageIds)) {
+            return collect([]);
+        }
+
+        $byId = Users::whereIn('id', $pageIds)
+            ->where('is_block', 0)
+            ->with(['images', 'activeRole', 'activePackage'])
+            ->get()
+            ->keyBy('id');
+
+        // Preserve ranking order
+        $ordered = collect($pageIds)
+            ->map(fn($id) => $byId->get($id))
+            ->filter()
+            ->values();
+
+        $orderedIds = $ordered->pluck('id')->toArray();
+        if (empty($orderedIds)) {
+            return collect([]);
+        }
+
+        // Batch lookups for just these ~10 users (fast)
+        $followersOfCurrentUser = FollowingList::where('user_id', $user->id)->pluck('my_user_id')->toArray();
+        $myFollowingIds = FollowingList::where('my_user_id', $user->id)->pluck('user_id')->toArray();
+        $mutualFriendsData = $this->batchGetMutualFriends($user->id, $orderedIds);
+        $followedByFriendsData = $this->batchGetFollowedByFriends($orderedIds, $myFollowingIds);
+        $recentPostsCounts = Post::whereIn('user_id', $orderedIds)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('user_id, COUNT(*) as count')
+            ->groupBy('user_id')
+            ->pluck('count', 'user_id')
+            ->toArray();
+        $recentPostsData = $this->batchGetRecentPosts($orderedIds, 4);
+        $allContextUserIds = collect($mutualFriendsData)->flatten()
+            ->merge(collect($followedByFriendsData)->flatten())
+            ->unique()->values()->toArray();
+        $contextUsersInfo = $this->batchGetUsersInfo($allContextUserIds);
+        $friendsData = $this->batchCheckFriends($user->id, $orderedIds);
+        $likedMeData = $this->batchCheckLikedMe($user->id, $orderedIds);
+
+        $useLocation = ($user->lattitude && $user->longitude);
+
+        return $ordered->map(function ($candidate) use (
+            $user, $likedUsers, $followersOfCurrentUser, $myFollowingIds, $useLocation,
+            $mutualFriendsData, $followedByFriendsData, $recentPostsCounts, $contextUsersInfo,
+            $friendsData, $likedMeData, $recentPostsData
+        ) {
+            $candidateId = $candidate->id;
+            $mutualFriendIds = $mutualFriendsData[$candidateId] ?? [];
+            $followedByIds = $followedByFriendsData[$candidateId] ?? [];
+            $recentPostsCount = $recentPostsCounts[$candidateId] ?? 0;
+
+            $score = $this->calculateScoreOptimized($user, $candidate, ['use_location' => $useLocation], count($mutualFriendIds), $recentPostsCount);
+            $candidate->suggestion_score = $score['total_score'];
+            $candidate->suggestion_reason = $score['primary_reason'];
+
+            $candidate->current_role_type = $candidate->getCurrentRoleType();
+            $candidate->is_vip_user = $candidate->isVip();
+            $candidate->current_package_type = $candidate->getCurrentPackageType();
+            $candidate->has_package = $candidate->hasPackage();
+            $candidate->is_millionaire = $candidate->isMillionaire();
+            $candidate->is_billionaire = $candidate->isBillionaire();
+            $candidate->is_celebrity = $candidate->isCelebrity();
+            $candidate->package_badge_color = $candidate->getPackageBadgeColor();
+
+            $candidate->is_like = in_array($candidateId, $likedUsers);
+            $candidate->is_following_me = in_array($candidateId, $followersOfCurrentUser);
+            $candidate->is_friend = in_array($candidateId, $friendsData);
+            $candidate->is_liked_me = in_array($candidateId, $likedMeData);
+
+            $contextData = $this->buildContextFromPrefetched(
+                $mutualFriendIds, $followedByIds, $contextUsersInfo, $candidate->suggestion_reason
+            );
+            $candidate->suggestion_context_type = $contextData['type'];
+            $candidate->suggestion_context_users = $contextData['users'];
+
+            $candidate->recent_posts = $recentPostsData[$candidateId] ?? [];
+
+            return $candidate;
+        })->values();
     }
 
     /**
