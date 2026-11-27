@@ -5,7 +5,9 @@
 /public/storage
 /storage/*.key
 /vendor
+.env
 .env.backup
+.env.production
 Homestead.json
 Homestead.yaml
 auth.json
@@ -13,6 +15,7 @@ npm-debug.log
 yarn-error.log
 /.fleet
 /.idea
+/.vscode
 *.lock
 package-lock.json*.json
 gypsylive-fca27-firebase-adminsdk-fbsvc-ffcfb70ff8.json
